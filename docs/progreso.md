@@ -7,70 +7,80 @@
 ## Estado general
 
 ```
-Fase actual: Fase 1 MVP — en progreso
-Próximo paso: Auth staff + Panel admin básico + Agente IA
+Fase actual: Fase 1 MVP — COMPLETA
+Próximo paso: Deploy a producción + testeo end-to-end
 ```
 
 ---
 
 ## Hecho
 
-- [x] AGENTS.md — visión, 10 módulos, modelo de datos, reglas críticas
-- [x] CLAUDE.md — reglas de trabajo
-- [x] docs/progreso.md
+- [x] AGENTS.md, CLAUDE.md, docs/
 
-- [x] **Scaffold**
-  - [x] Estructura de carpetas completa
-  - [x] Next.js 14 + TypeScript + Tailwind + Supabase client
-  - [x] FastAPI con todos los routers stub
-  - [x] Migraciones SQL 001, 002, 003
-  - [x] `.env` y `.env.local` con variables reales (Supabase configurado)
-  - [x] `.gitignore`
-  - [x] Dockerfile backend
-  - [x] Store Zustand identidad progresiva
-  - [x] Types: Paciente, Turno, Caso
+- [x] **Scaffold completo**
+  - Next.js 14 + TypeScript + Tailwind + Supabase client
+  - FastAPI con todos los routers
+  - Migraciones SQL 001, 002, 003 ejecutadas en Supabase
+  - Zustand (identidadStore + authStore)
 
-- [x] **Infraestructura**
-  - [x] Proyecto Supabase creado (instancia en la nube)
-  - [x] Migraciones ejecutadas en Supabase (001, 002, 003)
-  - [x] Backend corriendo en puerto 8001
-  - [x] `@supabase/supabase-js` + `@supabase/ssr` instalados en frontend
+- [x] **Frontend — UI**
+  - Landing page moderna (hero dark, glassmorphism, clip-path, animaciones)
+  - ChatWidget flotante conectado a IA real
 
-- [x] **Frontend — Diseño y UI**
-  - [x] Paleta dental (teal) + globals.css con animaciones, glassmorphism, clip-path
-  - [x] Landing page completa: hero dark, stats, servicios, cómo funciona, galería preview, testimonios, CTA, FAQ, footer
-  - [x] ChatWidget flotante (demo funcional con respuestas simuladas)
-  - [x] Admin dashboard mockup: KPIs, agenda del día, alarmas, CRM pipeline mini
+- [x] **M5 — Flujo de turnos completo**
+  - `GET /turnos/disponibles` — slots reales con lógica de negocio
+  - `POST /turnos/` — crea paciente (identidad progresiva), turno y alarma
+  - Página `/turnos` en 3 pasos conectada a la API real
 
-- [x] **Flujo de turnos (M5) — COMPLETO**
-  - [x] Backend: `GET /turnos/disponibles` — slots reales con lógica de negocio
-    - Horarios lun–vie 09:00–19:00, sábado hasta 13:00, domingo cerrado
-    - Duración configurable por tipo de tratamiento
-    - Excluye slots ocupados por turnos existentes (considera superposición)
-    - Bloquea slots pasados si la fecha es hoy
-  - [x] Backend: `POST /turnos/` — crea paciente si no existe, inserta turno, crea alarma admin
-    - Identidad progresiva: busca por teléfono, crea si es nuevo
-    - Score automático (+30 al agendar)
-    - Estado del paciente → `turno_agendado`
-  - [x] Frontend: `lib/api/turnos.ts` — cliente HTTP para la API
-  - [x] Frontend: página `/turnos` conectada con API real
-    - Paso 1: selección de tratamiento
-    - Paso 2: selector de días hábiles + slots reales desde API (con loading/error states)
-    - Paso 3: formulario nombre + teléfono + notas, submit real a la API
-    - Paso 4: confirmación con resumen + link WhatsApp pre-armado
+- [x] **Auth staff (M10)**
+  - `POST /auth/login` — Supabase Auth
+  - Página `/admin/login` con diseño dark + glassmorphism
+  - `authStore` (Zustand + persist)
+  - `app/admin/layout.tsx` — protección de rutas admin
+  - `middleware.ts` — matcher para rutas admin
 
----
+- [x] **Panel admin (M10)**
+  - `GET /admin/turnos?fecha=` — con filtro por día
+  - `PATCH /admin/turnos/{id}` — cambiar estado (selector inline)
+  - `GET /admin/pacientes` — listado con pipeline CRM
+  - `GET /alarmas/` — alarmas activas
+  - `PATCH /admin/alarmas/{id}/resolver`
+  - Dashboard real: KPIs dinámicos, agenda del día con estado editable, alarmas con botón resolver, pipeline CRM real
+  - Link WhatsApp pre-armado por turno
 
-## Próximo paso: Fase 1 MVP (continuar)
+- [x] **Agente IA (M1)**
+  - `POST /agente/mensaje` — Gemini 2.0 Flash con system prompt dental
+  - ChatWidget conectado a la API real (con fallback si no hay GEMINI_API_KEY)
+  - Historial de conversación por sesión en DB
 
-- [ ] **Auth staff** — login con Supabase, hook useAuth, página /login
-- [ ] **Panel admin básico** — agenda real + pacientes + alarmas (conectar con DB)
-- [ ] **Agente IA** — widget flotante funcional con Gemini Flash
-- [ ] **RLS policies** — ajustar para que el service role pueda insertar pacientes/turnos sin auth
+- [x] **Producción**
+  - `docker-compose.prod.yml` — servicio dentales-backend en puerto 8001
+  - `nginx/dentales.conf` — reverse proxy con SSL ready
+  - `deploy.sh` — script de deploy con healthcheck
+  - `.github/workflows/deploy.yml` — CI/CD automático
+  - `docs/produccion.md` — guía completa de setup
 
 ---
 
-## Bloqueado / Pendiente revisar
+## Próximo paso: Deploy + Fase 2
 
-- RLS activo en `pacientes` y `turnos`: el backend usa `service_role` que bypassea RLS → OK para crear turnos desde el flujo público. Verificar que funciona en producción.
-- `SUPABASE_SERVICE_ROLE_KEY` en backend/.env: asegurarse de que sea la key `service_role` (no la `anon`).
+### Deploy inmediato
+- [ ] Clonar repo en VPS
+- [ ] Configurar secrets en GitHub (VPS_HOST, VPS_USER, VPS_SSH_KEY)
+- [ ] Correr setup nginx en VPS
+- [ ] Importar proyecto en Vercel con variables de entorno de producción
+- [ ] Primer push → verificar deploy automático
+
+### Fase 2 (post-lanzamiento)
+- [ ] CRM kanban (M4)
+- [ ] Galería casos antes/después (M9)
+- [ ] Diagnóstico digital IA (M2)
+- [ ] Sistema de seguimiento automático (M7)
+
+---
+
+## Notas técnicas
+
+- El backend usa `service_role` key → bypassea RLS → puede crear pacientes/turnos sin auth de usuario
+- El agente funciona sin GEMINI_API_KEY (devuelve mensaje de fallback con link a WhatsApp)
+- Para probar el admin: crear usuario en Supabase Auth + insertar en tabla `usuarios`

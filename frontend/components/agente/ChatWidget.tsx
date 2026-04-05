@@ -1,82 +1,82 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
+import { v4 as uuidv4 } from 'uuid'
+import { enviarMensaje } from '@/lib/api/agente'
+import { useIdentidad } from '@/store/identidadStore'
 
-type Mensaje = {
-  id: number
-  texto: string
-  esBot: boolean
+type Mensaje = { id: string; texto: string; esBot: boolean }
+
+const SALUDO: Mensaje = {
+  id: 'saludo',
+  texto: '¡Hola! Soy la asistente virtual del consultorio. ¿En qué puedo ayudarte hoy? 😊',
+  esBot: true,
 }
 
-const mensajesIniciales: Mensaje[] = [
-  {
-    id: 1,
-    texto: '¡Hola! Soy la asistente virtual del consultorio. ¿En qué puedo ayudarte hoy? 😊',
-    esBot: true,
-  },
-]
-
-const respuestasRapidas = [
+const RESPUESTAS_RAPIDAS = [
   'Quiero agendar un turno',
   'Precios y tratamientos',
-  'Tengo dolor urgente',
+  'Tengo dolor, es urgente',
 ]
 
 export default function ChatWidget() {
+  const { sessionId, pacienteId } = useIdentidad()
   const [abierto, setAbierto] = useState(false)
-  const [mensajes, setMensajes] = useState<Mensaje[]>(mensajesIniciales)
+  const [mensajes, setMensajes] = useState<Mensaje[]>([SALUDO])
   const [input, setInput] = useState('')
   const [escribiendo, setEscribiendo] = useState(false)
   const [mostrarBurbuja, setMostrarBurbuja] = useState(true)
   const bottomRef = useRef<HTMLDivElement>(null)
 
+  // Generar sessionId estable (el store ya lo persiste, pero por si no está hidratado)
+  const sessionIdRef = useRef(sessionId || uuidv4())
+
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [mensajes, escribiendo])
 
-  // Ocultar burbuja después de 4s
   useEffect(() => {
-    const t = setTimeout(() => setMostrarBurbuja(false), 4000)
+    const t = setTimeout(() => setMostrarBurbuja(false), 5000)
     return () => clearTimeout(t)
   }, [])
 
-  function enviarMensaje(texto: string) {
-    if (!texto.trim()) return
-    const nuevo: Mensaje = { id: Date.now(), texto, esBot: false }
-    setMensajes((prev) => [...prev, nuevo])
+  async function enviar(texto: string) {
+    if (!texto.trim() || escribiendo) return
+
+    const msgUsuario: Mensaje = { id: Date.now().toString(), texto, esBot: false }
+    setMensajes((prev) => [...prev, msgUsuario])
     setInput('')
     setEscribiendo(true)
 
-    setTimeout(() => {
-      setEscribiendo(false)
-      const respuesta: Mensaje = {
-        id: Date.now() + 1,
-        texto: getRespuesta(texto),
+    try {
+      const res = await enviarMensaje({
+        session_id: sessionIdRef.current,
+        mensaje: texto,
+        paciente_id: pacienteId ?? null,
+      })
+      const msgBot: Mensaje = {
+        id: (Date.now() + 1).toString(),
+        texto: res.respuesta,
         esBot: true,
       }
-      setMensajes((prev) => [...prev, respuesta])
-    }, 1200)
-  }
-
-  function getRespuesta(msg: string): string {
-    const m = msg.toLowerCase()
-    if (m.includes('turno') || m.includes('agendar')) {
-      return 'Perfecto, puedo ayudarte a agendar un turno. ¿Cuál es tu nombre y número de teléfono?'
+      setMensajes((prev) => [...prev, msgBot])
+    } catch {
+      const msgError: Mensaje = {
+        id: (Date.now() + 1).toString(),
+        texto: 'En este momento no puedo responder. Contactanos por WhatsApp para una respuesta inmediata.',
+        esBot: true,
+      }
+      setMensajes((prev) => [...prev, msgError])
+    } finally {
+      setEscribiendo(false)
     }
-    if (m.includes('dolor') || m.includes('urgente')) {
-      return '⚠️ Si tenés dolor agudo, te recomiendo contactar a la doctora directamente por WhatsApp para atención urgente.'
-    }
-    if (m.includes('precio') || m.includes('costo') || m.includes('tratamiento')) {
-      return 'Los precios varían según el tratamiento. Por ejemplo: blanqueamiento desde $80.000, ortodoncia desde $150.000/mes. ¿Qué tratamiento te interesa?'
-    }
-    return 'Entendido. ¿Querés que te ayude a agendar un turno para que la doctora te evalúe personalmente?'
   }
 
   return (
     <>
-      {/* Burbuja flotante de aviso */}
+      {/* Burbuja de aviso */}
       {mostrarBurbuja && !abierto && (
-        <div className="fixed bottom-24 right-6 z-50 bg-white rounded-2xl shadow-lg px-4 py-2 text-sm text-slate-700 border border-slate-100 max-w-[200px] animate-bounce">
+        <div className="fixed bottom-24 right-6 z-50 bg-white rounded-2xl shadow-lg px-4 py-2.5 text-sm text-slate-700 border border-slate-100 max-w-[200px] animate-bounce">
           ¿Necesitás turno? ¡Escribime!
           <div className="absolute bottom-[-6px] right-6 w-3 h-3 bg-white border-r border-b border-slate-100 rotate-45" />
         </div>
@@ -85,7 +85,7 @@ export default function ChatWidget() {
       {/* Botón flotante */}
       <button
         onClick={() => { setAbierto(!abierto); setMostrarBurbuja(false) }}
-        className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-teal-600 hover:bg-teal-700 text-white shadow-lg flex items-center justify-center transition-all duration-200 hover:scale-110"
+        className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-teal-600 hover:bg-teal-700 text-white shadow-lg shadow-teal-300/50 flex items-center justify-center transition-all duration-200 hover:scale-110"
         aria-label="Abrir chat"
       >
         {abierto ? (
@@ -99,41 +99,41 @@ export default function ChatWidget() {
         )}
       </button>
 
-      {/* Panel del chat */}
+      {/* Panel */}
       {abierto && (
         <div className="fixed bottom-24 right-6 z-50 w-[340px] h-[480px] bg-white rounded-2xl shadow-2xl border border-slate-100 flex flex-col overflow-hidden">
           {/* Header */}
           <div className="bg-teal-600 px-4 py-3 flex items-center gap-3">
             <div className="w-9 h-9 rounded-full bg-teal-500 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
-              SD
+              🦷
             </div>
-            <div>
-              <p className="text-white font-semibold text-sm leading-none">Soluciones Dentales</p>
-              <p className="text-teal-100 text-xs mt-0.5">Asistente virtual · En línea</p>
+            <div className="flex-1 min-w-0">
+              <p className="text-white font-bold text-sm leading-none">Soluciones Dentales</p>
+              <p className="text-teal-100 text-xs mt-0.5">Asistente virtual · IA</p>
             </div>
-            <div className="ml-auto w-2 h-2 rounded-full bg-green-400 flex-shrink-0" />
+            <div className="flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+              <span className="text-teal-100 text-xs">En línea</span>
+            </div>
           </div>
 
           {/* Mensajes */}
           <div className="flex-1 overflow-y-auto p-3 space-y-3 bg-slate-50">
             {mensajes.map((m) => (
               <div key={m.id} className={`flex ${m.esBot ? 'justify-start' : 'justify-end'}`}>
-                <div
-                  className={`max-w-[80%] px-3 py-2 rounded-2xl text-sm leading-snug ${
-                    m.esBot
-                      ? 'bg-white text-slate-700 shadow-sm rounded-tl-none'
-                      : 'bg-teal-600 text-white rounded-tr-none'
-                  }`}
-                >
+                <div className={`max-w-[82%] px-3.5 py-2.5 rounded-2xl text-sm leading-snug ${
+                  m.esBot
+                    ? 'bg-white text-slate-700 shadow-sm rounded-tl-none'
+                    : 'bg-teal-600 text-white rounded-tr-none'
+                }`}>
                   {m.texto}
                 </div>
               </div>
             ))}
 
-            {/* Typing indicator */}
             {escribiendo && (
               <div className="flex justify-start">
-                <div className="bg-white px-4 py-3 rounded-2xl rounded-tl-none shadow-sm flex gap-1">
+                <div className="bg-white px-4 py-3 rounded-2xl rounded-tl-none shadow-sm flex gap-1.5 items-center">
                   <span className="w-2 h-2 bg-teal-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
                   <span className="w-2 h-2 bg-teal-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
                   <span className="w-2 h-2 bg-teal-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
@@ -143,13 +143,13 @@ export default function ChatWidget() {
             <div ref={bottomRef} />
           </div>
 
-          {/* Respuestas rápidas */}
+          {/* Respuestas rápidas — solo al inicio */}
           {mensajes.length <= 2 && (
             <div className="px-3 py-2 bg-white border-t border-slate-100 flex gap-1.5 flex-wrap">
-              {respuestasRapidas.map((r) => (
+              {RESPUESTAS_RAPIDAS.map((r) => (
                 <button
                   key={r}
-                  onClick={() => enviarMensaje(r)}
+                  onClick={() => enviar(r)}
                   className="text-xs px-2.5 py-1.5 bg-teal-50 text-teal-700 rounded-full border border-teal-200 hover:bg-teal-100 transition-colors"
                 >
                   {r}
@@ -160,7 +160,7 @@ export default function ChatWidget() {
 
           {/* Input */}
           <form
-            onSubmit={(e) => { e.preventDefault(); enviarMensaje(input) }}
+            onSubmit={(e) => { e.preventDefault(); enviar(input) }}
             className="px-3 py-3 bg-white border-t border-slate-100 flex gap-2"
           >
             <input
@@ -168,11 +168,13 @@ export default function ChatWidget() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Escribí tu consulta..."
-              className="flex-1 text-sm px-3 py-2 rounded-full border border-slate-200 focus:outline-none focus:border-teal-400 bg-slate-50"
+              disabled={escribiendo}
+              className="flex-1 text-sm px-3 py-2 rounded-full border border-slate-200 focus:outline-none focus:border-teal-400 bg-slate-50 disabled:opacity-50"
             />
             <button
               type="submit"
-              className="w-9 h-9 flex-shrink-0 bg-teal-600 hover:bg-teal-700 text-white rounded-full flex items-center justify-center transition-colors"
+              disabled={!input.trim() || escribiendo}
+              className="w-9 h-9 flex-shrink-0 bg-teal-600 hover:bg-teal-700 text-white rounded-full flex items-center justify-center transition-colors disabled:opacity-40"
             >
               <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />

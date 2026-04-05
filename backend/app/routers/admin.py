@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from typing import Optional
 from app.db.client import get_supabase_client
 from app.routers.auth import require_admin
 from supabase import Client
@@ -17,9 +18,17 @@ async def listar_pacientes(db: Client = Depends(get_db), _: None = Depends(requi
 
 
 @router.get("/turnos")
-async def listar_turnos(db: Client = Depends(get_db), _: None = Depends(require_admin)):
-    return db.table("turnos").select("*, pacientes(nombre, telefono)") \
-        .order("fecha_hora").execute().data or []
+async def listar_turnos(
+    fecha: Optional[str] = None,
+    db: Client = Depends(get_db),
+    _: None = Depends(require_admin),
+):
+    """Lista turnos. Si se pasa fecha (YYYY-MM-DD), filtra ese día."""
+    query = db.table("turnos").select("*, pacientes(nombre, telefono)")
+    if fecha:
+        query = query.gte("fecha_hora", f"{fecha}T00:00:00") \
+                     .lte("fecha_hora", f"{fecha}T23:59:59")
+    return query.order("fecha_hora").execute().data or []
 
 
 @router.patch("/turnos/{turno_id}")
