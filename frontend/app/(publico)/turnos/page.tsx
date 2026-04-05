@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
-import { getSlots, solicitarTurno, type TurnoResponse } from '@/lib/api/turnos'
+import { getDoctores, getSlots, solicitarTurno, type Doctor, type TurnoResponse } from '@/lib/api/turnos'
 
 /* ─── CONFIG ───────────────────────────────────────────── */
 const tratamientos = [
@@ -20,10 +20,10 @@ function proximosDiasHabiles(cantidad: number): Date[] {
   const dias: Date[] = []
   const cursor = new Date()
   cursor.setHours(0, 0, 0, 0)
-  cursor.setDate(cursor.getDate() + 1) // empezar mañana
+  cursor.setDate(cursor.getDate() + 1)
 
   while (dias.length < cantidad) {
-    if (cursor.getDay() !== 0) { // 0 = domingo
+    if (cursor.getDay() !== 0) {
       dias.push(new Date(cursor))
     }
     cursor.setDate(cursor.getDate() + 1)
@@ -39,23 +39,29 @@ function toISOLocal(d: Date, hora: string): string {
   const [h, m] = hora.split(':').map(Number)
   const dt = new Date(d)
   dt.setHours(h, m, 0, 0)
-  // Ajustar a UTC-3 (Argentina)
   const offset = -3 * 60
   const utc = dt.getTime() - dt.getTimezoneOffset() * 60000
   const ar = new Date(utc + offset * 60000)
   return ar.toISOString().replace('Z', '-03:00')
 }
 
-type Paso = 1 | 2 | 3 | 4
+type Paso = 1 | 2 | 3 | 4 | 5
 
 /* ─── COMPONENT ─────────────────────────────────────────── */
 export default function TurnosPage() {
   const [paso, setPaso] = useState<Paso>(1)
 
-  // Paso 1
+  // Paso 1 — tratamiento
   const [tratamiento, setTratamiento] = useState('')
 
-  // Paso 2
+  // Paso 2 — selección de doctor (solo si hay múltiples)
+  const [doctores, setDoctores] = useState<Doctor[]>([])
+  const [loadingDoctores, setLoadingDoctores] = useState(false)
+  const [doctorId, setDoctorId] = useState<string | undefined>(undefined)
+  const [doctorNombre, setDoctorNombre] = useState('')
+  const [mostrarSelectDoctor, setMostrarSelectDoctor] = useState(false)
+
+  // Paso 3 — fecha y hora
   const dias = proximosDiasHabiles(10)
   const [diaIndex, setDiaIndex] = useState(0)
   const [slots, setSlots] = useState<string[]>([])
@@ -63,20 +69,71 @@ export default function TurnosPage() {
   const [errorSlots, setErrorSlots] = useState('')
   const [horaSeleccionada, setHoraSeleccionada] = useState('')
 
-  // Paso 3
+  // Paso 4 — datos personales
   const [nombre, setNombre] = useState('')
   const [telefono, setTelefono] = useState('')
   const [notas, setNotas] = useState('')
   const [enviando, setEnviando] = useState(false)
   const [errorEnvio, setErrorEnvio] = useState('')
 
-  // Paso 4
+  // Paso 5 — confirmación
   const [turnoConfirmado, setTurnoConfirmado] = useState<TurnoResponse | null>(null)
 
   const tratamientoObj = tratamientos.find((t) => t.id === tratamiento)
   const diaSeleccionado = dias[diaIndex]
 
-  // Fetch slots cuando cambia día o tratamiento
+  // Cuántos pasos reales hay en este flujo
+  const totalPasos = mostrarSelectDoctor ? 4 : 3
+
+  // Paso "visible" para la barra de progreso (colapsa si no hay selección de doctor)
+  function pasoVisible(): number {
+    if (!mostrarSelectDoctor) {
+      // Mapear: 1→1, 3→2, 4→3, 5→4
+      if (paso === 1) return 1
+      if (paso === 3) return 2
+      if (paso === 4) return 3
+      return paso as number
+    }
+    return paso as number
+  }
+
+  // Al confirmar tratamiento: consultar doctores disponibles
+  async function avanzarDesdeTratemiento() {
+    if (!tratamiento) return
+    setLoadingDoctores(true)
+    try {
+      const res = await getDoctores(tratamiento)
+      if (res.total === 0) {
+        // Sin doctores configurados → continuar sin filtro
+        setDoctorId(undefined)
+        setDoctorNombre('')
+        setMostrarSelectDoctor(false)
+        setPaso(3)
+      } else if (res.total === 1) {
+        // 1 doctor → auto-asignar, saltar selección
+        setDoctorId(res.doctores[0].id)
+        setDoctorNombre(res.doctores[0].nombre)
+        setMostrarSelectDoctor(false)
+        setPaso(3)
+      } else {
+        // Múltiples doctores → mostrar selector
+        setDoctores(res.doctores)
+        setDoctorId(undefined)
+        setDoctorNombre('')
+        setMostrarSelectDoctor(true)
+        setPaso(2)
+      }
+    } catch {
+      // Si falla la consulta de doctores, continuar sin filtro
+      setDoctorId(undefined)
+      setMostrarSelectDoctor(false)
+      setPaso(3)
+    } finally {
+      setLoadingDoctores(false)
+    }
+  }
+
+  // Fetch slots cuando cambia día, tratamiento o doctor
   const fetchSlots = useCallback(async () => {
     if (!tratamiento || !diaSeleccionado) return
     setLoadingSlots(true)
@@ -84,7 +141,7 @@ export default function TurnosPage() {
     setHoraSeleccionada('')
     try {
       const fecha = diaSeleccionado.toISOString().split('T')[0]
-      const res = await getSlots(fecha, tratamiento)
+      const res = await getSlots(fecha, tratamiento, doctorId)
       setSlots(res.slots)
       if (res.slots.length === 0) {
         setErrorSlots(res.mensaje ?? 'Sin disponibilidad para este día. Probá otro.')
@@ -94,10 +151,10 @@ export default function TurnosPage() {
     } finally {
       setLoadingSlots(false)
     }
-  }, [tratamiento, diaSeleccionado])
+  }, [tratamiento, diaSeleccionado, doctorId])
 
   useEffect(() => {
-    if (paso === 2) fetchSlots()
+    if (paso === 3) fetchSlots()
   }, [paso, fetchSlots])
 
   async function confirmarTurno() {
@@ -112,15 +169,19 @@ export default function TurnosPage() {
         fecha_hora: fechaHora,
         tipo_tratamiento: tratamiento,
         notas: notas.trim() || undefined,
+        usuario_id: doctorId,
       })
       setTurnoConfirmado(res)
-      setPaso(4)
+      setPaso(5)
     } catch (e: unknown) {
       setErrorEnvio(e instanceof Error ? e.message : 'Error al confirmar el turno')
     } finally {
       setEnviando(false)
     }
   }
+
+  const pasoActual = pasoVisible()
+  const esConfirmacion = paso === 5
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -133,9 +194,9 @@ export default function TurnosPage() {
             </svg>
             Soluciones Dentales
           </Link>
-          {paso < 4 && (
+          {!esConfirmacion && (
             <span className="text-xs text-slate-400 bg-slate-100 px-3 py-1 rounded-full">
-              Paso {paso} de 3
+              Paso {pasoActual} de {totalPasos}
             </span>
           )}
         </div>
@@ -143,23 +204,23 @@ export default function TurnosPage() {
 
       <div className="max-w-2xl mx-auto px-4 py-8">
         {/* Barra de progreso */}
-        {paso < 4 && (
+        {!esConfirmacion && (
           <div className="flex items-center gap-2 mb-8">
-            {[1, 2, 3].map((n) => (
+            {Array.from({ length: totalPasos }, (_, i) => i + 1).map((n) => (
               <div key={n} className="flex items-center gap-2 flex-1 last:flex-none">
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 transition-all ${
-                  paso > n ? 'bg-teal-600 text-white' :
-                  paso === n ? 'bg-teal-600 text-white ring-4 ring-teal-100' :
+                  pasoActual > n ? 'bg-teal-600 text-white' :
+                  pasoActual === n ? 'bg-teal-600 text-white ring-4 ring-teal-100' :
                   'bg-slate-200 text-slate-400'
                 }`}>
-                  {paso > n ? (
+                  {pasoActual > n ? (
                     <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                     </svg>
                   ) : n}
                 </div>
-                {n < 3 && (
-                  <div className={`flex-1 h-1 rounded-full transition-colors ${paso > n ? 'bg-teal-600' : 'bg-slate-200'}`} />
+                {n < totalPasos && (
+                  <div className={`flex-1 h-1 rounded-full transition-colors ${pasoActual > n ? 'bg-teal-600' : 'bg-slate-200'}`} />
                 )}
               </div>
             ))}
@@ -189,22 +250,92 @@ export default function TurnosPage() {
               ))}
             </div>
             <button
-              disabled={!tratamiento}
-              onClick={() => setPaso(2)}
-              className="w-full mt-6 bg-teal-600 text-white py-3.5 rounded-full font-bold disabled:opacity-40 disabled:cursor-not-allowed hover:bg-teal-700 transition-colors shadow-md shadow-teal-200"
+              disabled={!tratamiento || loadingDoctores}
+              onClick={avanzarDesdeTratemiento}
+              className="w-full mt-6 bg-teal-600 text-white py-3.5 rounded-full font-bold disabled:opacity-40 disabled:cursor-not-allowed hover:bg-teal-700 transition-colors shadow-md shadow-teal-200 flex items-center justify-center gap-2"
             >
-              Continuar →
+              {loadingDoctores ? (
+                <>
+                  <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+                  </svg>
+                  Cargando...
+                </>
+              ) : 'Continuar →'}
             </button>
           </div>
         )}
 
-        {/* ── PASO 2: Fecha y hora ── */}
+        {/* ── PASO 2: Elegir doctor (solo si hay múltiples) ── */}
         {paso === 2 && (
           <div>
-            <h1 className="text-2xl font-black text-slate-800 mb-1">Elegí fecha y hora</h1>
+            <h1 className="text-2xl font-black text-slate-800 mb-1">Elegí tu odontólogo</h1>
             <p className="text-slate-400 text-sm mb-6">
               {tratamientoObj?.icono} {tratamientoObj?.label} · {tratamientoObj?.duracion}
             </p>
+
+            <div className="space-y-3">
+              {doctores.map((doc) => (
+                <button
+                  key={doc.id}
+                  onClick={() => {
+                    setDoctorId(doc.id)
+                    setDoctorNombre(doc.nombre)
+                  }}
+                  className={`w-full p-4 rounded-2xl border-2 text-left transition-all flex items-center gap-4 ${
+                    doctorId === doc.id
+                      ? 'border-teal-500 bg-teal-50 shadow-md shadow-teal-100'
+                      : 'border-slate-200 bg-white hover:border-teal-200 hover:shadow-sm'
+                  }`}
+                >
+                  <div className={`w-12 h-12 rounded-full flex items-center justify-center text-lg font-bold flex-shrink-0 ${
+                    doctorId === doc.id ? 'bg-teal-600 text-white' : 'bg-slate-100 text-slate-500'
+                  }`}>
+                    {doc.nombre.charAt(0).toUpperCase()}
+                  </div>
+                  <div>
+                    <p className="font-semibold text-slate-800">{doc.nombre}</p>
+                    <p className="text-slate-400 text-sm">{tratamientoObj?.label}</p>
+                  </div>
+                  {doctorId === doc.id && (
+                    <svg className="ml-auto text-teal-600 w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                  )}
+                </button>
+              ))}
+            </div>
+
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={() => setPaso(1)}
+                className="px-5 py-3 rounded-full border border-slate-200 text-slate-600 font-medium hover:border-slate-300 transition-colors"
+              >
+                ← Volver
+              </button>
+              <button
+                disabled={!doctorId}
+                onClick={() => setPaso(3)}
+                className="flex-1 bg-teal-600 text-white py-3 rounded-full font-bold disabled:opacity-40 disabled:cursor-not-allowed hover:bg-teal-700 transition-colors shadow-md shadow-teal-200"
+              >
+                Continuar →
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* ── PASO 3: Fecha y hora ── */}
+        {paso === 3 && (
+          <div>
+            <h1 className="text-2xl font-black text-slate-800 mb-1">Elegí fecha y hora</h1>
+            <p className="text-slate-400 text-sm mb-1">
+              {tratamientoObj?.icono} {tratamientoObj?.label} · {tratamientoObj?.duracion}
+            </p>
+            {doctorNombre && (
+              <p className="text-teal-600 text-sm font-medium mb-5">👨‍⚕️ {doctorNombre}</p>
+            )}
+            {!doctorNombre && <div className="mb-5" />}
 
             {/* Selector de días */}
             <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Próximos días disponibles</p>
@@ -256,14 +387,14 @@ export default function TurnosPage() {
 
             <div className="flex gap-3 mt-6">
               <button
-                onClick={() => setPaso(1)}
+                onClick={() => setPaso(mostrarSelectDoctor ? 2 : 1)}
                 className="px-5 py-3 rounded-full border border-slate-200 text-slate-600 font-medium hover:border-slate-300 transition-colors"
               >
                 ← Volver
               </button>
               <button
                 disabled={!horaSeleccionada}
-                onClick={() => setPaso(3)}
+                onClick={() => setPaso(4)}
                 className="flex-1 bg-teal-600 text-white py-3 rounded-full font-bold disabled:opacity-40 disabled:cursor-not-allowed hover:bg-teal-700 transition-colors shadow-md shadow-teal-200"
               >
                 Confirmar horario →
@@ -272,8 +403,8 @@ export default function TurnosPage() {
           </div>
         )}
 
-        {/* ── PASO 3: Datos personales ── */}
-        {paso === 3 && (
+        {/* ── PASO 4: Datos personales ── */}
+        {paso === 4 && (
           <div>
             <h1 className="text-2xl font-black text-slate-800 mb-1">Tus datos</h1>
             <p className="text-slate-400 text-sm mb-6">Sin registro — solo nombre y teléfono</p>
@@ -286,6 +417,9 @@ export default function TurnosPage() {
                 &nbsp;·&nbsp;
                 {formatFechaDisplay(diaSeleccionado)} a las {horaSeleccionada}
               </p>
+              {doctorNombre && (
+                <p className="text-teal-600 text-xs mt-1">👨‍⚕️ {doctorNombre}</p>
+              )}
             </div>
 
             <div className="space-y-4">
@@ -336,7 +470,7 @@ export default function TurnosPage() {
 
             <div className="flex gap-3 mt-6">
               <button
-                onClick={() => setPaso(2)}
+                onClick={() => setPaso(3)}
                 className="px-5 py-3 rounded-full border border-slate-200 text-slate-600 font-medium hover:border-slate-300 transition-colors"
               >
                 ← Volver
@@ -364,8 +498,8 @@ export default function TurnosPage() {
           </div>
         )}
 
-        {/* ── PASO 4: Confirmación ── */}
-        {paso === 4 && turnoConfirmado && (
+        {/* ── PASO 5: Confirmación ── */}
+        {paso === 5 && turnoConfirmado && (
           <div className="text-center py-6">
             <div className="w-20 h-20 bg-teal-100 rounded-full flex items-center justify-center mx-auto mb-5 animate-float">
               <span className="text-4xl">✅</span>
@@ -383,6 +517,7 @@ export default function TurnosPage() {
               <div className="space-y-2 text-sm text-slate-600">
                 <p>👤 {nombre}</p>
                 <p>{tratamientoObj?.icono} {tratamientoObj?.label}</p>
+                {doctorNombre && <p>👨‍⚕️ {doctorNombre}</p>}
                 <p>📅 {formatFechaDisplay(diaSeleccionado)} a las {horaSeleccionada}</p>
                 <p>📱 {telefono}</p>
                 <p className="text-slate-400 text-xs pt-1">Ref. #{turnoConfirmado.turno_id}</p>

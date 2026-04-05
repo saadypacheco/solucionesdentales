@@ -28,9 +28,13 @@ Próximo paso: Deploy a producción + testeo end-to-end
   - ChatWidget flotante conectado a IA real
 
 - [x] **M5 — Flujo de turnos completo**
-  - `GET /turnos/disponibles` — slots reales con lógica de negocio
-  - `POST /turnos/` — crea paciente (identidad progresiva), turno y alarma
-  - Página `/turnos` en 3 pasos conectada a la API real
+  - `GET /turnos/disponibles` — slots reales con lógica de negocio, filtra por doctor
+  - `GET /turnos/doctores?tratamiento=X` — devuelve odontólogos para ese tratamiento
+  - `POST /turnos/` — crea paciente (identidad progresiva), turno y alarma; asigna doctor
+  - Migración `004_doctor_especialidades.sql` — campo `especialidades TEXT[]` en `usuarios`
+  - Página `/turnos` adaptativa: 3 pasos (1 doctor) o 4 pasos (múltiples doctores)
+  - Si 1 doctor para el tratamiento → auto-asigna sin mostrar selector
+  - Si múltiples → paso 2 muestra selector de odontólogo con agenda independiente
 
 - [x] **Auth staff (M10)**
   - `POST /auth/login` — Supabase Auth
