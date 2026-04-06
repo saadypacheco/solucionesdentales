@@ -20,7 +20,7 @@ services:
     labels:
       - traefik.enable=true
       - traefik.http.routers.dentales-api.rule=Host(`dentales.srv1064770.hstgr.cloud`)
-      - traefik.http.routers.dentales-api.entrypoints=websecure
+      - traefik.http.routers.dentales-api.entrypoints=web,websecure
       - traefik.http.routers.dentales-api.tls=true
       - traefik.http.routers.dentales-api.tls.certresolver=mytlschallenge
       - traefik.http.services.dentales-api.loadbalancer.server.port=8000
