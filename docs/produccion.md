@@ -130,3 +130,49 @@ bash deploy.sh
 |----------|---------------|----------------|
 | tienda-backend | 8000 | 8000 |
 | dentales-backend | 8000 | **8001** |
+
+---
+
+## Estado actual del deploy (2026-04-06)
+
+### Lo que funciona
+- Frontend en Vercel: `https://solucionesdentales.vercel.app`
+- Backend corriendo en VPS puerto 8001
+- `NEXT_PUBLIC_API_URL = http://72.61.162.46:8001` (HTTP directo, sin SSL)
+
+### Problema pendiente — Traefik no detecta dentales-backend
+El VPS usa Traefik (en `/root/docker-compose.yml`) como reverse proxy con SSL automático.
+Amanda funciona porque su compose está en `/root/amanda/docker-compose.prod.yml`.
+Dentales tiene las labels correctas y está en `root_default` pero Traefik no la detecta.
+
+**Solución documentada para cuando se quiera migrar a HTTPS:**
+
+Opción A — Agregar dentales al compose de amanda (más simple):
+```bash
+# Agregar al final de /root/amanda/docker-compose.prod.yml:
+  dentales-backend:
+    image: solucionesdentales-dentales-backend
+    container_name: dentales-backend
+    restart: unless-stopped
+    env_file:
+      - /root/solucionesdentales/backend/.env
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.dentales-api.rule=Host(`dentales.srv1064770.hstgr.cloud`)
+      - traefik.http.routers.dentales-api.tls=true
+      - traefik.http.routers.dentales-api.entrypoints=web,websecure
+      - traefik.http.routers.dentales-api.tls.certresolver=mytlschallenge
+      - traefik.http.services.dentales-api.loadbalancer.server.port=8000
+    networks:
+      - root_default
+
+# Luego:
+cd /root/amanda && docker compose -f docker-compose.prod.yml up -d dentales-backend
+```
+
+Opción B — Comprar dominio propio y configurar DNS + certbot independiente.
+
+Cuando esté con HTTPS, cambiar en Vercel:
+```
+NEXT_PUBLIC_API_URL = https://dentales.srv1064770.hstgr.cloud
+```

@@ -6,8 +6,8 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     container_name: dentales-backend
-    expose:
-      - "8000"
+    ports:
+      - "8001:8000"
     env_file:
       - ./backend/.env
     restart: unless-stopped
