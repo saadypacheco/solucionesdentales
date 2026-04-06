@@ -68,7 +68,7 @@ export default function AdminPacientesPage() {
     return lista
   }, [pacientes, busqueda, filtroEstado, ordenarPor])
 
-  const estados = [...new Set(pacientes.map((p) => p.estado).filter(Boolean))]
+  const estados = Array.from(new Set(pacientes.map((p) => p.estado).filter(Boolean)))
 
   return (
     <div className="min-h-screen p-4 md:p-6" style={{ background: 'var(--bg-base)' }}>
