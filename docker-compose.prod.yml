@@ -6,8 +6,8 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     container_name: dentales-backend
-    ports:
-      - "8001:8000"
+    expose:
+      - "8000"
     env_file:
       - ./backend/.env
     restart: unless-stopped
@@ -17,3 +17,16 @@ services:
       timeout: 10s
       retries: 3
       start_period: 10s
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.dentales-api.rule=Host(`api.solucionesdentales.com`)
+      - traefik.http.routers.dentales-api.entrypoints=websecure
+      - traefik.http.routers.dentales-api.tls=true
+      - traefik.http.routers.dentales-api.tls.certresolver=mytlschallenge
+      - traefik.http.services.dentales-api.loadbalancer.server.port=8000
+    networks:
+      - root_default
+
+networks:
+  root_default:
+    external: true
