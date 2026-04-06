@@ -3,49 +3,39 @@
 @tailwind utilities;
 
 :root {
-  --background: #ffffff;
-  --foreground: #0a0f1e;
-  --primary: #0d9488;
-  --primary-light: #f0fdfa;
-  --primary-dark: #0f766e;
-  --accent: #14b8a6;
-  --muted: #64748b;
-  --border: #e2e8f0;
+  --bg-base:    #03080f;
+  --bg-card:    #080f1a;
+  --bg-surface: #0c1624;
+  --teal:       #14b8a6;
+  --teal-dim:   #0d9488;
+  --teal-glow:  rgba(20,184,166,0.18);
 }
 
-* {
-  box-sizing: border-box;
-}
-
-html {
-  scroll-behavior: smooth;
-}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
 
 body {
-  color: var(--foreground);
-  background: var(--background);
+  color: #e2e8f0;
+  background: var(--bg-base);
   font-family: Arial, Helvetica, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 
-/* ── Clip-path helpers ── */
-.clip-diagonal {
-  clip-path: polygon(0 0, 100% 0, 100% 88%, 0 100%);
-}
-.clip-diagonal-reverse {
-  clip-path: polygon(0 0, 100% 6%, 100% 100%, 0 100%);
-}
-.clip-v {
-  clip-path: polygon(0 0, 100% 0, 100% 94%, 50% 100%, 0 94%);
+/* ── Clip-path ── */
+.clip-diagonal        { clip-path: polygon(0 0, 100% 0, 100% 88%, 0 100%); }
+.clip-diagonal-reverse{ clip-path: polygon(0 0, 100% 5%, 100% 100%, 0 100%); }
+
+/* ── Hero gradient ── */
+.gradient-hero {
+  background: linear-gradient(135deg, #020d12 0%, #071e22 40%, #0c3530 70%, #0f6b62 100%);
 }
 
-/* ── Gradients ── */
-.gradient-hero {
-  background: linear-gradient(135deg, #020d12 0%, #071e22 40%, #0d3d36 70%, #0f766e 100%);
-}
+/* ── Card gradient subtle ── */
 .gradient-card {
-  background: linear-gradient(135deg, rgba(13,148,136,.08) 0%, rgba(20,184,166,.03) 100%);
+  background: linear-gradient(135deg, rgba(20,184,166,.06) 0%, rgba(20,184,166,.01) 100%);
 }
+
+/* ── Text gradients ── */
 .gradient-text {
   background: linear-gradient(90deg, #2dd4bf, #5eead4, #a7f3d0);
   -webkit-background-clip: text;
@@ -53,127 +43,105 @@ body {
   background-clip: text;
 }
 .gradient-text-warm {
-  background: linear-gradient(90deg, #f0fdfa, #ccfbf1, #99f6e4);
+  background: linear-gradient(90deg, #ccfbf1, #99f6e4, #5eead4);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
-/* ── Glassmorphism ── */
+/* ── Glass ── */
 .glass {
-  background: rgba(255, 255, 255, 0.07);
+  background: rgba(255,255,255,0.06);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255,255,255,0.1);
 }
 .glass-white {
-  background: rgba(255, 255, 255, 0.92);
+  background: rgba(255,255,255,0.94);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(255,255,255,0.6);
 }
 .glass-dark {
-  background: rgba(2, 10, 14, 0.82);
+  background: rgba(3,8,15,0.85);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
 }
 
-/* ── Noise texture overlay ── */
+/* ── Glows ── */
+.glow-teal    { box-shadow: 0 0 40px rgba(20,184,166,.35), 0 0 80px rgba(20,184,166,.12); }
+.glow-teal-sm { box-shadow: 0 0 20px rgba(20,184,166,.28); }
+.glow-card    { box-shadow: 0 0 0 1px rgba(20,184,166,.15), 0 8px 32px rgba(0,0,0,.4); }
+
+/* ── Noise ── */
 .noise::after {
   content: '';
   position: absolute;
   inset: 0;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.035'/%3E%3C/svg%3E");
   pointer-events: none;
   z-index: 0;
 }
 
-/* ── Glow effects ── */
-.glow-teal {
-  box-shadow: 0 0 40px rgba(13, 148, 136, 0.35), 0 0 80px rgba(13, 148, 136, 0.15);
-}
-.glow-teal-sm {
-  box-shadow: 0 0 20px rgba(13, 148, 136, 0.3);
-}
-
 /* ── Animations ── */
-@keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-12px); }
-}
-@keyframes float-slow {
-  0%, 100% { transform: translateY(0px) rotate(0deg); }
-  50% { transform: translateY(-8px) rotate(2deg); }
-}
-@keyframes pulse-ring {
-  0% { transform: scale(1); opacity: 0.8; }
-  100% { transform: scale(1.5); opacity: 0; }
-}
-@keyframes shimmer {
-  0% { background-position: -200% center; }
-  100% { background-position: 200% center; }
-}
-@keyframes slide-up {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-@keyframes count-up {
-  from { opacity: 0; transform: scale(0.8); }
-  to { opacity: 1; transform: scale(1); }
-}
+@keyframes float      { 0%,100%{ transform:translateY(0) }     50%{ transform:translateY(-12px) } }
+@keyframes float-slow { 0%,100%{ transform:translateY(0) rotate(0deg) } 50%{ transform:translateY(-8px) rotate(1.5deg) } }
+@keyframes pulse-ring { 0%{ transform:scale(1); opacity:.7 } 100%{ transform:scale(1.55); opacity:0 } }
+@keyframes slide-up   { from{ opacity:0; transform:translateY(24px) } to{ opacity:1; transform:translateY(0) } }
+@keyframes shimmer    { 0%{ background-position:-200% center } 100%{ background-position:200% center } }
+@keyframes fade-in    { from{ opacity:0 } to{ opacity:1 } }
 
-.animate-float { animation: float 6s ease-in-out infinite; }
-.animate-float-slow { animation: float-slow 8s ease-in-out infinite; }
-.animate-pulse-ring { animation: pulse-ring 2s ease-out infinite; }
-.animate-slide-up { animation: slide-up 0.6s ease-out forwards; }
-.animate-shimmer {
-  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.1) 50%, transparent 100%);
-  background-size: 200% 100%;
-  animation: shimmer 2s infinite;
-}
+.animate-float       { animation: float 6s ease-in-out infinite; }
+.animate-float-slow  { animation: float-slow 9s ease-in-out infinite; }
+.animate-pulse-ring  { animation: pulse-ring 2.2s ease-out infinite; }
+.animate-slide-up    { animation: slide-up 0.65s ease-out forwards; }
 
-/* ── Card hover lift ── */
-.card-hover {
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
+/* ── Card lift ── */
+.card-hover { transition: transform .25s ease, box-shadow .25s ease; }
+.card-hover:hover { transform: translateY(-5px); box-shadow: 0 24px 48px rgba(0,0,0,.5); }
+
+/* ── Teal card hover border ── */
+.card-teal-hover {
+  transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease;
+  border: 1px solid rgba(255,255,255,0.06);
 }
-.card-hover:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
+.card-teal-hover:hover {
+  transform: translateY(-5px);
+  border-color: rgba(20,184,166,.35);
+  box-shadow: 0 0 0 1px rgba(20,184,166,.1), 0 20px 48px rgba(0,0,0,.5);
 }
 
 /* ── Button shine ── */
-.btn-shine {
-  position: relative;
-  overflow: hidden;
-}
+.btn-shine { position: relative; overflow: hidden; }
 .btn-shine::after {
   content: '';
   position: absolute;
-  top: -50%;
-  left: -60%;
-  width: 40%;
-  height: 200%;
-  background: rgba(255, 255, 255, 0.2);
+  top: -50%; left: -60%;
+  width: 40%; height: 200%;
+  background: rgba(255,255,255,.18);
   transform: skewX(-20deg);
-  transition: left 0.5s ease;
+  transition: left .5s ease;
 }
-.btn-shine:hover::after {
-  left: 120%;
-}
+.btn-shine:hover::after { left: 120%; }
 
-/* ── Custom scrollbar ── */
-::-webkit-scrollbar { width: 5px; }
-::-webkit-scrollbar-track { background: #f1f5f9; }
-::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 3px; }
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--bg-base); }
+::-webkit-scrollbar-thumb { background: #1e3a3a; border-radius: 2px; }
 
-/* ── Number accent ── */
+/* ── Number display ── */
 .number-display {
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum";
 }
 
+/* ── Section divider line ── */
+.divider-teal {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(20,184,166,.3), transparent);
+}
+
 @layer utilities {
   .text-balance { text-wrap: balance; }
-  .perspective-1000 { perspective: 1000px; }
 }
