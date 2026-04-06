@@ -72,6 +72,12 @@ body {
   -webkit-backdrop-filter: blur(20px);
   border: 1px solid rgba(255, 255, 255, 0.6);
 }
+.glass-dark {
+  background: rgba(2, 10, 14, 0.82);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
 
 /* ── Noise texture overlay ── */
 .noise::after {

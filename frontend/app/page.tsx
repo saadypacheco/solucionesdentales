@@ -61,23 +61,23 @@ export default function Home() {
     <div className="min-h-screen bg-white overflow-x-hidden">
 
       {/* ── NAVBAR ── */}
-      <header className="fixed top-0 left-0 right-0 z-50 glass-white shadow-sm">
+      <header className="fixed top-0 left-0 right-0 z-50 glass-dark">
         <nav className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 bg-gradient-to-br from-teal-500 to-teal-700 rounded-lg flex items-center justify-center shadow-md">
+            <div className="w-8 h-8 bg-gradient-to-br from-teal-400 to-teal-600 rounded-lg flex items-center justify-center shadow-md shadow-teal-500/30">
               <span className="text-base">🦷</span>
             </div>
-            <span className="font-bold text-slate-800 tracking-tight">Soluciones<span className="text-teal-600">Dentales</span></span>
+            <span className="font-bold text-white tracking-tight">Soluciones<span className="text-teal-400">Dentales</span></span>
           </div>
-          <div className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-500">
-            <a href="#servicios" className="hover:text-teal-600 transition-colors">Servicios</a>
-            <a href="#como-funciona" className="hover:text-teal-600 transition-colors">Cómo funciona</a>
-            <a href="#galeria" className="hover:text-teal-600 transition-colors">Casos</a>
-            <a href="#faq" className="hover:text-teal-600 transition-colors">FAQ</a>
+          <div className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-400">
+            <a href="#servicios" className="hover:text-white transition-colors">Servicios</a>
+            <a href="#como-funciona" className="hover:text-white transition-colors">Cómo funciona</a>
+            <a href="#galeria" className="hover:text-white transition-colors">Casos</a>
+            <a href="#faq" className="hover:text-white transition-colors">FAQ</a>
           </div>
           <Link
             href="/turnos"
-            className="btn-shine bg-teal-600 hover:bg-teal-700 text-white text-sm font-semibold px-5 py-2.5 rounded-full transition-colors shadow-md shadow-teal-200"
+            className="btn-shine bg-teal-500 hover:bg-teal-400 text-white text-sm font-semibold px-5 py-2.5 rounded-full transition-colors shadow-md shadow-teal-500/30"
           >
             Agendar turno
           </Link>
@@ -205,7 +205,7 @@ export default function Home() {
       </section>
 
       {/* ── SERVICIOS ── */}
-      <section id="servicios" className="py-24 px-4 bg-white">
+      <section id="servicios" className="py-24 px-4 bg-[#f8fafc]">
         <div className="max-w-6xl mx-auto">
           <div className="mb-14">
             <span className="text-teal-600 text-sm font-bold uppercase tracking-widest">Tratamientos</span>
@@ -291,16 +291,16 @@ export default function Home() {
       </section>
 
       {/* ── GALERÍA ANTES/DESPUÉS ── */}
-      <section id="galeria" className="py-24 px-4 bg-slate-50">
+      <section id="galeria" className="py-24 px-4 bg-[#0a1628]">
         <div className="max-w-6xl mx-auto">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-12">
             <div>
-              <span className="text-teal-600 text-sm font-bold uppercase tracking-widest">Galería</span>
-              <h2 className="text-4xl md:text-5xl font-black text-slate-900 mt-2 leading-tight">
+              <span className="text-teal-400 text-sm font-bold uppercase tracking-widest">Galería</span>
+              <h2 className="text-4xl md:text-5xl font-black text-white mt-2 leading-tight">
                 Resultados<br />que hablan
               </h2>
             </div>
-            <Link href="/galeria" className="text-teal-600 font-semibold text-sm hover:underline self-start md:self-auto">
+            <Link href="/galeria" className="text-teal-400 font-semibold text-sm hover:underline self-start md:self-auto">
               Ver todos los casos →
             </Link>
           </div>
@@ -311,13 +311,13 @@ export default function Home() {
               { tratamiento: 'Diseño de sonrisa', duracion: '2 semanas', desc: 'Carillas de porcelana', antesEmoji: '😶', despuesEmoji: '🤩' },
               { tratamiento: 'Ortodoncia', duracion: '18 meses', desc: 'Alineadores invisibles', antesEmoji: '😬', despuesEmoji: '😄' },
             ].map((c) => (
-              <div key={c.tratamiento} className="group card-hover bg-white rounded-3xl overflow-hidden shadow-sm border border-slate-100">
+              <div key={c.tratamiento} className="group card-hover bg-[#0f2133] rounded-3xl overflow-hidden shadow-sm border border-white/8">
                 {/* Visual antes/después */}
                 <div className="relative h-52 bg-gradient-to-br from-slate-100 to-slate-50 flex overflow-hidden">
                   {/* Antes */}
-                  <div className="w-1/2 flex flex-col items-center justify-center bg-slate-200/50 gap-2">
+                  <div className="w-1/2 flex flex-col items-center justify-center bg-[#071828] gap-2">
                     <span className="text-5xl opacity-70">{c.antesEmoji}</span>
-                    <span className="text-[10px] font-bold text-slate-400 tracking-widest uppercase">Antes</span>
+                    <span className="text-[10px] font-bold text-slate-500 tracking-widest uppercase">Antes</span>
                   </div>
 
                   {/* Divisor */}
@@ -341,9 +341,9 @@ export default function Home() {
                 </div>
 
                 <div className="p-5">
-                  <h3 className="font-bold text-slate-800">{c.tratamiento}</h3>
+                  <h3 className="font-bold text-white">{c.tratamiento}</h3>
                   <p className="text-slate-400 text-sm mt-0.5">{c.desc}</p>
-                  <button className="mt-3 text-teal-600 text-xs font-semibold opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button className="mt-3 text-teal-400 text-xs font-semibold opacity-0 group-hover:opacity-100 transition-opacity">
                     Ver caso completo →
                   </button>
                 </div>
@@ -354,7 +354,7 @@ export default function Home() {
       </section>
 
       {/* ── TESTIMONIOS ── */}
-      <section className="py-24 px-4 bg-white">
+      <section className="py-24 px-4 bg-[#f8fafc]">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-14">
             <span className="text-teal-600 text-sm font-bold uppercase tracking-widest">Testimonios</span>
@@ -365,7 +365,7 @@ export default function Home() {
 
           <div className="grid md:grid-cols-3 gap-5">
             {testimonios.map((t) => (
-              <div key={t.nombre} className="card-hover bg-slate-50 border border-slate-100 rounded-3xl p-6">
+              <div key={t.nombre} className="card-hover bg-white border border-slate-200/60 rounded-3xl p-6 shadow-sm">
                 <div className="flex gap-0.5 mb-4">
                   {Array.from({ length: t.stars }).map((_, i) => (
                     <span key={i} className="text-yellow-400 text-lg">★</span>
@@ -414,7 +414,7 @@ export default function Home() {
       </section>
 
       {/* ── FAQ ── */}
-      <section id="faq" className="py-24 px-4 bg-white">
+      <section id="faq" className="py-24 px-4 bg-[#f8fafc]">
         <div className="max-w-3xl mx-auto">
           <div className="text-center mb-14">
             <span className="text-teal-600 text-sm font-bold uppercase tracking-widest">FAQ</span>
