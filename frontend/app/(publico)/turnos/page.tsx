@@ -1,32 +1,28 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import Link from 'next/link'
 import { getDoctores, getSlots, solicitarTurno, type Doctor, type TurnoResponse } from '@/lib/api/turnos'
 
-/* ─── CONFIG ───────────────────────────────────────────── */
+/* ─── CONFIG ─── */
 const tratamientos = [
-  { id: 'estetica',      label: 'Estética dental',  icono: '✨', duracion: '60 min' },
-  { id: 'blanqueamiento',label: 'Blanqueamiento',   icono: '🪥', duracion: '45 min' },
-  { id: 'ortodoncia',    label: 'Ortodoncia',        icono: '😬', duracion: '30 min' },
-  { id: 'implante',      label: 'Implante',          icono: '🦷', duracion: '90 min' },
-  { id: 'limpieza',      label: 'Limpieza dental',  icono: '✅', duracion: '30 min' },
-  { id: 'urgencia',      label: 'Urgencia / Dolor', icono: '🚨', duracion: '45 min' },
-  { id: 'consulta',      label: 'Consulta general', icono: '📋', duracion: '30 min' },
+  { id: 'estetica',       label: 'Estética dental',  icono: '✨', duracion: '60 min' },
+  { id: 'blanqueamiento', label: 'Blanqueamiento',    icono: '🪥', duracion: '45 min' },
+  { id: 'ortodoncia',     label: 'Ortodoncia',        icono: '😬', duracion: '30 min' },
+  { id: 'implante',       label: 'Implante',          icono: '🦷', duracion: '90 min' },
+  { id: 'limpieza',       label: 'Limpieza dental',   icono: '✅', duracion: '30 min' },
+  { id: 'urgencia',       label: 'Urgencia / Dolor',  icono: '🚨', duracion: '45 min' },
+  { id: 'consulta',       label: 'Consulta general',  icono: '📋', duracion: '30 min' },
 ]
 
-/** Genera los próximos N días hábiles (lunes–sábado) */
-function proximosDiasHabiles(cantidad: number): Date[] {
+function proximosDiasHabiles(n: number): Date[] {
   const dias: Date[] = []
-  const cursor = new Date()
-  cursor.setHours(0, 0, 0, 0)
-  cursor.setDate(cursor.getDate() + 1)
-
-  while (dias.length < cantidad) {
-    if (cursor.getDay() !== 0) {
-      dias.push(new Date(cursor))
-    }
-    cursor.setDate(cursor.getDate() + 1)
+  const c = new Date()
+  c.setHours(0, 0, 0, 0)
+  c.setDate(c.getDate() + 1)
+  while (dias.length < n) {
+    if (c.getDay() !== 0) dias.push(new Date(c))
+    c.setDate(c.getDate() + 1)
   }
   return dias
 }
@@ -47,17 +43,18 @@ function toISOLocal(d: Date, hora: string): string {
 
 type Paso = 1 | 2 | 3 | 4 | 5
 
-/* ─── COMPONENT ─────────────────────────────────────────── */
+/* ─── COMPONENT ─── */
 export default function TurnosPage() {
+  const topRef = useRef<HTMLDivElement>(null)
   const [paso, setPaso] = useState<Paso>(1)
 
-  // Paso 1 — tratamiento
+  // Paso 1
   const [tratamiento, setTratamiento] = useState('')
-
-  // Paso 2 — selección de doctor (solo si hay múltiples)
-  const [doctores, setDoctores] = useState<Doctor[]>([])
   const [loadingDoctores, setLoadingDoctores] = useState(false)
-  const [doctorId, setDoctorId] = useState<string | undefined>(undefined)
+
+  // Paso 2 — doctor
+  const [doctores, setDoctores] = useState<Doctor[]>([])
+  const [doctorId, setDoctorId] = useState<string | undefined>()
   const [doctorNombre, setDoctorNombre] = useState('')
   const [mostrarSelectDoctor, setMostrarSelectDoctor] = useState(false)
 
@@ -69,26 +66,22 @@ export default function TurnosPage() {
   const [errorSlots, setErrorSlots] = useState('')
   const [horaSeleccionada, setHoraSeleccionada] = useState('')
 
-  // Paso 4 — datos personales
+  // Paso 4 — datos
   const [nombre, setNombre] = useState('')
   const [telefono, setTelefono] = useState('')
   const [notas, setNotas] = useState('')
   const [enviando, setEnviando] = useState(false)
   const [errorEnvio, setErrorEnvio] = useState('')
 
-  // Paso 5 — confirmación
+  // Paso 5 — confirmado
   const [turnoConfirmado, setTurnoConfirmado] = useState<TurnoResponse | null>(null)
 
   const tratamientoObj = tratamientos.find((t) => t.id === tratamiento)
   const diaSeleccionado = dias[diaIndex]
-
-  // Cuántos pasos reales hay en este flujo
   const totalPasos = mostrarSelectDoctor ? 4 : 3
 
-  // Paso "visible" para la barra de progreso (colapsa si no hay selección de doctor)
   function pasoVisible(): number {
     if (!mostrarSelectDoctor) {
-      // Mapear: 1→1, 3→2, 4→3, 5→4
       if (paso === 1) return 1
       if (paso === 3) return 2
       if (paso === 4) return 3
@@ -97,43 +90,52 @@ export default function TurnosPage() {
     return paso as number
   }
 
-  // Al confirmar tratamiento: consultar doctores disponibles
-  async function avanzarDesdeTratemiento() {
-    if (!tratamiento) return
+  // Scroll al top en cada cambio de paso
+  function irAPaso(p: Paso) {
+    setPaso(p)
+    topRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+
+  // ── Paso 1 → siguiente: auto-avanza al seleccionar tratamiento ──
+  async function seleccionarTratamiento(id: string) {
+    setTratamiento(id)
     setLoadingDoctores(true)
     try {
-      const res = await getDoctores(tratamiento)
+      const res = await getDoctores(id)
       if (res.total === 0) {
-        // Sin doctores configurados → continuar sin filtro
-        setDoctorId(undefined)
-        setDoctorNombre('')
-        setMostrarSelectDoctor(false)
-        setPaso(3)
+        setDoctorId(undefined); setDoctorNombre(''); setMostrarSelectDoctor(false)
+        irAPaso(3)
       } else if (res.total === 1) {
-        // 1 doctor → auto-asignar, saltar selección
-        setDoctorId(res.doctores[0].id)
-        setDoctorNombre(res.doctores[0].nombre)
+        setDoctorId(res.doctores[0].id); setDoctorNombre(res.doctores[0].nombre)
         setMostrarSelectDoctor(false)
-        setPaso(3)
+        irAPaso(3)
       } else {
-        // Múltiples doctores → mostrar selector
-        setDoctores(res.doctores)
-        setDoctorId(undefined)
-        setDoctorNombre('')
+        setDoctores(res.doctores); setDoctorId(undefined); setDoctorNombre('')
         setMostrarSelectDoctor(true)
-        setPaso(2)
+        irAPaso(2)
       }
     } catch {
-      // Si falla la consulta de doctores, continuar sin filtro
-      setDoctorId(undefined)
-      setMostrarSelectDoctor(false)
-      setPaso(3)
+      setDoctorId(undefined); setMostrarSelectDoctor(false)
+      irAPaso(3)
     } finally {
       setLoadingDoctores(false)
     }
   }
 
-  // Fetch slots cuando cambia día, tratamiento o doctor
+  // ── Paso 2 → siguiente: auto-avanza al elegir doctor ──
+  function seleccionarDoctor(doc: Doctor) {
+    setDoctorId(doc.id)
+    setDoctorNombre(doc.nombre)
+    irAPaso(3)
+  }
+
+  // ── Paso 3 → siguiente: auto-avanza al elegir hora ──
+  function seleccionarHora(hora: string) {
+    setHoraSeleccionada(hora)
+    irAPaso(4)
+  }
+
+  // Fetch slots
   const fetchSlots = useCallback(async () => {
     if (!tratamiento || !diaSeleccionado) return
     setLoadingSlots(true)
@@ -143,9 +145,7 @@ export default function TurnosPage() {
       const fecha = diaSeleccionado.toISOString().split('T')[0]
       const res = await getSlots(fecha, tratamiento, doctorId)
       setSlots(res.slots)
-      if (res.slots.length === 0) {
-        setErrorSlots(res.mensaje ?? 'Sin disponibilidad para este día. Probá otro.')
-      }
+      if (res.slots.length === 0) setErrorSlots(res.mensaje ?? 'Sin disponibilidad para este día.')
     } catch (e: unknown) {
       setErrorSlots(e instanceof Error ? e.message : 'Error al cargar horarios')
     } finally {
@@ -159,20 +159,16 @@ export default function TurnosPage() {
 
   async function confirmarTurno() {
     if (!nombre.trim() || !telefono.trim()) return
-    setEnviando(true)
-    setErrorEnvio('')
+    setEnviando(true); setErrorEnvio('')
     try {
       const fechaHora = toISOLocal(diaSeleccionado, horaSeleccionada)
       const res = await solicitarTurno({
-        nombre: nombre.trim(),
-        telefono: telefono.trim(),
-        fecha_hora: fechaHora,
-        tipo_tratamiento: tratamiento,
-        notas: notas.trim() || undefined,
-        usuario_id: doctorId,
+        nombre: nombre.trim(), telefono: telefono.trim(),
+        fecha_hora: fechaHora, tipo_tratamiento: tratamiento,
+        notas: notas.trim() || undefined, usuario_id: doctorId,
       })
       setTurnoConfirmado(res)
-      setPaso(5)
+      irAPaso(5)
     } catch (e: unknown) {
       setErrorEnvio(e instanceof Error ? e.message : 'Error al confirmar el turno')
     } finally {
@@ -184,10 +180,10 @@ export default function TurnosPage() {
   const esConfirmacion = paso === 5
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div ref={topRef} className="min-h-screen bg-slate-50">
       {/* Header */}
       <header className="bg-white border-b border-slate-100 shadow-sm sticky top-0 z-40">
-        <div className="max-w-2xl mx-auto px-4 h-14 flex items-center justify-between">
+        <div className="max-w-lg mx-auto px-4 h-14 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 text-teal-700 font-semibold text-sm">
             <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
@@ -202,22 +198,20 @@ export default function TurnosPage() {
         </div>
       </header>
 
-      <div className="max-w-2xl mx-auto px-4 py-8">
+      <div className="max-w-lg mx-auto px-4 py-6">
         {/* Barra de progreso */}
         {!esConfirmacion && (
-          <div className="flex items-center gap-2 mb-8">
+          <div className="flex items-center gap-2 mb-7">
             {Array.from({ length: totalPasos }, (_, i) => i + 1).map((n) => (
               <div key={n} className="flex items-center gap-2 flex-1 last:flex-none">
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 transition-all ${
-                  pasoActual > n ? 'bg-teal-600 text-white' :
+                  pasoActual > n  ? 'bg-teal-600 text-white' :
                   pasoActual === n ? 'bg-teal-600 text-white ring-4 ring-teal-100' :
                   'bg-slate-200 text-slate-400'
                 }`}>
-                  {pasoActual > n ? (
-                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                    </svg>
-                  ) : n}
+                  {pasoActual > n
+                    ? <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                    : n}
                 </div>
                 {n < totalPasos && (
                   <div className={`flex-1 h-1 rounded-full transition-colors ${pasoActual > n ? 'bg-teal-600' : 'bg-slate-200'}`} />
@@ -227,119 +221,111 @@ export default function TurnosPage() {
           </div>
         )}
 
-        {/* ── PASO 1: Tratamiento ── */}
+        {/* ── PASO 1: Tratamiento — tap y avanza automáticamente ── */}
         {paso === 1 && (
           <div>
             <h1 className="text-2xl font-black text-slate-800 mb-1">¿Qué tratamiento necesitás?</h1>
-            <p className="text-slate-400 text-sm mb-6">Seleccioná el motivo de tu consulta</p>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-              {tratamientos.map((t) => (
-                <button
-                  key={t.id}
-                  onClick={() => setTratamiento(t.id)}
-                  className={`p-4 rounded-2xl border-2 text-left transition-all ${
+            <p className="text-slate-400 text-sm mb-5">Tocá uno para continuar</p>
+
+            {loadingDoctores ? (
+              /* Skeleton de carga mientras busca doctores */
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                {tratamientos.map((t) => (
+                  <div key={t.id} className={`p-4 rounded-2xl border-2 transition-all ${
                     tratamiento === t.id
-                      ? 'border-teal-500 bg-teal-50 shadow-md shadow-teal-100'
-                      : 'border-slate-200 bg-white hover:border-teal-200 hover:shadow-sm'
-                  }`}
-                >
-                  <div className="text-2xl mb-2">{t.icono}</div>
-                  <p className="font-semibold text-slate-700 text-sm leading-tight">{t.label}</p>
-                  <p className="text-slate-400 text-xs mt-1">⏱ {t.duracion}</p>
-                </button>
-              ))}
-            </div>
-            <button
-              disabled={!tratamiento || loadingDoctores}
-              onClick={avanzarDesdeTratemiento}
-              className="w-full mt-6 bg-teal-600 text-white py-3.5 rounded-full font-bold disabled:opacity-40 disabled:cursor-not-allowed hover:bg-teal-700 transition-colors shadow-md shadow-teal-200 flex items-center justify-center gap-2"
-            >
-              {loadingDoctores ? (
-                <>
-                  <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
-                  </svg>
-                  Cargando...
-                </>
-              ) : 'Continuar →'}
-            </button>
+                      ? 'border-teal-500 bg-teal-50 opacity-60'
+                      : 'border-slate-200 bg-white opacity-40'
+                  }`}>
+                    <div className="text-2xl mb-2">{t.icono}</div>
+                    <p className="font-semibold text-slate-700 text-sm leading-tight">{t.label}</p>
+                    <p className="text-slate-400 text-xs mt-1">⏱ {t.duracion}</p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                {tratamientos.map((t) => (
+                  <button
+                    key={t.id}
+                    onClick={() => seleccionarTratamiento(t.id)}
+                    className="p-4 rounded-2xl border-2 text-left transition-all active:scale-95 border-slate-200 bg-white hover:border-teal-400 hover:shadow-md hover:shadow-teal-50 focus:outline-none focus:border-teal-500"
+                  >
+                    <div className="text-2xl mb-2">{t.icono}</div>
+                    <p className="font-semibold text-slate-700 text-sm leading-tight">{t.label}</p>
+                    <p className="text-slate-400 text-xs mt-1">⏱ {t.duracion}</p>
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {loadingDoctores && (
+              <div className="flex items-center justify-center gap-2 mt-5 text-teal-600 text-sm">
+                <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+                </svg>
+                Buscando disponibilidad...
+              </div>
+            )}
           </div>
         )}
 
-        {/* ── PASO 2: Elegir doctor (solo si hay múltiples) ── */}
+        {/* ── PASO 2: Doctor — tap y avanza automáticamente ── */}
         {paso === 2 && (
           <div>
             <h1 className="text-2xl font-black text-slate-800 mb-1">Elegí tu odontólogo</h1>
-            <p className="text-slate-400 text-sm mb-6">
-              {tratamientoObj?.icono} {tratamientoObj?.label} · {tratamientoObj?.duracion}
+            <p className="text-slate-400 text-sm mb-1">
+              {tratamientoObj?.icono} {tratamientoObj?.label}
             </p>
+            <p className="text-slate-400 text-xs mb-5">Tocá para continuar</p>
 
             <div className="space-y-3">
               {doctores.map((doc) => (
                 <button
                   key={doc.id}
-                  onClick={() => {
-                    setDoctorId(doc.id)
-                    setDoctorNombre(doc.nombre)
-                  }}
-                  className={`w-full p-4 rounded-2xl border-2 text-left transition-all flex items-center gap-4 ${
-                    doctorId === doc.id
-                      ? 'border-teal-500 bg-teal-50 shadow-md shadow-teal-100'
-                      : 'border-slate-200 bg-white hover:border-teal-200 hover:shadow-sm'
-                  }`}
+                  onClick={() => seleccionarDoctor(doc)}
+                  className="w-full p-4 rounded-2xl border-2 text-left transition-all active:scale-[0.98] border-slate-200 bg-white hover:border-teal-400 hover:shadow-md hover:shadow-teal-50 flex items-center gap-4 focus:outline-none"
                 >
-                  <div className={`w-12 h-12 rounded-full flex items-center justify-center text-lg font-bold flex-shrink-0 ${
-                    doctorId === doc.id ? 'bg-teal-600 text-white' : 'bg-slate-100 text-slate-500'
-                  }`}>
+                  <div className="w-12 h-12 rounded-full bg-teal-100 flex items-center justify-center text-lg font-bold flex-shrink-0 text-teal-700">
                     {doc.nombre.charAt(0).toUpperCase()}
                   </div>
-                  <div>
+                  <div className="flex-1">
                     <p className="font-semibold text-slate-800">{doc.nombre}</p>
-                    <p className="text-slate-400 text-sm">{tratamientoObj?.label}</p>
+                    <p className="text-slate-400 text-sm">{tratamientoObj?.label} · {tratamientoObj?.duracion}</p>
                   </div>
-                  {doctorId === doc.id && (
-                    <svg className="ml-auto text-teal-600 w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                    </svg>
-                  )}
+                  <svg className="text-slate-300 w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                  </svg>
                 </button>
               ))}
             </div>
 
-            <div className="flex gap-3 mt-6">
-              <button
-                onClick={() => setPaso(1)}
-                className="px-5 py-3 rounded-full border border-slate-200 text-slate-600 font-medium hover:border-slate-300 transition-colors"
-              >
-                ← Volver
-              </button>
-              <button
-                disabled={!doctorId}
-                onClick={() => setPaso(3)}
-                className="flex-1 bg-teal-600 text-white py-3 rounded-full font-bold disabled:opacity-40 disabled:cursor-not-allowed hover:bg-teal-700 transition-colors shadow-md shadow-teal-200"
-              >
-                Continuar →
-              </button>
-            </div>
+            <button
+              onClick={() => { setTratamiento(''); irAPaso(1) }}
+              className="mt-5 text-sm text-slate-400 hover:text-slate-600 transition-colors flex items-center gap-1"
+            >
+              <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+              </svg>
+              Cambiar tratamiento
+            </button>
           </div>
         )}
 
-        {/* ── PASO 3: Fecha y hora ── */}
+        {/* ── PASO 3: Fecha y hora — tap en horario avanza ── */}
         {paso === 3 && (
           <div>
             <h1 className="text-2xl font-black text-slate-800 mb-1">Elegí fecha y hora</h1>
-            <p className="text-slate-400 text-sm mb-1">
-              {tratamientoObj?.icono} {tratamientoObj?.label} · {tratamientoObj?.duracion}
-            </p>
-            {doctorNombre && (
-              <p className="text-teal-600 text-sm font-medium mb-5">👨‍⚕️ {doctorNombre}</p>
-            )}
-            {!doctorNombre && <div className="mb-5" />}
+            <div className="flex flex-wrap items-center gap-2 mb-5 text-sm">
+              <span>{tratamientoObj?.icono} {tratamientoObj?.label}</span>
+              {doctorNombre && (
+                <span className="text-teal-600 font-medium">· 👨‍⚕️ {doctorNombre}</span>
+              )}
+            </div>
 
-            {/* Selector de días */}
-            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Próximos días disponibles</p>
-            <div className="flex gap-2 overflow-x-auto pb-2 mb-6 scrollbar-hide">
+            {/* Días — scroll horizontal */}
+            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Día</p>
+            <div className="flex gap-2 overflow-x-auto pb-2 mb-5 -mx-4 px-4 scrollbar-hide">
               {dias.map((dia, i) => (
                 <button
                   key={i}
@@ -355,12 +341,14 @@ export default function TurnosPage() {
               ))}
             </div>
 
-            {/* Slots */}
-            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Horarios disponibles</p>
+            {/* Horarios — tap avanza */}
+            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">
+              Horario <span className="text-teal-500 normal-case font-normal">(tocá uno para continuar)</span>
+            </p>
             {loadingSlots ? (
-              <div className="flex gap-2 flex-wrap">
+              <div className="grid grid-cols-3 sm:grid-cols-4 gap-2.5">
                 {Array.from({ length: 8 }).map((_, i) => (
-                  <div key={i} className="w-20 h-12 bg-slate-200 rounded-xl animate-pulse" />
+                  <div key={i} className="h-12 bg-slate-200 rounded-xl animate-pulse" />
                 ))}
               </div>
             ) : errorSlots ? (
@@ -372,12 +360,8 @@ export default function TurnosPage() {
                 {slots.map((hora) => (
                   <button
                     key={hora}
-                    onClick={() => setHoraSeleccionada(hora)}
-                    className={`py-3 rounded-xl border font-semibold text-sm transition-all ${
-                      horaSeleccionada === hora
-                        ? 'bg-teal-600 text-white border-teal-600 shadow-md shadow-teal-200'
-                        : 'bg-white text-slate-700 border-slate-200 hover:border-teal-300 hover:shadow-sm'
-                    }`}
+                    onClick={() => seleccionarHora(hora)}
+                    className="py-3 rounded-xl border font-semibold text-sm transition-all active:scale-95 bg-white text-slate-700 border-slate-200 hover:border-teal-500 hover:bg-teal-50 hover:text-teal-700 hover:shadow-sm focus:outline-none focus:border-teal-500"
                   >
                     {hora}
                   </button>
@@ -385,21 +369,15 @@ export default function TurnosPage() {
               </div>
             )}
 
-            <div className="flex gap-3 mt-6">
-              <button
-                onClick={() => setPaso(mostrarSelectDoctor ? 2 : 1)}
-                className="px-5 py-3 rounded-full border border-slate-200 text-slate-600 font-medium hover:border-slate-300 transition-colors"
-              >
-                ← Volver
-              </button>
-              <button
-                disabled={!horaSeleccionada}
-                onClick={() => setPaso(4)}
-                className="flex-1 bg-teal-600 text-white py-3 rounded-full font-bold disabled:opacity-40 disabled:cursor-not-allowed hover:bg-teal-700 transition-colors shadow-md shadow-teal-200"
-              >
-                Confirmar horario →
-              </button>
-            </div>
+            <button
+              onClick={() => irAPaso(mostrarSelectDoctor ? 2 : 1)}
+              className="mt-5 text-sm text-slate-400 hover:text-slate-600 transition-colors flex items-center gap-1"
+            >
+              <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+              </svg>
+              Volver
+            </button>
           </div>
         )}
 
@@ -407,38 +385,41 @@ export default function TurnosPage() {
         {paso === 4 && (
           <div>
             <h1 className="text-2xl font-black text-slate-800 mb-1">Tus datos</h1>
-            <p className="text-slate-400 text-sm mb-6">Sin registro — solo nombre y teléfono</p>
+            <p className="text-slate-400 text-sm mb-5">Sin registro — solo nombre y teléfono</p>
 
-            {/* Resumen */}
-            <div className="bg-teal-50 border border-teal-200 rounded-2xl p-4 mb-6">
-              <p className="font-bold text-teal-800 text-sm mb-1">📅 Tu turno seleccionado</p>
-              <p className="text-slate-600 text-sm">
-                {tratamientoObj?.icono} {tratamientoObj?.label}
-                &nbsp;·&nbsp;
-                {formatFechaDisplay(diaSeleccionado)} a las {horaSeleccionada}
-              </p>
-              {doctorNombre && (
-                <p className="text-teal-600 text-xs mt-1">👨‍⚕️ {doctorNombre}</p>
-              )}
+            {/* Resumen compacto */}
+            <div className="bg-teal-50 border border-teal-200 rounded-2xl p-4 mb-5 flex items-center justify-between">
+              <div>
+                <p className="text-teal-800 font-bold text-sm">
+                  {tratamientoObj?.icono} {tratamientoObj?.label}
+                </p>
+                <p className="text-slate-500 text-xs mt-0.5">
+                  {formatFechaDisplay(diaSeleccionado)} · {horaSeleccionada}
+                  {doctorNombre && ` · ${doctorNombre}`}
+                </p>
+              </div>
+              <button
+                onClick={() => irAPaso(3)}
+                className="text-teal-600 text-xs font-bold hover:underline flex-shrink-0 ml-2"
+              >
+                Cambiar
+              </button>
             </div>
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-1.5">
-                  Nombre completo *
-                </label>
+                <label className="block text-sm font-semibold text-slate-700 mb-1.5">Nombre completo *</label>
                 <input
                   type="text"
                   value={nombre}
                   onChange={(e) => setNombre(e.target.value)}
                   placeholder="Ej: María García"
+                  autoFocus
                   className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:border-teal-400 focus:ring-2 focus:ring-teal-100 bg-white text-slate-800 transition-all"
                 />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-1.5">
-                  Teléfono *
-                </label>
+                <label className="block text-sm font-semibold text-slate-700 mb-1.5">Teléfono *</label>
                 <input
                   type="tel"
                   value={telefono}
@@ -450,13 +431,13 @@ export default function TurnosPage() {
               </div>
               <div>
                 <label className="block text-sm font-semibold text-slate-700 mb-1.5">
-                  Notas adicionales (opcional)
+                  Notas <span className="font-normal text-slate-400">(opcional)</span>
                 </label>
                 <textarea
                   value={notas}
                   onChange={(e) => setNotas(e.target.value)}
-                  placeholder="Ej: Tengo alergia a la penicilina, fue derivado por otro médico..."
-                  rows={3}
+                  placeholder="Alergias, derivaciones, cualquier dato útil..."
+                  rows={2}
                   className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:border-teal-400 focus:ring-2 focus:ring-teal-100 bg-white text-slate-800 resize-none transition-all"
                 />
               </div>
@@ -468,31 +449,23 @@ export default function TurnosPage() {
               </div>
             )}
 
-            <div className="flex gap-3 mt-6">
-              <button
-                onClick={() => setPaso(3)}
-                className="px-5 py-3 rounded-full border border-slate-200 text-slate-600 font-medium hover:border-slate-300 transition-colors"
-              >
-                ← Volver
-              </button>
-              <button
-                disabled={!nombre.trim() || !telefono.trim() || enviando}
-                onClick={confirmarTurno}
-                className="flex-1 bg-teal-600 text-white py-3 rounded-full font-bold disabled:opacity-40 disabled:cursor-not-allowed hover:bg-teal-700 transition-colors shadow-md shadow-teal-200 flex items-center justify-center gap-2"
-              >
-                {enviando ? (
-                  <>
-                    <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
-                    </svg>
-                    Confirmando...
-                  </>
-                ) : 'Confirmar turno ✓'}
-              </button>
-            </div>
+            <button
+              disabled={!nombre.trim() || !telefono.trim() || enviando}
+              onClick={confirmarTurno}
+              className="w-full mt-5 bg-teal-600 text-white py-4 rounded-2xl font-bold disabled:opacity-40 disabled:cursor-not-allowed hover:bg-teal-700 transition-colors shadow-md shadow-teal-200 flex items-center justify-center gap-2 text-base"
+            >
+              {enviando ? (
+                <>
+                  <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+                  </svg>
+                  Confirmando...
+                </>
+              ) : 'Confirmar turno ✓'}
+            </button>
 
-            <p className="text-center text-slate-400 text-xs mt-4">
+            <p className="text-center text-slate-400 text-xs mt-3">
               Tu información es confidencial y no será compartida con terceros.
             </p>
           </div>
@@ -500,21 +473,20 @@ export default function TurnosPage() {
 
         {/* ── PASO 5: Confirmación ── */}
         {paso === 5 && turnoConfirmado && (
-          <div className="text-center py-6">
+          <div className="text-center py-4">
             <div className="w-20 h-20 bg-teal-100 rounded-full flex items-center justify-center mx-auto mb-5 animate-float">
               <span className="text-4xl">✅</span>
             </div>
             <h1 className="text-2xl font-black text-slate-800 mb-2">¡Turno solicitado!</h1>
-            <p className="text-slate-500 text-sm mb-6 max-w-sm mx-auto">
-              Te vamos a contactar al <span className="font-semibold text-slate-700">{telefono}</span> para confirmar. Revisá WhatsApp.
+            <p className="text-slate-500 text-sm mb-6 max-w-xs mx-auto">
+              Te vamos a contactar al{' '}
+              <span className="font-semibold text-slate-700">{telefono}</span>{' '}
+              para confirmar. Revisá WhatsApp.
             </p>
 
-            <div className="bg-white border border-slate-200 rounded-2xl p-5 text-left mb-6 shadow-sm max-w-sm mx-auto">
-              <p className="font-bold text-slate-700 text-sm mb-3 flex items-center gap-1.5">
-                <span className="w-5 h-5 bg-teal-100 rounded-full flex items-center justify-center text-xs">✓</span>
-                Resumen del turno
-              </p>
-              <div className="space-y-2 text-sm text-slate-600">
+            <div className="bg-white border border-slate-200 rounded-2xl p-5 text-left mb-6 shadow-sm max-w-xs mx-auto">
+              <p className="font-bold text-slate-700 text-sm mb-3">Resumen del turno</p>
+              <div className="space-y-1.5 text-sm text-slate-600">
                 <p>👤 {nombre}</p>
                 <p>{tratamientoObj?.icono} {tratamientoObj?.label}</p>
                 {doctorNombre && <p>👨‍⚕️ {doctorNombre}</p>}
@@ -529,7 +501,7 @@ export default function TurnosPage() {
                 `Hola! Acabo de solicitar un turno de ${tratamientoObj?.label} para el ${formatFechaDisplay(diaSeleccionado)} a las ${horaSeleccionada}. Mi nombre es ${nombre}.`
               )}`}
               target="_blank"
-              className="block w-full max-w-sm mx-auto bg-green-500 text-white py-3.5 rounded-full font-bold hover:bg-green-600 transition-colors shadow-md shadow-green-200 mb-3"
+              className="block max-w-xs mx-auto bg-green-500 text-white py-3.5 rounded-full font-bold hover:bg-green-600 transition-colors shadow-md shadow-green-200 mb-3"
             >
               💬 Confirmar por WhatsApp
             </a>
