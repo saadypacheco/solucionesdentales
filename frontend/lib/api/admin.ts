@@ -63,6 +63,37 @@ export async function resolverAlarma(token: string, alarmaId: number): Promise<v
   await apiFetch(`/admin/alarmas/${alarmaId}/resolver`, token, { method: 'PATCH' })
 }
 
+/* ─── Config IA ─── */
+export interface ConfigIA {
+  clave: string
+  valor: string
+  updated_at: string
+}
+
+export async function getConfigIA(token: string): Promise<ConfigIA[]> {
+  return apiFetch('/admin/config-ia', token)
+}
+
+export async function patchConfigIA(token: string, clave: string, valor: string): Promise<ConfigIA> {
+  return apiFetch(`/admin/config-ia/${clave}?valor=${encodeURIComponent(valor)}`, token, { method: 'PATCH' })
+}
+
+/* ─── Seguimiento ─── */
+export interface SeguimientoResultado {
+  ok: boolean
+  alarmas_generadas: number
+  detalle: {
+    inactivos: number
+    turnos_sin_confirmar: number
+    leads_sin_seguimiento: number
+    tratamientos_incompletos: number
+  }
+}
+
+export async function ejecutarSeguimiento(token: string): Promise<SeguimientoResultado> {
+  return apiFetch('/admin/seguimiento/ejecutar', token, { method: 'POST' })
+}
+
 /* ─── Types ─── */
 export interface StaffUser {
   id: string

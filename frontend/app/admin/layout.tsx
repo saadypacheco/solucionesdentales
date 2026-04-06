@@ -6,11 +6,12 @@ import Link from 'next/link'
 import { useAuthStore } from '@/store/authStore'
 
 const NAV = [
-  { href: '/admin/dashboard',  label: 'Dashboard',  icono: '📊' },
-  { href: '/admin/agenda',     label: 'Agenda',     icono: '📅' },
-  { href: '/admin/pacientes',  label: 'Pacientes',  icono: '👥' },
-  { href: '/admin/crm',        label: 'CRM',        icono: '🎯' },
-  { href: '/admin/galeria',    label: 'Galería',    icono: '🖼️' },
+  { href: '/admin/dashboard',      label: 'Dashboard',  icono: '📊' },
+  { href: '/admin/agenda',         label: 'Agenda',     icono: '📅' },
+  { href: '/admin/pacientes',      label: 'Pacientes',  icono: '👥' },
+  { href: '/admin/crm',            label: 'CRM',        icono: '🎯' },
+  { href: '/admin/galeria',        label: 'Galería',    icono: '🖼️' },
+  { href: '/admin/configuracion',  label: 'Config IA',  icono: '⚙️' },
 ]
 
 function Sidebar({ open, onClose }: { open: boolean; onClose: () => void }) {

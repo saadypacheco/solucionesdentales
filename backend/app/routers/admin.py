@@ -4,6 +4,7 @@ from typing import Optional
 import uuid
 from app.db.client import get_supabase_client
 from app.routers.auth import require_admin
+from app.services.seguimiento import ejecutar_seguimiento
 from supabase import Client
 
 router = APIRouter(prefix="/admin", tags=["admin"])
@@ -120,6 +121,41 @@ async def eliminar_caso(caso_id: int,
     if not res.data:
         raise HTTPException(status_code=404, detail="Caso no encontrado")
     return {"ok": True}
+
+
+@router.get("/config-ia")
+async def listar_config_ia(db: Client = Depends(get_db), _: None = Depends(require_admin)):
+    return db.table("config_ia").select("clave, valor, updated_at").order("clave").execute().data or []
+
+
+@router.patch("/config-ia/{clave}")
+async def actualizar_config_ia(clave: str, valor: str,
+                               db: Client = Depends(get_db), _: None = Depends(require_admin)):
+    claves_permitidas = ("system_prompt", "rangos_precios", "mensaje_recordatorio",
+                        "wa_numero", "horario_atencion")
+    if clave not in claves_permitidas:
+        raise HTTPException(status_code=400, detail=f"Clave no permitida: {clave}")
+    from datetime import datetime, timezone
+    res = db.table("config_ia").upsert({
+        "clave": clave,
+        "valor": valor,
+        "updated_at": datetime.now(timezone.utc).isoformat(),
+    }, on_conflict="clave").execute()
+    return res.data[0] if res.data else {"clave": clave, "valor": valor}
+
+
+@router.post("/seguimiento/ejecutar")
+async def ejecutar_seguimiento_manual(_: None = Depends(require_admin)):
+    """
+    Ejecuta todas las reglas de seguimiento automático y devuelve un resumen.
+    Puede llamarse manualmente desde el admin o conectarse a un cron externo.
+    """
+    try:
+        resultado = ejecutar_seguimiento()
+        total = sum(resultado.values())
+        return {"ok": True, "alarmas_generadas": total, "detalle": resultado}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.patch("/alarmas/{alarma_id}/resolver")
