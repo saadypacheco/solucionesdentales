@@ -1,4 +1,5 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8001'
+// Proxy server-side → Next.js reenvía a la VPS sin mixed-content
+const API_URL = '/api/proxy'
 
 export interface Doctor {
   id: string

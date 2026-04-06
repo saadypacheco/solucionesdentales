@@ -1,6 +1,6 @@
 # Progreso — Soluciones Dentales
 
-> Última actualización: 2026-04-05
+> Última actualización: 2026-04-06
 
 ---
 
@@ -64,22 +64,42 @@ Próximo paso: Deploy a producción + testeo end-to-end
   - `.github/workflows/deploy.yml` — CI/CD automático
   - `docs/produccion.md` — guía completa de setup
 
+- [x] **Fix mixed content — Proxy Next.js**
+  - `next.config.mjs` con `async rewrites()` que proxy `/api/proxy/*` → backend VPS
+  - Todos los API clients usan `/api/proxy` (relativo, same-origin, sin mixed-content)
+  - Vercel necesita: `API_URL=http://72.61.162.46:8001` (env var server-side, NO public)
+
+- [x] **Fase 2 — Galería (M9)**
+  - Backend: `POST /admin/casos` con upload de imágenes a Supabase Storage
+  - `GET /casos/` público (solo aprobados) · `GET /admin/casos` completo
+  - `PATCH /admin/casos/{id}` aprobar/despublicar · `DELETE /admin/casos/{id}` eliminar
+  - Frontend `/galeria`: slider drag antes/después, filtros por tratamiento, dark theme
+  - Frontend `/admin/galeria`: grid doble foto, modal upload, botones publicar/eliminar
+
+- [x] **Fase 2 — Admin pages completas**
+  - Layout admin unificado con sidebar (nav + logout + link web)
+  - `/admin/agenda`: vista semanal con 7 columnas (desktop) / tabs por día (mobile)
+  - `/admin/pacientes`: tabla con búsqueda, filtro estado, sort, links WhatsApp
+  - `/admin/crm`: kanban pipeline 7 columnas, mover pacientes drag&drop vía select
+  - Dashboard rediseñado en dark theme, sin sidebar embebido redundante
+
 ---
 
-## Próximo paso: Deploy + Fase 2
+## Próximo paso
 
-### Deploy inmediato
-- [ ] Clonar repo en VPS
-- [ ] Configurar secrets en GitHub (VPS_HOST, VPS_USER, VPS_SSH_KEY)
-- [ ] Correr setup nginx en VPS
-- [ ] Importar proyecto en Vercel con variables de entorno de producción
-- [ ] Primer push → verificar deploy automático
+### Vercel — variable de entorno pendiente
+- En Settings → Environment Variables:
+  - `API_URL = http://72.61.162.46:8001` (Production + Preview + Development)
+  - Borrar `NEXT_PUBLIC_API_URL` si existía
 
-### Fase 2 (post-lanzamiento)
-- [ ] CRM kanban (M4)
-- [ ] Galería casos antes/después (M9)
+### HTTPS backend (pendiente)
+- Opción A: agregar dentales-backend al compose de amanda (ver `docs/produccion.md`)
+- Opción B: dominio propio con certbot
+
+### Fase 2 restante
 - [ ] Diagnóstico digital IA (M2)
 - [ ] Sistema de seguimiento automático (M7)
+- [ ] Bucket `galeria` en Supabase Storage (crear en dashboard con acceso público)
 
 ---
 

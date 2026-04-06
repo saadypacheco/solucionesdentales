@@ -1,4 +1,4 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8001'
+const API_URL = '/api/proxy'
 
 function authHeaders(token: string) {
   return { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }
@@ -48,6 +48,10 @@ export async function patchTurnoEstado(token: string, turnoId: number, estado: s
 /* ─── Pacientes admin ─── */
 export async function getPacientesAdmin(token: string): Promise<Paciente[]> {
   return apiFetch('/admin/pacientes', token)
+}
+
+export async function patchPacienteEstado(token: string, pacienteId: number, estado: string): Promise<Paciente> {
+  return apiFetch(`/admin/pacientes/${pacienteId}/estado?estado=${estado}`, token, { method: 'PATCH' })
 }
 
 /* ─── Alarmas ─── */
