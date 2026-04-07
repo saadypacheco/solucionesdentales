@@ -187,7 +187,7 @@ class SolicitarTurnoRequest(BaseModel):
     usuario_id: Optional[str] = None  # UUID del odontólogo; se auto-asigna si hay 1 solo
 
 
-@router.post("/")
+@router.post("")
 async def solicitar_turno(req: SolicitarTurnoRequest, db: Client = Depends(get_db)):
     """Solicita un turno — crea el paciente si no existe."""
     duracion = DURACION_POR_TRATAMIENTO.get(req.tipo_tratamiento, 30)

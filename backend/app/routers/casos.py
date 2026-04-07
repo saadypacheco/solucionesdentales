@@ -9,7 +9,7 @@ def get_db() -> Client:
     return get_supabase_client()
 
 
-@router.get("/")
+@router.get("")
 async def listar_casos(tipo: str | None = None, db: Client = Depends(get_db)):
     """Casos aprobados — públicos."""
     query = db.table("casos_galeria").select("*").eq("aprobado", True).order("created_at", desc=True)

@@ -10,7 +10,7 @@ def get_db() -> Client:
     return get_supabase_client()
 
 
-@router.get("/")
+@router.get("")
 async def listar_alarmas(db: Client = Depends(get_db), _: None = Depends(require_admin)):
     return db.table("alarmas").select("*, pacientes(nombre, telefono)") \
         .eq("resuelta", False).order("created_at", desc=True).execute().data or []

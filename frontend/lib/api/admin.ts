@@ -56,7 +56,7 @@ export async function patchPacienteEstado(token: string, pacienteId: number, est
 
 /* ─── Alarmas ─── */
 export async function getAlarmas(token: string): Promise<Alarma[]> {
-  return apiFetch('/alarmas/', token)
+  return apiFetch('/alarmas', token)
 }
 
 export async function resolverAlarma(token: string, alarmaId: number): Promise<void> {

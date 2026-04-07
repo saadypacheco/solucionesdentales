@@ -13,7 +13,7 @@ export interface Caso {
 
 export async function getCasos(tipo?: string): Promise<Caso[]> {
   const qs = tipo ? `?tipo=${tipo}` : ''
-  const res = await fetch(`${API_URL}/casos/${qs}`, { cache: 'no-store' })
+  const res = await fetch(`${API_URL}/casos${qs}`, { cache: 'no-store' })
   if (!res.ok) throw new Error('Error al cargar galería')
   return res.json()
 }
