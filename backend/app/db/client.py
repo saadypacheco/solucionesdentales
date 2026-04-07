@@ -15,7 +15,12 @@ def get_supabase_client() -> Client:
         if not url or not key:
             raise RuntimeError("SUPABASE_URL y SUPABASE_SERVICE_ROLE_KEY son requeridos")
         _client = create_client(url, key)
-        # Asegurar que el cliente usa service_role y bypasea RLS
-        # en supabase-py v2 hay que setear el header explícitamente
+        # supabase-py v2: forzar service_role en el cliente postgrest
+        # para bypassear RLS en todas las operaciones del backend
         _client.postgrest.auth(key)
+        # También setear el header directamente por si la versión del SDK lo requiere
+        _client.postgrest.session.headers.update({
+            "Authorization": f"Bearer {key}",
+            "apikey": key,
+        })
     return _client
