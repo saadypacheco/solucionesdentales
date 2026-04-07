@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, Depends
 from app.db.client import get_supabase_client
 from supabase import Client
 
-router = APIRouter(prefix="/casos", tags=["casos"])
+router = APIRouter(prefix="/casos", tags=["casos"], redirect_slashes=False)
 
 
 def get_db() -> Client:

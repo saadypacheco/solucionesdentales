@@ -6,7 +6,7 @@ from zoneinfo import ZoneInfo
 from app.db.client import get_supabase_client
 from supabase import Client
 
-router = APIRouter(prefix="/turnos", tags=["turnos"])
+router = APIRouter(prefix="/turnos", tags=["turnos"], redirect_slashes=False)
 
 AR_TZ = ZoneInfo("America/Argentina/Buenos_Aires")
 

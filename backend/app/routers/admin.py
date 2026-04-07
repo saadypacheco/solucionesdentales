@@ -7,7 +7,7 @@ from app.routers.auth import require_admin
 from app.services.seguimiento import ejecutar_seguimiento
 from supabase import Client
 
-router = APIRouter(prefix="/admin", tags=["admin"])
+router = APIRouter(prefix="/admin", tags=["admin"], redirect_slashes=False)
 
 
 def get_db() -> Client:

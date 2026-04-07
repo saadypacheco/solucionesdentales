@@ -4,7 +4,7 @@ from typing import Optional
 from app.db.client import get_supabase_client
 from app.services.agente import get_respuesta
 
-router = APIRouter(prefix="/agente", tags=["agente"])
+router = APIRouter(prefix="/agente", tags=["agente"], redirect_slashes=False)
 
 MAX_HISTORIAL = 10
 

@@ -69,7 +69,7 @@ export async function getSlots(
 }
 
 export async function solicitarTurno(payload: SolicitarTurnoPayload): Promise<TurnoResponse> {
-  const res = await fetch(`${API_URL}/turnos/`, {
+  const res = await fetch(`${API_URL}/turnos`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
