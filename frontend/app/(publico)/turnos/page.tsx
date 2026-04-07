@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import Link from 'next/link'
 import { getDoctores, getSlots, solicitarTurno, type Doctor, type TurnoResponse } from '@/lib/api/turnos'
 
@@ -59,7 +59,9 @@ export default function TurnosPage() {
   const [mostrarSelectDoctor, setMostrarSelectDoctor] = useState(false)
 
   // Paso 3 — fecha y hora
-  const dias = proximosDiasHabiles(10)
+  // useMemo evita recrear el array en cada render (sin esto → diaSeleccionado cambia
+  // de referencia cada vez → useCallback se recrea → useEffect se dispara → loop infinito)
+  const dias = useMemo(() => proximosDiasHabiles(10), [])
   const [diaIndex, setDiaIndex] = useState(0)
   const [slots, setSlots] = useState<string[]>([])
   const [loadingSlots, setLoadingSlots] = useState(false)
