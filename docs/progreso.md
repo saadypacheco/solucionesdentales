@@ -1,6 +1,6 @@
 # Progreso — Soluciones Dentales
 
-> Última actualización: 2026-04-06
+> Última actualización: 2026-04-07
 
 ---
 
@@ -83,23 +83,48 @@ Próximo paso: Deploy a producción + testeo end-to-end
   - `/admin/crm`: kanban pipeline 7 columnas, mover pacientes drag&drop vía select
   - Dashboard rediseñado en dark theme, sin sidebar embebido redundante
 
+- [x] **Fase 2 — Seguimiento automático (M7)**
+  - `backend/app/services/seguimiento.py` — 4 reglas: inactivos >6m, turnos sin confirmar <48h, leads >24h, tratamientos sin próximo turno
+  - `POST /admin/seguimiento/ejecutar` — devuelve resumen de alarmas creadas
+  - `/admin/configuracion` — panel de configuración IA con botón ejecutar seguimiento
+
+- [x] **Fase 2 — Agente IA dinámico (M2)**
+  - `system_prompt` y `rangos_precios` se leen de `config_ia` (tabla Supabase)
+  - Casos relevantes de galería se inyectan en el contexto según keywords del mensaje
+  - `/admin/configuracion` — editar system_prompt, rangos, mensaje recordatorio, WA número
+
+- [x] **Identidad progresiva — OTP (Fase 2)**
+  - `POST /auth/otp/enviar` — genera OTP 4 dígitos, devuelve link WhatsApp
+  - `POST /auth/otp/verificar` — verifica código, devuelve JWT paciente (30 días)
+  - `GET /auth/mis-turnos` / `PATCH /auth/mis-turnos/{id}/cancelar` — con JWT paciente
+  - Página `/mis-turnos` — 3 pasos: teléfono → OTP → lista de turnos
+  - `pacienteStore` (Zustand + persist) — token + info paciente
+  - Tabla `paciente_otps` (migración 008)
+
+- [x] **Fixes críticos**
+  - RLS recursión infinita → `get_auth_user_rol()` SECURITY DEFINER (migración 006)
+  - RLS bloquea INSERT anónimo → políticas separadas por operación (migración 009)
+  - CORS por redirect → `redirect_slashes=False` en todos los routers + rutas sin `/` final
+  - Infinite fetch loop → `useMemo` para `proximosDiasHabiles()`
+  - Mixed content → proxy Next.js `/api/proxy/*` → backend
+
 ---
 
-## Próximo paso
+## Pendiente — antes de producción
 
-### Vercel — variable de entorno pendiente
-- En Settings → Environment Variables:
-  - `API_URL = http://72.61.162.46:8001` (Production + Preview + Development)
-  - Borrar `NEXT_PUBLIC_API_URL` si existía
+### Variables de entorno
+- **Backend `.env`**: agregar `JWT_SECRET=<valor-seguro>` (para tokens OTP pacientes)
+- **Vercel**: `API_URL=http://72.61.162.46:8001` (server-side, sin NEXT_PUBLIC_)
+- **Backend**: `WA_NUMBER=549XXXXXXXXXX` (número WhatsApp del consultorio)
+- **Backend**: `ENVIRONMENT=production` (oculta `codigo_dev` en la respuesta OTP)
+
+### Supabase
+- [ ] Crear bucket `galeria` en Storage con acceso público (para fotos de antes/después)
+- [ ] Migración `config_ia` — si no se corrió aún: `INSERT INTO config_ia` con valores iniciales
 
 ### HTTPS backend (pendiente)
 - Opción A: agregar dentales-backend al compose de amanda (ver `docs/produccion.md`)
 - Opción B: dominio propio con certbot
-
-### Fase 2 restante
-- [ ] Diagnóstico digital IA (M2)
-- [ ] Sistema de seguimiento automático (M7)
-- [ ] Bucket `galeria` en Supabase Storage (crear en dashboard con acceso público)
 
 ---
 
