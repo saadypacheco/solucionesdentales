@@ -507,7 +507,13 @@ export default function TurnosPage() {
             >
               💬 Confirmar por WhatsApp
             </a>
-            <Link href="/" className="block text-teal-600 text-sm hover:underline">
+            <Link
+              href="/mis-turnos"
+              className="block max-w-xs mx-auto border border-teal-200 text-teal-600 py-3 rounded-full font-bold hover:bg-teal-50 transition-colors mb-3 text-sm"
+            >
+              📋 Ver mis turnos
+            </Link>
+            <Link href="/" className="block text-slate-400 text-sm hover:underline">
               Volver al inicio
             </Link>
           </div>

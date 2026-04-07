@@ -1,16 +1,28 @@
 from fastapi import APIRouter, HTTPException, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel, EmailStr
+from typing import Optional
+import random
+import os
+import jwt as pyjwt
+from datetime import datetime, timedelta, timezone
 from app.db.client import get_supabase_client
 from supabase import Client
 
 router = APIRouter(prefix="/auth", tags=["auth"], redirect_slashes=False)
 security = HTTPBearer()
+security_optional = HTTPBearer(auto_error=False)
+
+JWT_SECRET = os.getenv("JWT_SECRET", "dev-secret-change-in-prod")
+JWT_ALGORITHM = "HS256"
+OTP_EXPIRY_MINUTES = 10
 
 
 def get_db() -> Client:
     return get_supabase_client()
 
+
+# ── Staff auth ────────────────────────────────────────────────────────────────
 
 def require_admin(
     credentials: HTTPAuthorizationCredentials = Depends(security),
@@ -49,7 +61,7 @@ async def login(req: LoginRequest, db: Client = Depends(get_db)):
             "access_token": res.session.access_token,
             "user": profile.data,
         }
-    except Exception as e:
+    except Exception:
         raise HTTPException(status_code=401, detail="Credenciales incorrectas")
 
 
@@ -82,3 +94,168 @@ async def me(credentials: HTTPAuthorizationCredentials = Depends(security),
         return profile.data
     except Exception:
         raise HTTPException(status_code=401, detail="Token inválido")
+
+
+# ── OTP para pacientes ────────────────────────────────────────────────────────
+
+class OTPEnviarRequest(BaseModel):
+    telefono: str
+
+
+class OTPVerificarRequest(BaseModel):
+    telefono: str
+    codigo: str
+
+
+def _generar_token_paciente(paciente_id: int, telefono: str) -> str:
+    payload = {
+        "sub": str(paciente_id),
+        "tel": telefono,
+        "tipo": "paciente",
+        "exp": datetime.now(timezone.utc) + timedelta(days=30),
+    }
+    return pyjwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
+
+
+def _verificar_token_paciente(token: str) -> dict:
+    try:
+        payload = pyjwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+        if payload.get("tipo") != "paciente":
+            raise ValueError("Token no es de paciente")
+        return payload
+    except Exception:
+        raise HTTPException(status_code=401, detail="Token de paciente inválido o expirado")
+
+
+def require_paciente(
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+) -> dict:
+    return _verificar_token_paciente(credentials.credentials)
+
+
+@router.post("/otp/enviar")
+async def otp_enviar(req: OTPEnviarRequest, db: Client = Depends(get_db)):
+    """
+    Genera un código OTP de 4 dígitos para el teléfono dado.
+    Devuelve un link de WhatsApp con el código pre-armado para que el
+    admin (o el propio sistema) lo envíe.
+    Como no tenemos API de WhatsApp, el código se muestra en pantalla
+    y también se puede enviar por WA manualmente.
+    """
+    telefono = req.telefono.strip()
+
+    # Verificar que el paciente existe
+    res = db.table("pacientes").select("id, nombre").eq("telefono", telefono).execute()
+    if not res.data:
+        raise HTTPException(
+            status_code=404,
+            detail="No encontramos ningún turno registrado con ese teléfono."
+        )
+
+    paciente = res.data[0]
+
+    # Invalidar OTPs anteriores del mismo teléfono
+    db.table("paciente_otps").update({"usado": True}) \
+        .eq("telefono", telefono).eq("usado", False).execute()
+
+    # Generar código de 4 dígitos
+    codigo = str(random.randint(1000, 9999))
+    expires_at = (datetime.now(timezone.utc) + timedelta(minutes=OTP_EXPIRY_MINUTES)).isoformat()
+
+    db.table("paciente_otps").insert({
+        "telefono": telefono,
+        "codigo": codigo,
+        "expires_at": expires_at,
+    }).execute()
+
+    wa_numero = os.getenv("WA_NUMBER", "5491100000000")
+    mensaje_wa = f"Tu código de verificación para Soluciones Dentales es: *{codigo}*. Válido por {OTP_EXPIRY_MINUTES} minutos."
+    wa_link = f"https://wa.me/{wa_numero}?text={mensaje_wa}"
+
+    return {
+        "ok": True,
+        "nombre": paciente.get("nombre"),
+        "wa_link": wa_link,
+        # En desarrollo mostramos el código; en producción se enviaría por WA
+        "codigo_dev": codigo if os.getenv("ENVIRONMENT", "development") == "development" else None,
+    }
+
+
+@router.post("/otp/verificar")
+async def otp_verificar(req: OTPVerificarRequest, db: Client = Depends(get_db)):
+    """Verifica el código OTP y devuelve un JWT de paciente."""
+    telefono = req.telefono.strip()
+    ahora = datetime.now(timezone.utc).isoformat()
+
+    otp = db.table("paciente_otps").select("*") \
+        .eq("telefono", telefono) \
+        .eq("codigo", req.codigo) \
+        .eq("usado", False) \
+        .gte("expires_at", ahora) \
+        .order("created_at", desc=True) \
+        .limit(1) \
+        .execute()
+
+    if not otp.data:
+        raise HTTPException(status_code=400, detail="Código incorrecto o expirado")
+
+    # Marcar como usado
+    db.table("paciente_otps").update({"usado": True}).eq("id", otp.data[0]["id"]).execute()
+
+    # Obtener paciente
+    paciente = db.table("pacientes").select("id, nombre, telefono, estado, score") \
+        .eq("telefono", telefono).single().execute()
+
+    if not paciente.data:
+        raise HTTPException(status_code=404, detail="Paciente no encontrado")
+
+    token = _generar_token_paciente(paciente.data["id"], telefono)
+
+    return {
+        "access_token": token,
+        "paciente": paciente.data,
+    }
+
+
+# ── Mis turnos ────────────────────────────────────────────────────────────────
+
+@router.get("/mis-turnos")
+async def mis_turnos(
+    payload: dict = Depends(require_paciente),
+    db: Client = Depends(get_db),
+):
+    """Turnos del paciente autenticado (token OTP)."""
+    paciente_id = int(payload["sub"])
+
+    turnos = db.table("turnos").select("*") \
+        .eq("paciente_id", paciente_id) \
+        .not_.in_("estado", ["cancelado"]) \
+        .order("fecha_hora", desc=True) \
+        .execute()
+
+    return turnos.data or []
+
+
+@router.patch("/mis-turnos/{turno_id}/cancelar")
+async def cancelar_turno(
+    turno_id: int,
+    payload: dict = Depends(require_paciente),
+    db: Client = Depends(get_db),
+):
+    """El paciente cancela uno de sus propios turnos."""
+    paciente_id = int(payload["sub"])
+
+    # Verificar que el turno pertenece al paciente
+    turno = db.table("turnos").select("id, estado, fecha_hora") \
+        .eq("id", turno_id).eq("paciente_id", paciente_id).execute()
+
+    if not turno.data:
+        raise HTTPException(status_code=404, detail="Turno no encontrado")
+
+    if turno.data[0]["estado"] in ("realizado", "cancelado"):
+        raise HTTPException(status_code=400, detail="No se puede cancelar este turno")
+
+    res = db.table("turnos").update({"estado": "cancelado"}) \
+        .eq("id", turno_id).execute()
+
+    return res.data[0]
