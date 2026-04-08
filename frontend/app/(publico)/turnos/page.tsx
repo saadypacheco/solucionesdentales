@@ -385,15 +385,15 @@ export default function TurnosPage() {
           {paso === 3 && (
             <div>
               <h1 className="text-3xl font-black text-white mb-1">Elegí fecha y hora</h1>
-              <div className="flex flex-wrap items-center gap-2 mb-6 text-sm text-slate-500">
+              <div className="flex flex-wrap items-center gap-2 mb-6 text-sm text-slate-300">
                 <span>{tratamientoObj?.icono} {tratamientoObj?.label}</span>
                 {doctorNombre && (
-                  <span className="text-teal-700 font-medium">· 👨‍⚕️ {doctorNombre}</span>
+                  <span className="text-teal-400 font-medium">· 👨‍⚕️ {doctorNombre}</span>
                 )}
               </div>
 
               {/* Días — scroll horizontal */}
-              <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">Día</p>
+              <p className="text-xs font-bold text-slate-300 uppercase tracking-widest mb-3">Día</p>
               <div className="flex gap-2 overflow-x-auto pb-2 mb-6 -mx-4 px-4 scrollbar-hide">
                 {dias.map((dia, i) => (
                   <button
@@ -401,8 +401,8 @@ export default function TurnosPage() {
                     onClick={() => setDiaIndex(i)}
                     className={`flex-shrink-0 px-4 py-2.5 rounded-full border-2 font-medium text-sm transition-all ${
                       diaIndex === i
-                        ? 'bg-gradient-to-br from-teal-500 to-teal-600 text-white border-teal-600'
-                        : 'border-slate-200 bg-white text-slate-600 hover:border-teal-400'
+                        ? 'bg-gradient-to-br from-teal-500 to-teal-600 text-white border-teal-600 shadow-lg shadow-teal-500/30'
+                        : 'border-slate-300 bg-white text-slate-700 hover:border-teal-400'
                     }`}
                   >
                     {formatFechaDisplay(dia)}
@@ -411,13 +411,13 @@ export default function TurnosPage() {
               </div>
 
               {/* Horarios */}
-              <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">
-                Horario <span className="text-teal-700 normal-case font-normal">(tocá uno para continuar)</span>
+              <p className="text-xs font-bold text-slate-300 uppercase tracking-widest mb-3">
+                Horario <span className="text-teal-400 normal-case font-normal">(tocá uno para continuar)</span>
               </p>
               {loadingSlots ? (
                 <div className="grid grid-cols-3 sm:grid-cols-4 gap-2.5">
                   {Array.from({ length: 8 }).map((_, i) => (
-                    <div key={i} className="h-12 bg-slate-200 rounded-xl animate-pulse" />
+                    <div key={i} className="h-12 bg-slate-400/20 rounded-xl animate-pulse" />
                   ))}
                 </div>
               ) : errorSlots ? (
@@ -432,8 +432,8 @@ export default function TurnosPage() {
                       onClick={() => seleccionarHora(hora)}
                       className={`py-3 rounded-xl border-2 font-semibold text-sm transition-all active:scale-95 ${
                         horaSeleccionada === hora
-                          ? 'border-teal-500 bg-teal-50 text-teal-700'
-                          : 'border-slate-200 bg-white text-slate-600 hover:border-teal-400'
+                          ? 'border-teal-500 bg-gradient-to-br from-teal-500 to-teal-600 text-white shadow-lg shadow-teal-500/30'
+                          : 'border-slate-300 bg-white text-slate-700 hover:border-teal-400 hover:bg-teal-50'
                       }`}
                     >
                       {hora}
