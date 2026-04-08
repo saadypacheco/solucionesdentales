@@ -293,8 +293,8 @@ export default function TurnosPage() {
           {/* ── PASO 1: Tratamiento ── */}
           {paso === 1 && (
             <div>
-              <h1 className="text-3xl font-black text-slate-800 mb-1">¿Qué tratamiento necesitás?</h1>
-              <p className="text-slate-500 text-sm mb-6">Tocá uno para continuar</p>
+              <h1 className="text-3xl font-black text-white mb-1">¿Qué tratamiento necesitás?</h1>
+              <p className="text-slate-400 text-sm mb-6">Tocá uno para continuar</p>
 
               {loadingDoctores ? (
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
@@ -347,8 +347,8 @@ export default function TurnosPage() {
           {/* ── PASO 2: Doctor ── */}
           {paso === 2 && (
             <div>
-              <h1 className="text-3xl font-black text-slate-800 mb-1">Elegí tu odontólogo</h1>
-              <p className="text-slate-500 text-sm mb-6">
+              <h1 className="text-3xl font-black text-white mb-1">Elegí tu odontólogo</h1>
+              <p className="text-slate-400 text-sm mb-6">
                 {tratamientoObj?.icono} {tratamientoObj?.label}
               </p>
 
@@ -384,7 +384,7 @@ export default function TurnosPage() {
           {/* ── PASO 3: Fecha y hora ── */}
           {paso === 3 && (
             <div>
-              <h1 className="text-3xl font-black text-slate-800 mb-1">Elegí fecha y hora</h1>
+              <h1 className="text-3xl font-black text-white mb-1">Elegí fecha y hora</h1>
               <div className="flex flex-wrap items-center gap-2 mb-6 text-sm text-slate-500">
                 <span>{tratamientoObj?.icono} {tratamientoObj?.label}</span>
                 {doctorNombre && (
@@ -447,8 +447,8 @@ export default function TurnosPage() {
           {/* ── PASO 4: Datos personales ── */}
           {paso === 4 && (
             <div>
-              <h1 className="text-3xl font-black text-slate-800 mb-1">{t.turnos.paso4.title}</h1>
-              <p className="text-slate-500 text-sm mb-6">{t.turnos.paso4.subtitle}</p>
+              <h1 className="text-3xl font-black text-white mb-1">{t.turnos.paso4.title}</h1>
+              <p className="text-slate-400 text-sm mb-6">{t.turnos.paso4.subtitle}</p>
 
               {/* Resumen compacto */}
               <div className="border-2 border-teal-200 bg-teal-50 rounded-2xl p-4 mb-6 flex items-center justify-between">
@@ -576,8 +576,8 @@ export default function TurnosPage() {
               <div className="w-20 h-20 bg-gradient-to-br from-teal-500 to-teal-600 rounded-full flex items-center justify-center mx-auto mb-6">
                 <span className="text-4xl">✅</span>
               </div>
-              <h1 className="text-3xl font-black text-slate-800 mb-2">¡Turno solicitado!</h1>
-              <p className="text-slate-500 text-sm mb-6 max-w-xs mx-auto">
+              <h1 className="text-3xl font-black text-white mb-2">¡Turno solicitado!</h1>
+              <p className="text-slate-400 text-sm mb-6 max-w-xs mx-auto">
                 Te vamos a contactar al{' '}
                 <span className="font-semibold text-slate-700">{telefono}</span>{' '}
                 para confirmar. Revisá WhatsApp.
