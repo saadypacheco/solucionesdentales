@@ -428,9 +428,7 @@ export default function MisTurnosPage() {
             >
               {lang === 'es' ? 'EN' : 'ES'}
             </button>
-            </span>
-          )}
-        </div>
+          </div>
       </header>
 
       <div className="max-w-lg mx-auto px-4 py-8">
