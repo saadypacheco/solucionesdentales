@@ -35,6 +35,7 @@ async def health():
     return {"status": "ok", "sistema": "Soluciones Dentales"}
 
 
+
 @app.get("/")
 async def root():
     return {"message": "Soluciones Dentales API v0.1.0"}

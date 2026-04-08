@@ -1,6 +1,6 @@
 # Progreso — Soluciones Dentales
 
-> Última actualización: 2026-04-07
+> Última actualización: 2026-04-08
 
 ---
 
@@ -110,21 +110,40 @@ Próximo paso: Deploy a producción + testeo end-to-end
 
 ---
 
+- [x] **Fix definitivo — Grants en Supabase (migración 010)**
+  - `GRANT INSERT ON pacientes, turnos, alarmas TO anon, authenticated`
+  - `GRANT USAGE, SELECT ON ALL SEQUENCES` — permite SERIAL autoincrement
+  - RLS policies + table grants = seguridad correcta en Supabase
+
+---
+
 ## Pendiente — antes de producción
 
-### Variables de entorno
-- **Backend `.env`**: agregar `JWT_SECRET=<valor-seguro>` (para tokens OTP pacientes)
+### Variables de entorno (CRÍTICO)
+- **Backend `.env`**: 
+  - `SUPABASE_SERVICE_ROLE_KEY` — verificar que sea la **service_role key** del dashboard Supabase, NO la anon key
+  - `JWT_SECRET=<valor-seguro>` (para tokens OTP pacientes)
+  - `WA_NUMBER=549XXXXXXXXXX` (número WhatsApp del consultorio)
+  - `ENVIRONMENT=production` (oculta `codigo_dev` en respuesta OTP)
 - **Vercel**: `API_URL=http://72.61.162.46:8001` (server-side, sin NEXT_PUBLIC_)
-- **Backend**: `WA_NUMBER=549XXXXXXXXXX` (número WhatsApp del consultorio)
-- **Backend**: `ENVIRONMENT=production` (oculta `codigo_dev` en la respuesta OTP)
 
 ### Supabase
-- [ ] Crear bucket `galeria` en Storage con acceso público (para fotos de antes/después)
-- [ ] Migración `config_ia` — si no se corrió aún: `INSERT INTO config_ia` con valores iniciales
+- [ ] **Ejecutar migración 010** (`010_grants_public_insert.sql`) en SQL Editor
+- [ ] Crear bucket `galeria` en Storage con acceso público (fotos antes/después)
+- [ ] Migración `config_ia` — si no se corrió: `INSERT INTO config_ia` con system_prompt inicial
 
 ### HTTPS backend (pendiente)
 - Opción A: agregar dentales-backend al compose de amanda (ver `docs/produccion.md`)
 - Opción B: dominio propio con certbot
+
+---
+
+## Checklist final QA
+- [ ] Agendar turno en `/turnos` → paciente se crea, turno se inserta
+- [ ] Ver turno en `/mis-turnos` (OTP flow)
+- [ ] Admin → `/admin/agenda`, `/admin/pacientes`, `/admin/crm`
+- [ ] Galería: subir foto antes/después en `/admin/galeria`
+- [ ] Config IA: editar system_prompt, ejecutar seguimiento automático
 
 ---
 
