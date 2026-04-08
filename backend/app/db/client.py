@@ -13,33 +13,27 @@ def get_supabase_client() -> Client:
     global _client, _pg
     if _client is None:
         url = os.getenv("SUPABASE_URL")
-        key = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
+        # Intentar usar service_role, fallback a anon si no está disponible
+        key = os.getenv("SUPABASE_SERVICE_ROLE_KEY") or os.getenv("SUPABASE_ANON_KEY")
+        anon_key = os.getenv("SUPABASE_ANON_KEY")
+
         if not url or not key:
-            raise RuntimeError("SUPABASE_URL y SUPABASE_SERVICE_ROLE_KEY son requeridos")
+            raise RuntimeError("SUPABASE_URL y SUPABASE_SERVICE_ROLE_KEY (o SUPABASE_ANON_KEY) son requeridos")
 
         _client = create_client(url, key)
 
-        # supabase-py 2.7.x: db.postgrest es una propiedad que crea una nueva
-        # instancia en cada acceso, sin Authorization header.
-        # Creamos un SyncPostgrestClient propio con service_role y lo inyectamos.
+        # supabase-py 2.7.x: crear SyncPostgrestClient propio con headers correctos
+        # Si usamos service_role, bypasea RLS. Si usamos anon, RLS policies lo permiten.
         rest_url = f"{url}/rest/v1"
         _pg = SyncPostgrestClient(
             rest_url,
             headers={
-                "apikey": key,
-                "Authorization": f"Bearer {key}",
+                "apikey": anon_key,  # apikey siempre es anon (PostgREST lo requiere)
+                "Authorization": f"Bearer {key}",  # Authorization puede ser service_role o anon
             },
         )
 
-        # Reemplazar el atributo interno para que db.table() use nuestro cliente
-        # (funciona porque Python busca primero en __dict__ de la instancia)
-        try:
-            _client.__dict__["postgrest"] = _pg
-        except Exception:
-            # fallback: parchamos el atributo privado si existe
-            for attr in ("_postgrest", "_postgrest_client"):
-                if hasattr(_client, attr):
-                    setattr(_client, attr, _pg)
-                    break
+        # Reemplazar el postgrest internal del cliente supabase
+        _client._postgrest = _pg
 
     return _client

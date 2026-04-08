@@ -10,6 +10,7 @@ const NAV = [
   { href: '/admin/agenda',         label: 'Agenda',     icono: '📅' },
   { href: '/admin/pacientes',      label: 'Pacientes',  icono: '👥' },
   { href: '/admin/crm',            label: 'CRM',        icono: '🎯' },
+  { href: '/admin/usuarios',       label: 'Usuarios',   icono: '👨‍⚕️' },
   { href: '/admin/galeria',        label: 'Galería',    icono: '🖼️' },
   { href: '/admin/configuracion',  label: 'Config IA',  icono: '⚙️' },
 ]

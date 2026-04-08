@@ -50,6 +50,18 @@ class RegisterRequest(BaseModel):
     password: str
     nombre: str
     rol: str = "recepcionista"
+    especialidades: Optional[list[str]] = None
+
+
+class UpdateUsuarioRequest(BaseModel):
+    nombre: Optional[str] = None
+    rol: Optional[str] = None
+    especialidades: Optional[list[str]] = None
+    email: Optional[EmailStr] = None
+
+
+class ResetPasswordRequest(BaseModel):
+    nueva_password: str
 
 
 @router.post("/login")
@@ -57,10 +69,17 @@ async def login(req: LoginRequest, db: Client = Depends(get_db)):
     try:
         res = db.auth.sign_in_with_password({"email": req.email, "password": req.password})
         profile = db.table("usuarios").select("*").eq("id", res.user.id).single().execute()
+
+        # Verificar que el usuario está activo
+        if not profile.data or not profile.data.get("activo", True):
+            raise HTTPException(status_code=403, detail="Usuario desactivado")
+
         return {
             "access_token": res.session.access_token,
             "user": profile.data,
         }
+    except HTTPException:
+        raise
     except Exception:
         raise HTTPException(status_code=401, detail="Credenciales incorrectas")
 
@@ -74,12 +93,15 @@ async def register(req: RegisterRequest, db: Client = Depends(get_db),
             "password": req.password,
             "email_confirm": True,
         })
-        db.table("usuarios").insert({
+        data = {
             "id": auth_res.user.id,
             "email": req.email,
             "nombre": req.nombre,
             "rol": req.rol,
-        }).execute()
+        }
+        if req.especialidades:
+            data["especialidades"] = req.especialidades
+        db.table("usuarios").insert(data).execute()
         return {"ok": True}
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -259,3 +281,83 @@ async def cancelar_turno(
         .eq("id", turno_id).execute()
 
     return res.data[0]
+
+
+# ── CRUD de usuarios staff ────────────────────────────────────────────────────
+
+@router.get("/usuarios")
+async def list_usuarios(
+    _: None = Depends(require_admin),
+    db: Client = Depends(get_db),
+):
+    """Lista todos los usuarios staff activos e inactivos."""
+    usuarios = db.table("usuarios").select("*").order("nombre").execute()
+    return usuarios.data or []
+
+
+@router.patch("/usuarios/{usuario_id}")
+async def update_usuario(
+    usuario_id: str,
+    req: UpdateUsuarioRequest,
+    _: None = Depends(require_admin),
+    db: Client = Depends(get_db),
+):
+    """Edita un usuario staff (nombre, rol, especialidades, email)."""
+    update_data = {}
+    if req.nombre:
+        update_data["nombre"] = req.nombre
+    if req.rol:
+        update_data["rol"] = req.rol
+    if req.especialidades is not None:
+        update_data["especialidades"] = req.especialidades
+    if req.email:
+        update_data["email"] = req.email
+        # También actualizar el email en auth si cambió
+        try:
+            db.auth.admin.update_user_by_id(usuario_id, {"email": req.email})
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=f"Error updating auth email: {str(e)}")
+
+    update_data["updated_at"] = datetime.now(tz=timezone.utc).isoformat()
+    res = db.table("usuarios").update(update_data).eq("id", usuario_id).execute()
+
+    if not res.data:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+
+    return res.data[0]
+
+
+@router.patch("/usuarios/{usuario_id}/password")
+async def reset_password(
+    usuario_id: str,
+    req: ResetPasswordRequest,
+    _: None = Depends(require_admin),
+    db: Client = Depends(get_db),
+):
+    """Resetea la contraseña de un usuario staff."""
+    try:
+        db.auth.admin.update_user_by_id(usuario_id, {"password": req.nueva_password})
+        return {"ok": True}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Error resetting password: {str(e)}")
+
+
+@router.patch("/usuarios/{usuario_id}/toggle")
+async def toggle_usuario(
+    usuario_id: str,
+    _: None = Depends(require_admin),
+    db: Client = Depends(get_db),
+):
+    """Activa o desactiva un usuario staff."""
+    usuario = db.table("usuarios").select("activo").eq("id", usuario_id).single().execute()
+
+    if not usuario.data:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+
+    nuevo_estado = not usuario.data.get("activo", True)
+    res = db.table("usuarios").update({
+        "activo": nuevo_estado,
+        "updated_at": datetime.now(tz=timezone.utc).isoformat(),
+    }).eq("id", usuario_id).execute()
+
+    return {"activo": res.data[0]["activo"]}

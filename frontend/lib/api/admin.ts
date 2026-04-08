@@ -35,6 +35,62 @@ export async function getMe(token: string): Promise<StaffUser> {
   return apiFetch('/auth/me', token)
 }
 
+/* ─── CRUD Usuarios staff ─── */
+export interface StaffUserDetailed extends StaffUser {
+  activo: boolean
+  especialidades?: string[]
+  created_at: string
+  updated_at: string
+}
+
+export async function getStaff(token: string): Promise<StaffUserDetailed[]> {
+  return apiFetch('/auth/usuarios', token)
+}
+
+export async function createStaff(
+  token: string,
+  data: { email: string; password: string; nombre: string; rol: string; especialidades?: string[] }
+): Promise<{ ok: boolean }> {
+  const res = await fetch(`${API_URL}/auth/register`, {
+    method: 'POST',
+    headers: { ...authHeaders(token) },
+    body: JSON.stringify(data),
+  })
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}))
+    throw new Error(err.detail ?? 'Error creating staff')
+  }
+  return res.json()
+}
+
+export async function updateStaff(
+  token: string,
+  usuarioId: string,
+  data: { nombre?: string; rol?: string; especialidades?: string[]; email?: string }
+): Promise<StaffUserDetailed> {
+  return apiFetch(`/auth/usuarios/${usuarioId}`, token, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  })
+}
+
+export async function resetStaffPassword(
+  token: string,
+  usuarioId: string,
+  nuevaPassword: string
+): Promise<{ ok: boolean }> {
+  return apiFetch(`/auth/usuarios/${usuarioId}/password`, token, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ nueva_password: nuevaPassword }),
+  })
+}
+
+export async function toggleStaff(token: string, usuarioId: string): Promise<{ activo: boolean }> {
+  return apiFetch(`/auth/usuarios/${usuarioId}/toggle`, token, { method: 'PATCH' })
+}
+
 /* ─── Turnos admin ─── */
 export async function getTurnosAdmin(token: string, fecha?: string): Promise<TurnoAdmin[]> {
   const qs = fecha ? `?fecha=${fecha}` : ''
