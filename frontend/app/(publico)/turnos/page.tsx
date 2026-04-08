@@ -3,6 +3,8 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import Link from 'next/link'
 import { getDoctores, getSlots, solicitarTurno, type Doctor, type TurnoResponse } from '@/lib/api/turnos'
+import { useLangStore } from '@/store/langStore'
+import { useT } from '@/lib/i18n'
 
 /* ─── CONFIG ─── */
 const tratamientos = [
@@ -69,9 +71,25 @@ export default function TurnosPage() {
   // Paso 4 — datos
   const [nombre, setNombre] = useState('')
   const [telefono, setTelefono] = useState('')
+  const [email, setEmail] = useState('')
   const [notas, setNotas] = useState('')
   const [enviando, setEnviando] = useState(false)
   const [errorEnvio, setErrorEnvio] = useState('')
+
+  // Validación de contacto
+  function validarTelefono(t: string): boolean {
+    return /^\+?[\d\s\-().]{8,15}$/.test(t.trim())
+  }
+
+  function validarEmail(e: string): boolean {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e.trim())
+  }
+
+  function contactoValido(): boolean {
+    const tOk = telefono.trim() !== '' && validarTelefono(telefono)
+    const eOk = email.trim() !== '' && validarEmail(email)
+    return tOk || eOk
+  }
 
   // Paso 5 — confirmado
   const [turnoConfirmado, setTurnoConfirmado] = useState<TurnoResponse | null>(null)
@@ -104,7 +122,7 @@ export default function TurnosPage() {
     if (paso === 1) return tratamiento !== ''
     if (paso === 2) return doctorId !== undefined
     if (paso === 3) return horaSeleccionada !== ''
-    if (paso === 4) return nombre.trim() !== '' && telefono.trim() !== ''
+    if (paso === 4) return nombre.trim() !== '' && contactoValido()
     return false
   }
 
@@ -167,14 +185,18 @@ export default function TurnosPage() {
   }, [paso, fetchSlots])
 
   async function confirmarTurno() {
-    if (!nombre.trim() || !telefono.trim()) return
+    if (!nombre.trim() || !contactoValido()) return
     setEnviando(true); setErrorEnvio('')
     try {
       const fechaHora = toISOLocal(diaSeleccionado, horaSeleccionada)
       const res = await solicitarTurno({
-        nombre: nombre.trim(), telefono: telefono.trim(),
-        fecha_hora: fechaHora, tipo_tratamiento: tratamiento,
-        notas: notas.trim() || undefined, usuario_id: doctorId,
+        nombre: nombre.trim(),
+        telefono: telefono.trim() || undefined,
+        email: email.trim() || undefined,
+        fecha_hora: fechaHora,
+        tipo_tratamiento: tratamiento,
+        notas: notas.trim() || undefined,
+        usuario_id: doctorId,
       })
       setTurnoConfirmado(res)
       irAPaso(5)
@@ -187,6 +209,8 @@ export default function TurnosPage() {
 
   const pasoActual = pasoVisible()
   const esConfirmacion = paso === 5
+  const t = useT()
+  const { lang, setLang } = useLangStore()
 
   return (
     <div ref={topRef} className="min-h-screen bg-cyan-50">
@@ -197,13 +221,21 @@ export default function TurnosPage() {
             <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
             </svg>
-            Soluciones Dentales
+            {t.landing.title}
           </Link>
-          {!esConfirmacion && (
-            <span className="text-xs text-teal-700 bg-teal-100 px-3 py-1 rounded-full border border-teal-200">
-              Paso {pasoActual} de {totalPasos}
-            </span>
-          )}
+          <div className="flex items-center gap-4">
+            {!esConfirmacion && (
+              <span className="text-xs text-teal-700 bg-teal-100 px-3 py-1 rounded-full border border-teal-200">
+                Paso {pasoActual} de {totalPasos}
+              </span>
+            )}
+            <button
+              onClick={() => setLang(lang === 'es' ? 'en' : 'es')}
+              className="text-xs font-semibold text-teal-700 hover:text-teal-600 transition-colors"
+            >
+              {lang === 'es' ? 'EN' : 'ES'}
+            </button>
+          </div>
         </div>
       </header>
 
@@ -415,8 +447,8 @@ export default function TurnosPage() {
           {/* ── PASO 4: Datos personales ── */}
           {paso === 4 && (
             <div>
-              <h1 className="text-3xl font-black text-slate-800 mb-1">Tus datos</h1>
-              <p className="text-slate-500 text-sm mb-6">Sin registro — solo nombre y teléfono</p>
+              <h1 className="text-3xl font-black text-slate-800 mb-1">{t.turnos.paso4.title}</h1>
+              <p className="text-slate-500 text-sm mb-6">{t.turnos.paso4.subtitle}</p>
 
               {/* Resumen compacto */}
               <div className="border-2 border-teal-200 bg-teal-50 rounded-2xl p-4 mb-6 flex items-center justify-between">
@@ -439,35 +471,71 @@ export default function TurnosPage() {
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-1.5">Nombre completo *</label>
+                  <label className="block text-sm font-semibold text-slate-700 mb-1.5">{t.turnos.paso4.nombre} *</label>
                   <input
                     type="text"
                     value={nombre}
                     onChange={(e) => setNombre(e.target.value)}
-                    placeholder="Ej: María García"
+                    placeholder={t.turnos.paso4.nombrePlaceholder}
                     autoFocus
                     className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-teal-400 focus:ring-2 focus:ring-teal-100 transition-all"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-1.5">Teléfono *</label>
+                  <label className="block text-sm font-semibold text-slate-700 mb-1.5">
+                    {t.turnos.paso4.telefono}
+                    {!email.trim() && ' *'}
+                  </label>
                   <input
                     type="tel"
                     value={telefono}
                     onChange={(e) => setTelefono(e.target.value)}
-                    placeholder="Ej: 11 1234-5678"
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-teal-400 focus:ring-2 focus:ring-teal-100 transition-all"
+                    placeholder={t.turnos.paso4.telefonoPlaceholder}
+                    className={`w-full px-4 py-3 rounded-xl border transition-all bg-white text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 ${
+                      telefono.trim() && !validarTelefono(telefono)
+                        ? 'border-red-300 focus:border-red-400 focus:ring-red-100'
+                        : 'border-slate-200 focus:border-teal-400 focus:ring-teal-100'
+                    }`}
                   />
-                  <p className="text-slate-400 text-xs mt-1.5">Te avisamos por WhatsApp cuando se confirme</p>
+                  <p className="text-slate-400 text-xs mt-1.5">{t.turnos.paso4.telefonoHint}</p>
+                  {telefono.trim() && !validarTelefono(telefono) && (
+                    <p className="text-red-600 text-xs mt-1.5">{t.turnos.paso4.invalidPhone}</p>
+                  )}
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-1.5">
-                    Notas <span className="font-normal text-slate-400">(opcional)</span>
+                    {t.turnos.paso4.email}
+                    {!telefono.trim() && ' *'}
+                  </label>
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder={t.turnos.paso4.emailPlaceholder}
+                    className={`w-full px-4 py-3 rounded-xl border transition-all bg-white text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 ${
+                      email.trim() && !validarEmail(email)
+                        ? 'border-red-300 focus:border-red-400 focus:ring-red-100'
+                        : 'border-slate-200 focus:border-teal-400 focus:ring-teal-100'
+                    }`}
+                  />
+                  <p className="text-slate-400 text-xs mt-1.5">{t.turnos.paso4.emailHint}</p>
+                  {email.trim() && !validarEmail(email) && (
+                    <p className="text-red-600 text-xs mt-1.5">{t.turnos.paso4.invalidEmail}</p>
+                  )}
+                </div>
+                {!contactoValido() && telefono.trim() === '' && email.trim() === '' && (
+                  <p className="text-teal-700 text-xs bg-teal-50 border border-teal-200 rounded-lg px-3 py-2">
+                    {t.turnos.paso4.contactHint}
+                  </p>
+                )}
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-1.5">
+                    {t.turnos.paso4.notas} <span className="font-normal text-slate-400">(opcional)</span>
                   </label>
                   <textarea
                     value={notas}
                     onChange={(e) => setNotas(e.target.value)}
-                    placeholder="Alergias, derivaciones, cualquier dato útil..."
+                    placeholder={t.turnos.paso4.notasPlaceholder}
                     rows={2}
                     className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-teal-400 focus:ring-2 focus:ring-teal-100 resize-none transition-all"
                   />
@@ -481,7 +549,7 @@ export default function TurnosPage() {
               )}
 
               <button
-                disabled={!nombre.trim() || !telefono.trim() || enviando}
+                disabled={!nombre.trim() || !contactoValido() || enviando}
                 onClick={confirmarTurno}
                 className="w-full mt-6 bg-gradient-to-r from-teal-600 to-teal-500 text-white py-4 rounded-2xl font-bold disabled:opacity-40 disabled:cursor-not-allowed hover:from-teal-500 hover:to-teal-400 transition-all shadow-lg shadow-teal-200 flex items-center justify-center gap-2 text-base"
               >
@@ -491,9 +559,9 @@ export default function TurnosPage() {
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
                     </svg>
-                    Confirmando...
+                    {t.turnos.paso4.confirming}
                   </>
-                ) : 'Confirmar turno ✓'}
+                ) : t.turnos.paso4.confirm}
               </button>
 
               <p className="text-center text-slate-400 text-xs mt-3">

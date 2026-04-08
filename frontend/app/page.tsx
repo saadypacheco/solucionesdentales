@@ -1,4 +1,8 @@
+'use client'
+
 import Link from 'next/link'
+import { useLangStore } from '@/store/langStore'
+import { useT } from '@/lib/i18n'
 
 /* ─── DATA ─────────────────────────────────────────────── */
 const servicios = [
@@ -72,6 +76,9 @@ const faqs = [
 
 /* ─── COMPONENT ─────────────────────────────────────────── */
 export default function Home() {
+  const t = useT()
+  const { lang, setLang } = useLangStore()
+
   return (
     <div className="min-h-screen overflow-x-hidden" style={{ background: 'var(--bg-base)' }}>
 
@@ -86,20 +93,28 @@ export default function Home() {
               Soluciones<span className="text-teal-400">Dentales</span>
             </span>
           </div>
-          <div className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-400">
-            {['#servicios:Servicios', '#como-funciona:Cómo funciona', '#galeria:Casos', '#faq:FAQ'].map((item) => {
-              const [href, label] = item.split(':')
-              return (
-                <a key={href} href={href} className="hover:text-white transition-colors duration-200">{label}</a>
-              )
-            })}
+          <div className="flex items-center gap-8">
+            <div className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-400">
+              {['#servicios:Servicios', '#como-funciona:Cómo funciona', '#galeria:Casos', '#faq:FAQ'].map((item) => {
+                const [href, label] = item.split(':')
+                return (
+                  <a key={href} href={href} className="hover:text-white transition-colors duration-200">{label}</a>
+                )
+              })}
+            </div>
+            <button
+              onClick={() => setLang(lang === 'es' ? 'en' : 'es')}
+              className="text-xs font-semibold text-slate-400 hover:text-white transition-colors"
+            >
+              {lang === 'es' ? 'EN' : 'ES'}
+            </button>
+            <Link
+              href="/turnos"
+              className="btn-shine bg-teal-500 hover:bg-teal-400 text-white text-sm font-bold px-5 py-2.5 rounded-full transition-colors shadow-lg shadow-teal-500/20"
+            >
+              {t.landing.cta}
+            </Link>
           </div>
-          <Link
-            href="/turnos"
-            className="btn-shine bg-teal-500 hover:bg-teal-400 text-white text-sm font-bold px-5 py-2.5 rounded-full transition-colors shadow-lg shadow-teal-500/20"
-          >
-            Agendar turno
-          </Link>
         </nav>
       </header>
 
@@ -120,13 +135,15 @@ export default function Home() {
               </div>
 
               <h1 className="text-5xl md:text-6xl lg:text-[4.5rem] font-black text-white leading-[0.93] tracking-tight mb-6">
-                Tu mejor<br />
-                <span className="gradient-text">sonrisa</span><br />
-                te espera.
+                {lang === 'es' ? 'Tu mejor' : 'Your best'}<br />
+                <span className="gradient-text">{lang === 'es' ? 'sonrisa' : 'smile'}</span><br />
+                {lang === 'es' ? 'te espera.' : 'awaits you.'}
               </h1>
 
               <p className="text-slate-400 text-lg leading-relaxed mb-8 max-w-sm">
-                Agendá tu turno en 2 minutos, sin registro y sin llamadas. Confirmación instantánea por WhatsApp.
+                {lang === 'es'
+                  ? 'Agendá tu turno en 2 minutos, sin registro y sin llamadas. Confirmación instantánea por WhatsApp.'
+                  : 'Book your appointment in 2 minutes, no registration and no calls. Instant confirmation via WhatsApp.'}
               </p>
 
               <div className="flex flex-wrap gap-3 mb-8">
@@ -134,22 +151,25 @@ export default function Home() {
                   href="/turnos"
                   className="btn-shine bg-teal-500 hover:bg-teal-400 text-white font-bold px-7 py-3.5 rounded-full transition-all glow-teal-sm text-sm"
                 >
-                  Agendar turno gratis →
+                  {lang === 'es' ? 'Agendar turno gratis' : 'Book free appointment'} →
                 </Link>
                 <a
                   href="https://wa.me/5491100000000"
                   target="_blank"
                   className="glass text-white font-semibold px-6 py-3.5 rounded-full hover:bg-white/10 transition-all text-sm flex items-center gap-2"
                 >
-                  <span>💬</span> Urgencias
+                  <span>💬</span> {lang === 'es' ? 'Urgencias' : 'Emergencies'}
                 </a>
               </div>
 
               <div className="flex flex-wrap gap-4">
-                {['Sin registro', 'Confirmación en minutos', 'Hasta 12 cuotas sin interés'].map((t) => (
-                  <span key={t} className="text-xs text-slate-500 flex items-center gap-1.5">
+                {(lang === 'es'
+                  ? ['Sin registro', 'Confirmación en minutos', 'Hasta 12 cuotas sin interés']
+                  : ['No registration', 'Instant confirmation', 'Up to 12 interest-free installments']
+                ).map((item) => (
+                  <span key={item} className="text-xs text-slate-500 flex items-center gap-1.5">
                     <span className="w-1 h-1 rounded-full bg-teal-400" />
-                    {t}
+                    {item}
                   </span>
                 ))}
               </div>
@@ -224,13 +244,15 @@ export default function Home() {
         <div className="max-w-6xl mx-auto">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-16">
             <div>
-              <p className="text-teal-400 text-xs font-bold uppercase tracking-[0.2em] mb-3">Tratamientos</p>
+              <p className="text-teal-400 text-xs font-bold uppercase tracking-[0.2em] mb-3">
+                {lang === 'es' ? 'Tratamientos' : 'Treatments'}
+              </p>
               <h2 className="text-4xl md:text-5xl font-black text-white leading-tight">
-                Todo lo que tu<br />sonrisa necesita
+                {lang === 'es' ? 'Todo lo que tu' : 'Everything your'}<br />{lang === 'es' ? 'sonrisa necesita' : 'smile needs'}
               </h2>
             </div>
             <Link href="/turnos" className="text-teal-400 text-sm font-semibold hover:text-teal-300 transition-colors whitespace-nowrap">
-              Ver todos →
+              {lang === 'es' ? 'Ver todos' : 'See all'} →
             </Link>
           </div>
 
@@ -270,12 +292,16 @@ export default function Home() {
       <section id="como-funciona" className="py-28 px-4 bg-white">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-20">
-            <p className="text-teal-600 text-xs font-bold uppercase tracking-[0.2em] mb-3">Proceso</p>
+            <p className="text-teal-600 text-xs font-bold uppercase tracking-[0.2em] mb-3">
+              {lang === 'es' ? 'Proceso' : 'Process'}
+            </p>
             <h2 className="text-4xl md:text-5xl font-black text-slate-900 leading-tight">
-              Agendá en <span className="text-teal-600">2 minutos</span>
+              {lang === 'es' ? 'Agendá en' : 'Book in'} <span className="text-teal-600">2 minutos</span>
             </h2>
             <p className="text-slate-500 mt-4 max-w-sm mx-auto text-sm leading-relaxed">
-              Sin llamadas, sin esperas. Tu turno confirmado antes de que termines de leer esto.
+              {lang === 'es'
+                ? 'Sin llamadas, sin esperas. Tu turno confirmado antes de que termines de leer esto.'
+                : 'No calls, no waiting. Your appointment confirmed before you finish reading this.'}
             </p>
           </div>
 

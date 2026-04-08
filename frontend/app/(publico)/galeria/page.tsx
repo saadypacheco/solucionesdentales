@@ -3,6 +3,8 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
 import Link from 'next/link'
 import { getCasos, type Caso } from '@/lib/api/casos'
+import { useLangStore } from '@/store/langStore'
+import { useT } from '@/lib/i18n'
 
 /* ─── FILTROS ─── */
 const FILTROS = [
@@ -70,8 +72,12 @@ function SliderAntesDepues({ antes, despues, alt }: { antes: string; despues: st
       </div>
 
       {/* Etiquetas */}
-      <span className="absolute top-3 left-3 bg-black/50 text-white text-xs font-bold px-2 py-1 rounded-full backdrop-blur-sm">ANTES</span>
-      <span className="absolute top-3 right-3 bg-teal-600/90 text-white text-xs font-bold px-2 py-1 rounded-full backdrop-blur-sm">DESPUÉS</span>
+      <span className="absolute top-3 left-3 bg-black/50 text-white text-xs font-bold px-2 py-1 rounded-full backdrop-blur-sm">
+        {useLangStore((s) => s.lang) === 'es' ? 'ANTES' : 'BEFORE'}
+      </span>
+      <span className="absolute top-3 right-3 bg-teal-600/90 text-white text-xs font-bold px-2 py-1 rounded-full backdrop-blur-sm">
+        {useLangStore((s) => s.lang) === 'es' ? 'DESPUÉS' : 'AFTER'}
+      </span>
     </div>
   )
 }
@@ -116,6 +122,8 @@ function SkeletonCard() {
 
 /* ─── PAGE ─── */
 export default function GaleriaPage() {
+  const t = useT()
+  const { lang, setLang } = useLangStore()
   const [filtro, setFiltro] = useState('')
   const [casos, setCasos] = useState<Caso[]>([])
   const [loading, setLoading] = useState(true)
@@ -125,9 +133,9 @@ export default function GaleriaPage() {
     setLoading(true)
     getCasos(filtro || undefined)
       .then(setCasos)
-      .catch(() => setError('Error al cargar la galería'))
+      .catch(() => setError(lang === 'es' ? 'Error al cargar la galería' : 'Error loading gallery'))
       .finally(() => setLoading(false))
-  }, [filtro])
+  }, [filtro, lang])
 
   return (
     <div className="min-h-screen" style={{ background: 'var(--bg-base)' }}>
@@ -138,27 +146,39 @@ export default function GaleriaPage() {
             <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
             </svg>
-            Soluciones Dentales
+            {t.landing.title}
           </Link>
-          <Link
-            href="/turnos"
-            className="bg-teal-600 hover:bg-teal-500 text-white text-sm font-bold px-5 py-2 rounded-full transition-colors btn-shine"
-          >
-            Agendar turno
-          </Link>
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => setLang(lang === 'es' ? 'en' : 'es')}
+              className="text-xs font-semibold text-slate-400 hover:text-white transition-colors"
+            >
+              {lang === 'es' ? 'EN' : 'ES'}
+            </button>
+            <Link
+              href="/turnos"
+              className="bg-teal-600 hover:bg-teal-500 text-white text-sm font-bold px-5 py-2 rounded-full transition-colors btn-shine"
+            >
+              {t.landing.cta}
+            </Link>
+          </div>
         </div>
       </header>
 
       <div className="max-w-6xl mx-auto px-6 py-16">
         {/* Hero */}
         <div className="text-center mb-12">
-          <p className="text-teal-400 text-sm font-bold tracking-widest uppercase mb-3">Galería de casos</p>
+          <p className="text-teal-400 text-sm font-bold tracking-widest uppercase mb-3">
+            {t.galeria.title}
+          </p>
           <h1 className="text-4xl md:text-5xl font-black text-white mb-4">
-            Resultados{' '}
-            <span className="gradient-text">reales</span>
+            {lang === 'es' ? 'Resultados' : 'Results'}{' '}
+            <span className="gradient-text">{lang === 'es' ? 'reales' : 'real'}</span>
           </h1>
           <p className="text-slate-400 text-lg max-w-xl mx-auto">
-            Arrastrá el divisor para comparar antes y después de cada tratamiento.
+            {lang === 'es'
+              ? 'Arrastrá el divisor para comparar antes y después de cada tratamiento.'
+              : 'Drag the slider to compare before and after each treatment.'}
           </p>
         </div>
 
@@ -189,8 +209,12 @@ export default function GaleriaPage() {
         ) : casos.length === 0 ? (
           <div className="text-center py-20">
             <p className="text-4xl mb-4">🦷</p>
-            <p className="text-slate-400 text-lg">Próximamente más casos publicados</p>
-            <p className="text-slate-500 text-sm mt-2">Contactanos por WhatsApp para ver más fotos</p>
+            <p className="text-slate-400 text-lg">
+              {lang === 'es' ? 'Próximamente más casos publicados' : 'Coming soon more cases published'}
+            </p>
+            <p className="text-slate-500 text-sm mt-2">
+              {lang === 'es' ? 'Contactanos por WhatsApp para ver más fotos' : 'Contact us via WhatsApp to see more photos'}
+            </p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">

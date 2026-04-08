@@ -27,6 +27,7 @@ export interface SolicitarTurnoPayload {
   fecha_hora: string   // ISO 8601
   tipo_tratamiento: string
   notas?: string
+  email?: string  // Email del paciente
   usuario_id?: string  // UUID del odontólogo
 }
 

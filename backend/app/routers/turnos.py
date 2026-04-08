@@ -184,6 +184,7 @@ class SolicitarTurnoRequest(BaseModel):
     fecha_hora: datetime
     tipo_tratamiento: str
     notas: Optional[str] = None
+    email: Optional[str] = None  # Email del paciente
     usuario_id: Optional[str] = None  # UUID del odontólogo; se auto-asigna si hay 1 solo
 
 
@@ -205,19 +206,25 @@ async def solicitar_turno(req: SolicitarTurnoRequest, db: Client = Depends(get_d
     if paciente_res.data:
         paciente_id = paciente_res.data[0]["id"]
         score_actual = paciente_res.data[0].get("score", 0)
-        db.table("pacientes").update({
+        update_data = {
             "score": score_actual + 30,
             "estado": "turno_agendado",
             "nombre": req.nombre,
             "updated_at": datetime.now(tz=AR_TZ).isoformat(),
-        }).eq("id", paciente_id).execute()
+        }
+        if req.email:
+            update_data["email"] = req.email
+        db.table("pacientes").update(update_data).eq("id", paciente_id).execute()
     else:
-        nuevo = db.table("pacientes").insert({
+        nuevo_data = {
             "telefono": req.telefono,
             "nombre": req.nombre,
             "estado": "turno_agendado",
             "score": 30,
-        }).execute()
+        }
+        if req.email:
+            nuevo_data["email"] = req.email
+        nuevo = db.table("pacientes").insert(nuevo_data).execute()
         paciente_id = nuevo.data[0]["id"]
 
     # Insertar turno
