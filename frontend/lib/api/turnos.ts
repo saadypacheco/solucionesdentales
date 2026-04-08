@@ -23,7 +23,7 @@ export interface SlotsResponse {
 
 export interface SolicitarTurnoPayload {
   nombre: string
-  telefono: string
+  telefono?: string  // Optional if email is provided
   fecha_hora: string   // ISO 8601
   tipo_tratamiento: string
   notas?: string

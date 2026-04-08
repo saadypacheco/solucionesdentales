@@ -180,7 +180,7 @@ async def turnos_disponibles(
 
 class SolicitarTurnoRequest(BaseModel):
     nombre: str
-    telefono: str
+    telefono: Optional[str] = None  # Optional if email is provided
     fecha_hora: datetime
     tipo_tratamiento: str
     notas: Optional[str] = None
@@ -191,6 +191,11 @@ class SolicitarTurnoRequest(BaseModel):
 @router.post("")
 async def solicitar_turno(req: SolicitarTurnoRequest, db: Client = Depends(get_db)):
     """Solicita un turno — crea el paciente si no existe."""
+
+    # Validar que al menos telefono o email esté presente
+    if not req.telefono and not req.email:
+        raise HTTPException(status_code=400, detail="Se requiere al menos teléfono o email")
+
     duracion = DURACION_POR_TRATAMIENTO.get(req.tipo_tratamiento, 30)
 
     # Resolver doctor
@@ -200,8 +205,12 @@ async def solicitar_turno(req: SolicitarTurnoRequest, db: Client = Depends(get_d
         if len(doctores) == 1:
             doctor_id = doctores[0]["id"]
 
-    # Buscar o crear paciente
-    paciente_res = db.table("pacientes").select("id, score").eq("telefono", req.telefono).execute()
+    # Buscar o crear paciente (por teléfono si está disponible, sino por email)
+    paciente_res = None
+    if req.telefono:
+        paciente_res = db.table("pacientes").select("id, score").eq("telefono", req.telefono).execute()
+    elif req.email:
+        paciente_res = db.table("pacientes").select("id, score").eq("email", req.email).execute()
 
     if paciente_res.data:
         paciente_id = paciente_res.data[0]["id"]
@@ -217,11 +226,12 @@ async def solicitar_turno(req: SolicitarTurnoRequest, db: Client = Depends(get_d
         db.table("pacientes").update(update_data).eq("id", paciente_id).execute()
     else:
         nuevo_data = {
-            "telefono": req.telefono,
             "nombre": req.nombre,
             "estado": "turno_agendado",
             "score": 30,
         }
+        if req.telefono:
+            nuevo_data["telefono"] = req.telefono
         if req.email:
             nuevo_data["email"] = req.email
         nuevo = db.table("pacientes").insert(nuevo_data).execute()

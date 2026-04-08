@@ -19,5 +19,6 @@ export function useT() {
 }
 
 export function t(obj: Record<string, any>, path: string): string {
-  return path.split('.').reduce((acc, key) => acc?.[key], obj) ?? path
+  const result = path.split('.').reduce((acc, key) => acc?.[key], obj) ?? path
+  return String(result)
 }
