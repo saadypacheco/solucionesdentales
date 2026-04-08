@@ -331,7 +331,7 @@ function MisTurnosLista({ token, nombre, onLogout }: {
                           disabled={cancelando === t.id}
                           className="text-xs text-red-400 hover:text-red-600 transition-colors disabled:opacity-50"
                         >
-                          {cancelando === t.id ? 'Cancelando...' : t.misTurnos.pasoTurnos.cancel}
+                          {cancelando === t.id ? 'Cancelando...' : 'Cancelar turno'}
                         </button>
                       )}
                     </div>
