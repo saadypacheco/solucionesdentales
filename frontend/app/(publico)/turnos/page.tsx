@@ -213,7 +213,7 @@ export default function TurnosPage() {
   const { lang, setLang } = useLangStore()
 
   return (
-    <div ref={topRef} className="min-h-screen overflow-x-hidden" style={{ background: 'var(--bg-base)' }}>
+    <div ref={topRef} className="min-h-screen overflow-x-hidden" style={{ background: 'linear-gradient(135deg, #020d12 0%, #071e22 40%, #0c3530 70%, #0f6b62 100%)' }}>
       {/* Header */}
       <header className="sticky top-0 z-40 bg-slate-950 border-b border-white/10">
         <div className="max-w-2xl mx-auto px-4 h-14 flex items-center justify-between">
