@@ -407,10 +407,10 @@ export default function MisTurnosPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <header className="bg-white border-b border-slate-100 shadow-sm sticky top-0 z-40">
+    <div className="min-h-screen" style={{ background: 'var(--bg-base)' }}>
+      <header className="bg-slate-950 border-b border-white/10 sticky top-0 z-40">
         <div className="max-w-lg mx-auto px-4 h-14 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 text-teal-700 font-semibold text-sm">
+          <Link href="/" className="flex items-center gap-2 text-teal-400 font-semibold text-sm hover:text-teal-300 transition-colors">
             <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
             </svg>
@@ -418,13 +418,13 @@ export default function MisTurnosPage() {
           </Link>
           <div className="flex items-center gap-4">
             {paso === 'turnos' && (
-              <span className="text-xs text-teal-600 font-bold bg-teal-50 px-3 py-1 rounded-full">
+              <span className="text-xs text-teal-400 font-bold bg-teal-500/20 px-3 py-1 rounded-full border border-teal-500/30">
                 {lang === 'es' ? 'Verificado ✓' : 'Verified ✓'}
               </span>
             )}
             <button
               onClick={() => setLang(lang === 'es' ? 'en' : 'es')}
-              className="text-xs font-semibold text-slate-400 hover:text-slate-600 transition-colors"
+              className="text-xs font-semibold text-slate-400 hover:text-white transition-colors"
             >
               {lang === 'es' ? 'EN' : 'ES'}
             </button>
