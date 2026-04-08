@@ -189,18 +189,18 @@ export default function TurnosPage() {
   const esConfirmacion = paso === 5
 
   return (
-    <div ref={topRef} className="min-h-screen" style={{ background: 'var(--bg-base)' }}>
-      {/* Header glass-dark */}
-      <header className="glass-dark sticky top-0 z-40 border-b border-white/5">
+    <div ref={topRef} className="min-h-screen bg-cyan-50">
+      {/* Header */}
+      <header className="sticky top-0 z-40 border-b border-cyan-100 bg-white/60 backdrop-blur-md">
         <div className="max-w-2xl mx-auto px-4 h-14 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 text-teal-400 font-semibold text-sm hover:text-teal-300 transition-colors">
+          <Link href="/" className="flex items-center gap-2 text-teal-700 font-semibold text-sm hover:text-teal-600 transition-colors">
             <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
             </svg>
             Soluciones Dentales
           </Link>
           {!esConfirmacion && (
-            <span className="text-xs text-teal-400 bg-teal-500/10 px-3 py-1 rounded-full border border-teal-500/20">
+            <span className="text-xs text-teal-700 bg-teal-100 px-3 py-1 rounded-full border border-teal-200">
               Paso {pasoActual} de {totalPasos}
             </span>
           )}
@@ -214,16 +214,16 @@ export default function TurnosPage() {
             {Array.from({ length: totalPasos }, (_, i) => i + 1).map((n) => (
               <div key={n} className="flex items-center gap-2 flex-1 last:flex-none">
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 transition-all ${
-                  pasoActual > n  ? 'bg-gradient-to-br from-teal-400 to-teal-600 text-white' :
-                  pasoActual === n ? 'bg-gradient-to-br from-teal-400 to-teal-600 text-white ring-4 ring-teal-400/30' :
-                  'bg-white/10 text-slate-400'
+                  pasoActual > n  ? 'bg-gradient-to-br from-teal-500 to-teal-600 text-white' :
+                  pasoActual === n ? 'bg-gradient-to-br from-teal-500 to-teal-600 text-white ring-4 ring-teal-200' :
+                  'bg-slate-200 text-slate-400'
                 }`}>
                   {pasoActual > n
                     ? <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
                     : n}
                 </div>
                 {n < totalPasos && (
-                  <div className={`flex-1 h-1 rounded-full transition-colors ${pasoActual > n ? 'bg-gradient-to-r from-teal-500/50 to-teal-400/30' : 'bg-white/5'}`} />
+                  <div className={`flex-1 h-1 rounded-full transition-colors ${pasoActual > n ? 'bg-gradient-to-r from-teal-500 to-teal-400' : 'bg-slate-200'}`} />
                 )}
               </div>
             ))}
@@ -238,7 +238,7 @@ export default function TurnosPage() {
               <button
                 onClick={() => irAPaso((paso - 1) as Paso)}
                 disabled={!puedeRetroceder()}
-                className="hidden md:flex absolute -left-16 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white/10 hover:bg-teal-500/20 disabled:opacity-30 disabled:cursor-not-allowed items-center justify-center transition-all text-teal-400 hover:text-teal-300"
+                className="hidden md:flex absolute -left-16 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white border border-cyan-200 hover:border-teal-400 hover:bg-teal-50 disabled:opacity-30 disabled:cursor-not-allowed items-center justify-center transition-all text-teal-700 hover:text-teal-600"
               >
                 <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
@@ -249,7 +249,7 @@ export default function TurnosPage() {
               <button
                 onClick={() => irAPaso((paso + 1) as Paso)}
                 disabled={!puedeAvanzar()}
-                className="hidden md:flex absolute -right-16 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white/10 hover:bg-teal-500/20 disabled:opacity-30 disabled:cursor-not-allowed items-center justify-center transition-all text-teal-400 hover:text-teal-300"
+                className="hidden md:flex absolute -right-16 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white border border-cyan-200 hover:border-teal-400 hover:bg-teal-50 disabled:opacity-30 disabled:cursor-not-allowed items-center justify-center transition-all text-teal-700 hover:text-teal-600"
               >
                 <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
@@ -261,16 +261,16 @@ export default function TurnosPage() {
           {/* ── PASO 1: Tratamiento ── */}
           {paso === 1 && (
             <div>
-              <h1 className="text-3xl font-black text-white mb-1">¿Qué tratamiento necesitás?</h1>
-              <p className="text-slate-400 text-sm mb-6">Tocá uno para continuar</p>
+              <h1 className="text-3xl font-black text-slate-800 mb-1">¿Qué tratamiento necesitás?</h1>
+              <p className="text-slate-500 text-sm mb-6">Tocá uno para continuar</p>
 
               {loadingDoctores ? (
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                   {tratamientos.map((t) => (
-                    <div key={t.id} className="p-4 rounded-2xl glass border border-white/10 opacity-50">
+                    <div key={t.id} className="p-4 rounded-2xl border-2 border-cyan-200 bg-white/50 opacity-50">
                       <div className="text-3xl mb-2">{t.icono}</div>
-                      <p className="font-semibold text-white text-sm leading-tight">{t.label}</p>
-                      <p className="text-slate-500 text-xs mt-1">⏱ {t.duracion}</p>
+                      <p className="font-semibold text-slate-700 text-sm leading-tight">{t.label}</p>
+                      <p className="text-slate-400 text-xs mt-1">⏱ {t.duracion}</p>
                     </div>
                   ))}
                 </div>
@@ -280,17 +280,17 @@ export default function TurnosPage() {
                     <button
                       key={t.id}
                       onClick={() => seleccionarTratamiento(t.id)}
-                      className={`p-4 rounded-2xl transition-all active:scale-95 ${
+                      className={`p-4 rounded-2xl border-2 transition-all active:scale-95 ${
                         tratamiento === t.id
-                          ? 'glass card-teal-hover border-teal-400 bg-teal-500/20'
-                          : 'glass border-white/10 hover:border-teal-400/50'
+                          ? 'border-teal-500 bg-teal-50'
+                          : 'border-slate-200 bg-white hover:border-teal-400'
                       }`}
                     >
                       <div className="text-3xl mb-2">{t.icono}</div>
-                      <p className="font-semibold text-white text-sm leading-tight">{t.label}</p>
-                      <p className="text-slate-500 text-xs mt-1">⏱ {t.duracion}</p>
+                      <p className="font-semibold text-slate-800 text-sm leading-tight">{t.label}</p>
+                      <p className="text-slate-400 text-xs mt-1">⏱ {t.duracion}</p>
                       {tratamiento === t.id && (
-                        <div className="mt-2 flex items-center gap-1 text-teal-400 text-xs font-bold">
+                        <div className="mt-2 flex items-center gap-1 text-teal-700 text-xs font-bold">
                           <svg width="12" height="12" fill="currentColor" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" /></svg>
                           Seleccionado
                         </div>
@@ -301,7 +301,7 @@ export default function TurnosPage() {
               )}
 
               {loadingDoctores && (
-                <div className="flex items-center justify-center gap-2 mt-6 text-teal-400 text-sm">
+                <div className="flex items-center justify-center gap-2 mt-6 text-teal-700 text-sm">
                   <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
@@ -315,8 +315,8 @@ export default function TurnosPage() {
           {/* ── PASO 2: Doctor ── */}
           {paso === 2 && (
             <div>
-              <h1 className="text-3xl font-black text-white mb-1">Elegí tu odontólogo</h1>
-              <p className="text-slate-400 text-sm mb-6">
+              <h1 className="text-3xl font-black text-slate-800 mb-1">Elegí tu odontólogo</h1>
+              <p className="text-slate-500 text-sm mb-6">
                 {tratamientoObj?.icono} {tratamientoObj?.label}
               </p>
 
@@ -325,21 +325,21 @@ export default function TurnosPage() {
                   <button
                     key={doc.id}
                     onClick={() => seleccionarDoctor(doc)}
-                    className={`w-full p-4 rounded-2xl transition-all active:scale-[0.98] ${
+                    className={`w-full p-4 rounded-2xl border-2 transition-all active:scale-[0.98] ${
                       doctorId === doc.id
-                        ? 'glass card-teal-hover border-teal-400 bg-teal-500/20'
-                        : 'glass border-white/10 hover:border-teal-400/50'
+                        ? 'border-teal-500 bg-teal-50'
+                        : 'border-slate-200 bg-white hover:border-teal-400'
                     } flex items-center gap-4`}
                   >
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-teal-400 to-teal-600 flex items-center justify-center text-lg font-bold flex-shrink-0 text-white">
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-teal-500 to-teal-600 flex items-center justify-center text-lg font-bold flex-shrink-0 text-white">
                       {doc.nombre.charAt(0).toUpperCase()}
                     </div>
                     <div className="flex-1 text-left">
-                      <p className="font-semibold text-white">{doc.nombre}</p>
-                      <p className="text-teal-400 text-sm">{tratamientoObj?.label} · {tratamientoObj?.duracion}</p>
+                      <p className="font-semibold text-slate-800">{doc.nombre}</p>
+                      <p className="text-teal-700 text-sm">{tratamientoObj?.label} · {tratamientoObj?.duracion}</p>
                     </div>
                     {doctorId === doc.id && (
-                      <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24" className="text-teal-400 flex-shrink-0">
+                      <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24" className="text-teal-600 flex-shrink-0">
                         <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
                       </svg>
                     )}
@@ -352,11 +352,11 @@ export default function TurnosPage() {
           {/* ── PASO 3: Fecha y hora ── */}
           {paso === 3 && (
             <div>
-              <h1 className="text-3xl font-black text-white mb-1">Elegí fecha y hora</h1>
-              <div className="flex flex-wrap items-center gap-2 mb-6 text-sm text-slate-400">
+              <h1 className="text-3xl font-black text-slate-800 mb-1">Elegí fecha y hora</h1>
+              <div className="flex flex-wrap items-center gap-2 mb-6 text-sm text-slate-500">
                 <span>{tratamientoObj?.icono} {tratamientoObj?.label}</span>
                 {doctorNombre && (
-                  <span className="text-teal-400 font-medium">· 👨‍⚕️ {doctorNombre}</span>
+                  <span className="text-teal-700 font-medium">· 👨‍⚕️ {doctorNombre}</span>
                 )}
               </div>
 
@@ -367,10 +367,10 @@ export default function TurnosPage() {
                   <button
                     key={i}
                     onClick={() => setDiaIndex(i)}
-                    className={`flex-shrink-0 px-4 py-2.5 rounded-full border font-medium text-sm transition-all ${
+                    className={`flex-shrink-0 px-4 py-2.5 rounded-full border-2 font-medium text-sm transition-all ${
                       diaIndex === i
-                        ? 'bg-gradient-to-br from-teal-500 to-teal-600 text-white border-teal-400'
-                        : 'glass border-white/10 text-slate-400 hover:border-teal-400/50'
+                        ? 'bg-gradient-to-br from-teal-500 to-teal-600 text-white border-teal-600'
+                        : 'border-slate-200 bg-white text-slate-600 hover:border-teal-400'
                     }`}
                   >
                     {formatFechaDisplay(dia)}
@@ -380,16 +380,16 @@ export default function TurnosPage() {
 
               {/* Horarios */}
               <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">
-                Horario <span className="text-teal-400 normal-case font-normal">(tocá uno para continuar)</span>
+                Horario <span className="text-teal-700 normal-case font-normal">(tocá uno para continuar)</span>
               </p>
               {loadingSlots ? (
                 <div className="grid grid-cols-3 sm:grid-cols-4 gap-2.5">
                   {Array.from({ length: 8 }).map((_, i) => (
-                    <div key={i} className="h-12 bg-white/10 rounded-xl animate-pulse" />
+                    <div key={i} className="h-12 bg-slate-200 rounded-xl animate-pulse" />
                   ))}
                 </div>
               ) : errorSlots ? (
-                <div className="glass border border-amber-500/20 bg-amber-500/10 rounded-2xl px-4 py-3 text-amber-300 text-sm flex items-center gap-2">
+                <div className="border border-amber-200 bg-amber-50 rounded-2xl px-4 py-3 text-amber-700 text-sm flex items-center gap-2">
                   <span>⚠️</span> {errorSlots}
                 </div>
               ) : (
@@ -398,10 +398,10 @@ export default function TurnosPage() {
                     <button
                       key={hora}
                       onClick={() => seleccionarHora(hora)}
-                      className={`py-3 rounded-xl border font-semibold text-sm transition-all active:scale-95 ${
+                      className={`py-3 rounded-xl border-2 font-semibold text-sm transition-all active:scale-95 ${
                         horaSeleccionada === hora
-                          ? 'glass card-teal-hover border-teal-400 bg-teal-500/20 text-white'
-                          : 'glass border-white/10 text-slate-400 hover:border-teal-400/50'
+                          ? 'border-teal-500 bg-teal-50 text-teal-700'
+                          : 'border-slate-200 bg-white text-slate-600 hover:border-teal-400'
                       }`}
                     >
                       {hora}
@@ -415,23 +415,23 @@ export default function TurnosPage() {
           {/* ── PASO 4: Datos personales ── */}
           {paso === 4 && (
             <div>
-              <h1 className="text-3xl font-black text-white mb-1">Tus datos</h1>
-              <p className="text-slate-400 text-sm mb-6">Sin registro — solo nombre y teléfono</p>
+              <h1 className="text-3xl font-black text-slate-800 mb-1">Tus datos</h1>
+              <p className="text-slate-500 text-sm mb-6">Sin registro — solo nombre y teléfono</p>
 
               {/* Resumen compacto */}
-              <div className="glass border border-teal-500/20 rounded-2xl p-4 mb-6 flex items-center justify-between">
+              <div className="border-2 border-teal-200 bg-teal-50 rounded-2xl p-4 mb-6 flex items-center justify-between">
                 <div>
-                  <p className="text-teal-300 font-bold text-sm">
+                  <p className="text-teal-800 font-bold text-sm">
                     {tratamientoObj?.icono} {tratamientoObj?.label}
                   </p>
-                  <p className="text-slate-400 text-xs mt-0.5">
+                  <p className="text-slate-500 text-xs mt-0.5">
                     {formatFechaDisplay(diaSeleccionado)} · {horaSeleccionada}
                     {doctorNombre && ` · ${doctorNombre}`}
                   </p>
                 </div>
                 <button
                   onClick={() => irAPaso(3)}
-                  className="text-teal-400 text-xs font-bold hover:text-teal-300 transition-colors flex-shrink-0 ml-2"
+                  className="text-teal-700 text-xs font-bold hover:text-teal-600 transition-colors flex-shrink-0 ml-2"
                 >
                   Cambiar
                 </button>
@@ -439,43 +439,43 @@ export default function TurnosPage() {
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-semibold text-slate-300 mb-1.5">Nombre completo *</label>
+                  <label className="block text-sm font-semibold text-slate-700 mb-1.5">Nombre completo *</label>
                   <input
                     type="text"
                     value={nombre}
                     onChange={(e) => setNombre(e.target.value)}
                     placeholder="Ej: María García"
                     autoFocus
-                    className="w-full px-4 py-3 rounded-xl border border-white/10 bg-white/5 text-white placeholder:text-slate-500 focus:outline-none focus:border-teal-400 focus:ring-2 focus:ring-teal-400/20 transition-all"
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-teal-400 focus:ring-2 focus:ring-teal-100 transition-all"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-slate-300 mb-1.5">Teléfono *</label>
+                  <label className="block text-sm font-semibold text-slate-700 mb-1.5">Teléfono *</label>
                   <input
                     type="tel"
                     value={telefono}
                     onChange={(e) => setTelefono(e.target.value)}
                     placeholder="Ej: 11 1234-5678"
-                    className="w-full px-4 py-3 rounded-xl border border-white/10 bg-white/5 text-white placeholder:text-slate-500 focus:outline-none focus:border-teal-400 focus:ring-2 focus:ring-teal-400/20 transition-all"
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-teal-400 focus:ring-2 focus:ring-teal-100 transition-all"
                   />
-                  <p className="text-slate-500 text-xs mt-1.5">Te avisamos por WhatsApp cuando se confirme</p>
+                  <p className="text-slate-400 text-xs mt-1.5">Te avisamos por WhatsApp cuando se confirme</p>
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-slate-300 mb-1.5">
-                    Notas <span className="font-normal text-slate-500">(opcional)</span>
+                  <label className="block text-sm font-semibold text-slate-700 mb-1.5">
+                    Notas <span className="font-normal text-slate-400">(opcional)</span>
                   </label>
                   <textarea
                     value={notas}
                     onChange={(e) => setNotas(e.target.value)}
                     placeholder="Alergias, derivaciones, cualquier dato útil..."
                     rows={2}
-                    className="w-full px-4 py-3 rounded-xl border border-white/10 bg-white/5 text-white placeholder:text-slate-500 focus:outline-none focus:border-teal-400 focus:ring-2 focus:ring-teal-400/20 resize-none transition-all"
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-teal-400 focus:ring-2 focus:ring-teal-100 resize-none transition-all"
                   />
                 </div>
               </div>
 
               {errorEnvio && (
-                <div className="mt-4 glass border border-red-500/20 bg-red-500/10 rounded-xl px-4 py-3 text-red-300 text-sm flex items-center gap-2">
+                <div className="mt-4 border border-red-200 bg-red-50 rounded-xl px-4 py-3 text-red-700 text-sm flex items-center gap-2">
                   <span>❌</span> {errorEnvio}
                 </div>
               )}
@@ -483,7 +483,7 @@ export default function TurnosPage() {
               <button
                 disabled={!nombre.trim() || !telefono.trim() || enviando}
                 onClick={confirmarTurno}
-                className="w-full mt-6 bg-gradient-to-r from-teal-500 to-teal-400 text-white py-4 rounded-2xl font-bold disabled:opacity-40 disabled:cursor-not-allowed hover:from-teal-400 hover:to-teal-300 transition-all shadow-lg shadow-teal-500/30 flex items-center justify-center gap-2 text-base"
+                className="w-full mt-6 bg-gradient-to-r from-teal-600 to-teal-500 text-white py-4 rounded-2xl font-bold disabled:opacity-40 disabled:cursor-not-allowed hover:from-teal-500 hover:to-teal-400 transition-all shadow-lg shadow-teal-200 flex items-center justify-center gap-2 text-base"
               >
                 {enviando ? (
                   <>
@@ -496,7 +496,7 @@ export default function TurnosPage() {
                 ) : 'Confirmar turno ✓'}
               </button>
 
-              <p className="text-center text-slate-500 text-xs mt-3">
+              <p className="text-center text-slate-400 text-xs mt-3">
                 Tu información es confidencial y no será compartida con terceros.
               </p>
             </div>
@@ -505,25 +505,25 @@ export default function TurnosPage() {
           {/* ── PASO 5: Confirmación ── */}
           {paso === 5 && turnoConfirmado && (
             <div className="text-center py-4">
-              <div className="w-20 h-20 bg-gradient-to-br from-teal-400 to-teal-600 rounded-full flex items-center justify-center mx-auto mb-6">
+              <div className="w-20 h-20 bg-gradient-to-br from-teal-500 to-teal-600 rounded-full flex items-center justify-center mx-auto mb-6">
                 <span className="text-4xl">✅</span>
               </div>
-              <h1 className="text-3xl font-black text-white mb-2">¡Turno solicitado!</h1>
-              <p className="text-slate-400 text-sm mb-6 max-w-xs mx-auto">
+              <h1 className="text-3xl font-black text-slate-800 mb-2">¡Turno solicitado!</h1>
+              <p className="text-slate-500 text-sm mb-6 max-w-xs mx-auto">
                 Te vamos a contactar al{' '}
-                <span className="font-semibold text-teal-400">{telefono}</span>{' '}
+                <span className="font-semibold text-slate-700">{telefono}</span>{' '}
                 para confirmar. Revisá WhatsApp.
               </p>
 
-              <div className="glass border border-teal-500/20 rounded-2xl p-5 text-left mb-6 max-w-xs mx-auto">
-                <p className="font-bold text-teal-300 text-sm mb-3">Resumen del turno</p>
-                <div className="space-y-1.5 text-sm text-slate-400">
-                  <p>👤 <span className="text-white">{nombre}</span></p>
-                  <p>{tratamientoObj?.icono} <span className="text-white">{tratamientoObj?.label}</span></p>
-                  {doctorNombre && <p>👨‍⚕️ <span className="text-white">{doctorNombre}</span></p>}
-                  <p>📅 <span className="text-white">{formatFechaDisplay(diaSeleccionado)} a las {horaSeleccionada}</span></p>
-                  <p>📱 <span className="text-white">{telefono}</span></p>
-                  <p className="text-slate-600 text-xs pt-1">Ref. #{turnoConfirmado.turno_id}</p>
+              <div className="border-2 border-teal-200 bg-teal-50 rounded-2xl p-5 text-left mb-6 max-w-xs mx-auto">
+                <p className="font-bold text-teal-800 text-sm mb-3">Resumen del turno</p>
+                <div className="space-y-1.5 text-sm text-slate-600">
+                  <p>👤 <span className="text-slate-800 font-medium">{nombre}</span></p>
+                  <p>{tratamientoObj?.icono} <span className="text-slate-800 font-medium">{tratamientoObj?.label}</span></p>
+                  {doctorNombre && <p>👨‍⚕️ <span className="text-slate-800 font-medium">{doctorNombre}</span></p>}
+                  <p>📅 <span className="text-slate-800 font-medium">{formatFechaDisplay(diaSeleccionado)} a las {horaSeleccionada}</span></p>
+                  <p>📱 <span className="text-slate-800 font-medium">{telefono}</span></p>
+                  <p className="text-slate-400 text-xs pt-1">Ref. #{turnoConfirmado.turno_id}</p>
                 </div>
               </div>
 
@@ -532,17 +532,17 @@ export default function TurnosPage() {
                   `Hola! Acabo de solicitar un turno de ${tratamientoObj?.label} para el ${formatFechaDisplay(diaSeleccionado)} a las ${horaSeleccionada}. Mi nombre es ${nombre}.`
                 )}`}
                 target="_blank"
-                className="block max-w-xs mx-auto bg-green-500 text-white py-3.5 rounded-full font-bold hover:bg-green-600 transition-colors shadow-lg shadow-green-500/30 mb-3"
+                className="block max-w-xs mx-auto bg-green-500 text-white py-3.5 rounded-full font-bold hover:bg-green-600 transition-colors shadow-lg shadow-green-200 mb-3"
               >
                 💬 Confirmar por WhatsApp
               </a>
               <Link
                 href="/mis-turnos"
-                className="block max-w-xs mx-auto glass border border-teal-500/30 text-teal-400 hover:border-teal-400 hover:bg-teal-500/10 py-3 rounded-full font-bold transition-all mb-3 text-sm"
+                className="block max-w-xs mx-auto border-2 border-teal-300 bg-white text-teal-700 hover:bg-teal-50 py-3 rounded-full font-bold transition-all mb-3 text-sm"
               >
                 📋 Ver mis turnos
               </Link>
-              <Link href="/" className="block text-slate-500 text-sm hover:text-slate-400 transition-colors">
+              <Link href="/" className="block text-slate-400 text-sm hover:text-slate-600 transition-colors">
                 Volver al inicio
               </Link>
             </div>
