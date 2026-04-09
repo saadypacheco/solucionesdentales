@@ -1,5 +1,7 @@
 // Proxy server-side → Next.js reenvía a la VPS sin mixed-content
+// HARDCODED to ensure it always uses the route handler, not direct HTTP
 const API_URL = '/api/proxy'
+console.log('[turnos.ts] API_URL:', API_URL)
 
 export interface Doctor {
   id: string
