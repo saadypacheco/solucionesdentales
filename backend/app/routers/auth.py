@@ -30,11 +30,15 @@ def require_admin(
 ):
     token = credentials.credentials
     try:
-        user_resp = db.auth.get_user(token)
-        user_id = user_resp.user.id
+        # Decode the JWT token without verification to get the user ID
+        payload = pyjwt.decode(token, options={"verify_signature": False})
+        user_id = payload.get("sub")
+        if not user_id:
+            raise HTTPException(status_code=401, detail="Token inválido")
     except Exception:
         raise HTTPException(status_code=401, detail="Token inválido")
 
+    # Verify the user exists and has admin role
     profile = db.table("usuarios").select("rol").eq("id", user_id).single().execute()
     if not profile.data or profile.data.get("rol") not in ("admin", "odontologo", "recepcionista"):
         raise HTTPException(status_code=403, detail="Acceso restringido a staff")

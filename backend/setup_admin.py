@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Script to set up the admin user in Supabase Auth.
-Usage: python setup_admin.py <email> <password> [--get-uuid]
+Script to set up the admin user in Supabase Auth and usuarios table.
+Usage: python setup_admin.py <email> <password>
 """
 
 import sys
@@ -12,36 +12,25 @@ from app.db.client import get_supabase_client
 load_dotenv()
 
 
-def find_auth_user_uuid(email: str) -> str | None:
-    """Find the UUID of a user in auth.users by email."""
-    db = get_supabase_client()
-    try:
-        # Use Supabase CLI or direct SQL is needed here
-        # For now, we'll return None and guide the user
-        return None
-    except Exception as e:
-        print(f"[WARNING] Could not find user UUID: {e}")
-        return None
-
-
 def setup_admin(email: str, password: str):
-    """Create or update admin user in Supabase Auth and usuarios table."""
+    """Create admin user in Supabase Auth and usuarios table."""
     db = get_supabase_client()
 
     try:
         print(f"Setting up admin user: {email}")
+        print(f"{'='*60}")
 
-        # Step 1: Delete conflicting record from usuarios table if it exists with wrong structure
-        print(f"\n1. Checking usuarios table...")
-        existing = db.table("usuarios").select("id").eq("email", email).execute()
+        # Step 1: Clean up any orphaned records in usuarios table
+        print(f"\n1. Checking for orphaned records in usuarios table...")
+        existing = db.table("usuarios").select("id, email").eq("email", email).execute()
         if existing.data:
-            old_id = existing.data[0]["id"]
-            print(f"   Found user with ID: {old_id}")
-            print(f"   WARNING: This user ID might not match auth.users UUID")
-            print(f"   Deleting this record to avoid conflicts...")
-            db.table("usuarios").delete().eq("id", old_id).execute()
+            for user in existing.data:
+                print(f"   Found orphaned record: {user['id']}")
+                print(f"   Deleting...")
+                db.table("usuarios").delete().eq("id", user["id"]).execute()
+                print(f"   [OK] Deleted")
 
-        # Step 2: Try to create user in Supabase Auth
+        # Step 2: Create user in Supabase Auth
         print(f"\n2. Creating user in Supabase Auth...")
         try:
             auth_res = db.auth.admin.create_user(
@@ -54,46 +43,51 @@ def setup_admin(email: str, password: str):
             user_id = auth_res.user.id
             print(f"   [OK] User created with UUID: {user_id}")
         except Exception as auth_error:
-            # User already exists, need to find and update
-            if "duplicate" in str(auth_error).lower():
-                print(f"   [INFO] User already exists in auth.users")
-                print(f"   [INFO] Updating password...")
-                # We need the UUID from auth.users - since we can't query it directly,
-                # we'll need manual intervention
-                print(f"\n   ACTION REQUIRED:")
-                print(f"   The user already exists in Supabase Auth but with an unknown UUID.")
-                print(f"   Please do one of the following:")
-                print(f"   A) Go to Supabase Console > Auth Users > Find {email} > Click it > Reset Password")
-                print(f"   B) Or provide the UUID and run: python setup_admin_by_uuid.py {email} <UUID> {password}")
+            error_str = str(auth_error).lower()
+            if "duplicate" in error_str:
+                print(f"   [ERROR] User {email} already exists in Supabase Auth")
+                print(f"   You need to delete it first from Supabase Console:")
+                print(f"   1. Go to https://app.supabase.com")
+                print(f"   2. Auth > Users")
+                print(f"   3. Find {email}")
+                print(f"   4. Click the three dots menu > Delete user")
+                print(f"   5. Then run this script again")
                 sys.exit(1)
             else:
                 print(f"   [ERROR] Could not create user: {auth_error}")
+                import traceback
+                traceback.print_exc()
                 sys.exit(1)
 
-        # Step 3: Create in usuarios table with correct UUID
+        # Step 3: Create in usuarios table with matching UUID
         print(f"\n3. Creating in usuarios table...")
-        db.table("usuarios").insert(
-            {
-                "id": user_id,
-                "email": email,
-                "nombre": "Admin",
-                "rol": "admin",
-                "activo": True,
-            }
-        ).execute()
-        print(f"   [OK] User created in usuarios table")
+        try:
+            db.table("usuarios").insert(
+                {
+                    "id": user_id,
+                    "email": email,
+                    "nombre": "Admin",
+                    "rol": "admin",
+                    "activo": True,
+                }
+            ).execute()
+            print(f"   [OK] User created in usuarios table")
+        except Exception as insert_error:
+            print(f"   [ERROR] Could not create in usuarios: {insert_error}")
+            sys.exit(1)
 
         # Success!
-        print(f"\n{'-'*50}")
-        print(f"Admin setup complete!")
-        print(f"  Email: {email}")
+        print(f"\n{'='*60}")
+        print(f"SUCCESS! Admin user setup complete")
+        print(f"{'='*60}")
+        print(f"  Email:    {email}")
         print(f"  Password: {password}")
-        print(f"  UUID: {user_id}")
-        print(f"  Login: http://localhost:3000/admin/login")
-        print(f"{'-'*50}")
+        print(f"  UUID:     {user_id}")
+        print(f"\nNext step: Go to http://localhost:3000/admin/login")
+        print(f"{'='*60}\n")
 
     except Exception as e:
-        print(f"\n[ERROR] {e}")
+        print(f"\n[FATAL ERROR] {e}")
         import traceback
         traceback.print_exc()
         sys.exit(1)
