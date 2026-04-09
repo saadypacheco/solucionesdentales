@@ -10,12 +10,15 @@ export async function GET(
   const url = `${backendUrl}/${pathStr}${queryString}`
 
   try {
+    console.log('[proxy GET] Fetching from:', url)
     const response = await fetch(url, {
       method: 'GET',
       headers: request.headers,
+      redirect: 'manual',
     })
 
     const data = await response.text()
+    console.log('[proxy GET] Response status:', response.status, 'Location:', response.headers.get('location'))
     return new NextResponse(data, {
       status: response.status,
       headers: response.headers,
@@ -42,8 +45,10 @@ export async function POST(
 
   try {
     const body = await request.text()
+    console.log('[proxy POST] Fetching from:', url)
 
     const response = await fetch(url, {
+      redirect: 'manual',
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -53,6 +58,7 @@ export async function POST(
     })
 
     const data = await response.text()
+    console.log('[proxy POST] Response status:', response.status, 'Location:', response.headers.get('location'))
     return new NextResponse(data, {
       status: response.status,
       headers: response.headers,
@@ -75,8 +81,28 @@ export async function PATCH(
   const queryString = request.nextUrl.search
   const url = `${backendUrl}/${pathStr}${queryString}`
 
+  console.log('[proxy PATCH] Fetching from:', url)
+
   try {
     const body = await request.text()
+    const response = await fetch(url, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        ...Object.fromEntries(request.headers.entries()),
+      },
+      body: body || undefined,
+      redirect: 'manual',
+    })
+
+    console.log('[proxy PATCH] Response status:', response.status, 'Location:', response.headers.get('location'))
+    const data = await response.text()
+    return new NextResponse(data, {
+      status: response.status,
+      headers: response.headers,
+    })
+  } catch (error) {
+    console.error('[proxy] PATCH error:', url, error)
 
     const response = await fetch(url, {
       method: 'PATCH',
