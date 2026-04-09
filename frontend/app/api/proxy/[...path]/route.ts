@@ -38,6 +38,8 @@ export async function POST(
   const queryString = request.nextUrl.search
   const url = `${backendUrl}/${pathStr}${queryString}`
 
+  console.log('[proxy POST] API_URL:', process.env.API_URL, '| Full URL:', url)
+
   try {
     const body = await request.text()
 
