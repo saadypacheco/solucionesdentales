@@ -4,7 +4,7 @@ export async function GET(
   request: NextRequest,
   { params }: { params: { path: string[] } }
 ) {
-  const backendUrl = process.env.API_URL || 'http://localhost:8001'
+  const backendUrl = process.env.API_URL || 'http://72.61.162.46:8001'
   const pathStr = params.path.join('/')
   const queryString = request.nextUrl.search
   const url = `${backendUrl}/${pathStr}${queryString}`
@@ -33,7 +33,7 @@ export async function POST(
   request: NextRequest,
   { params }: { params: { path: string[] } }
 ) {
-  const backendUrl = process.env.API_URL || 'http://localhost:8001'
+  const backendUrl = process.env.API_URL || 'http://72.61.162.46:8001'
   const pathStr = params.path.join('/')
   const queryString = request.nextUrl.search
   const url = `${backendUrl}/${pathStr}${queryString}`
@@ -70,7 +70,7 @@ export async function PATCH(
   request: NextRequest,
   { params }: { params: { path: string[] } }
 ) {
-  const backendUrl = process.env.API_URL || 'http://localhost:8001'
+  const backendUrl = process.env.API_URL || 'http://72.61.162.46:8001'
   const pathStr = params.path.join('/')
   const queryString = request.nextUrl.search
   const url = `${backendUrl}/${pathStr}${queryString}`
