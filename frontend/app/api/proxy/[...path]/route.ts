@@ -17,8 +17,8 @@ export async function GET(
       redirect: 'manual',
     })
 
-    const data = await response.text()
     console.log('[proxy GET] Response status:', response.status, 'Location:', response.headers.get('location'))
+    const data = await response.text()
     return new NextResponse(data, {
       status: response.status,
       headers: response.headers,
@@ -57,8 +57,8 @@ export async function POST(
       body: body || undefined,
     })
 
-    const data = await response.text()
     console.log('[proxy POST] Response status:', response.status, 'Location:', response.headers.get('location'))
+    const data = await response.text()
     return new NextResponse(data, {
       status: response.status,
       headers: response.headers,
@@ -96,23 +96,6 @@ export async function PATCH(
     })
 
     console.log('[proxy PATCH] Response status:', response.status, 'Location:', response.headers.get('location'))
-    const data = await response.text()
-    return new NextResponse(data, {
-      status: response.status,
-      headers: response.headers,
-    })
-  } catch (error) {
-    console.error('[proxy] PATCH error:', url, error)
-
-    const response = await fetch(url, {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        ...Object.fromEntries(request.headers.entries()),
-      },
-      body: body || undefined,
-    })
-
     const data = await response.text()
     return new NextResponse(data, {
       status: response.status,
