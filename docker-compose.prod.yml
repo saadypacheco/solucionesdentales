@@ -11,16 +11,9 @@ services:
         NEXT_PUBLIC_WA_NUMBER: ${NEXT_PUBLIC_WA_NUMBER}
         API_URL: ${API_URL}
     container_name: dentales-frontend
+    ports:
+      - "3000:3000"
     restart: unless-stopped
-    labels:
-      - traefik.enable=true
-      - traefik.http.routers.dentales-web.rule=Host(`solucionodont.shop`,`www.solucionodont.shop`)
-      - traefik.http.routers.dentales-web.entrypoints=web,websecure
-      - traefik.http.routers.dentales-web.tls=true
-      - traefik.http.routers.dentales-web.tls.certresolver=mytlschallenge
-      - traefik.http.services.dentales-web.loadbalancer.server.port=3000
-    networks:
-      - root_default
     depends_on:
       - dentales-backend
 
@@ -29,6 +22,8 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     container_name: dentales-backend
+    ports:
+      - "8001:8000"
     env_file:
       - ./backend/.env
     restart: unless-stopped
@@ -38,16 +33,3 @@ services:
       timeout: 10s
       retries: 3
       start_period: 10s
-    labels:
-      - traefik.enable=true
-      - traefik.http.routers.dentales-api.rule=Host(`api.solucionodont.shop`)
-      - traefik.http.routers.dentales-api.entrypoints=web,websecure
-      - traefik.http.routers.dentales-api.tls=true
-      - traefik.http.routers.dentales-api.tls.certresolver=mytlschallenge
-      - traefik.http.services.dentales-api.loadbalancer.server.port=8000
-    networks:
-      - root_default
-
-networks:
-  root_default:
-    external: true
