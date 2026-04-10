@@ -1,6 +1,6 @@
 # Progreso — Soluciones Dentales
 
-> Última actualización: 2026-04-08
+> Última actualización: 2026-04-09
 
 ---
 
@@ -114,6 +114,28 @@ Próximo paso: Deploy a producción + testeo end-to-end
   - `GRANT INSERT ON pacientes, turnos, alarmas TO anon, authenticated`
   - `GRANT USAGE, SELECT ON ALL SEQUENCES` — permite SERIAL autoincrement
   - RLS policies + table grants = seguridad correcta en Supabase
+
+- [x] **Landing page B2B (/software)**
+  - Hero section con mock app cards animadas
+  - Problem/Solution sections
+  - Features grid (6 features)
+  - Demo tabs interactivos (Booking / Turnos / Dashboard)
+  - Pricing cards (2 planes)
+  - Contact form con validación
+  - Footer + navbar sticky
+  - ~630 líneas React + Tailwind
+
+- [x] **Docker setup simplificado**
+  - `docker-compose.prod.yml` sin Traefik (puertos directos 3000/8001)
+  - `frontend/Dockerfile` multi-stage Node.js build
+  - `docs/deploy-docker.md` guía completa Hostinger
+  - Eliminadas complejidades: Traefik labels, networks, cert generation
+
+- [x] **Skills — Documentación técnica**
+  - 7 skills detalladas: OTP, Admin Auth, Booking, Docker, AI Agent (próximo), Encryption, Testing
+  - Cada skill: Qué es, Diagrama, Archivos, Pasos, Troubleshooting
+  - Formato consistente para facilitar lectura y mantenimiento
+  - Index en `skills/README.md`
 
 ---
 
