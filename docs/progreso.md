@@ -119,22 +119,30 @@ Próximo paso: Deploy a producción + testeo end-to-end
 
 ## Pendiente — antes de producción
 
+### Deploy Docker en Hostinger (CRÍTICO)
+- [x] `docker-compose.prod.yml` — simplificado sin Traefik, puertos directos 3000/8001
+- [x] `frontend/Dockerfile` — multi-stage Node.js build
+- [x] `docs/deploy-docker.md` — guía completa de deployment
+- [ ] **Ejecutar en VPS**: `docker compose -f docker-compose.prod.yml up -d --build`
+- [ ] Verificar healthcheck: `curl http://localhost:8001/health`
+- [ ] Abrir puertos 3000, 8001 en firewall Hostinger
+
 ### Variables de entorno (CRÍTICO)
 - **Backend `.env`**: 
   - `SUPABASE_SERVICE_ROLE_KEY` — verificar que sea la **service_role key** del dashboard Supabase, NO la anon key
   - `JWT_SECRET=<valor-seguro>` (para tokens OTP pacientes)
   - `WA_NUMBER=549XXXXXXXXXX` (número WhatsApp del consultorio)
   - `ENVIRONMENT=production` (oculta `codigo_dev` en respuesta OTP)
-- **Vercel**: `API_URL=http://72.61.162.46:8001` (server-side, sin NEXT_PUBLIC_)
+- **Vercel**: `API_URL=http://[IP-VPS]:8001` (server-side, sin NEXT_PUBLIC_)
 
 ### Supabase
 - [ ] **Ejecutar migración 010** (`010_grants_public_insert.sql`) en SQL Editor
 - [ ] Crear bucket `galeria` en Storage con acceso público (fotos antes/después)
 - [ ] Migración `config_ia` — si no se corrió: `INSERT INTO config_ia` con system_prompt inicial
 
-### HTTPS backend (pendiente)
-- Opción A: agregar dentales-backend al compose de amanda (ver `docs/produccion.md`)
-- Opción B: dominio propio con certbot
+### HTTPS backend (opcional, después del launch inicial)
+- Opción A: Certbot + Nginx como reverse proxy
+- Opción B: Cloudflare como CDN (recomendado)
 
 ---
 
