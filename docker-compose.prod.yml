@@ -1,6 +1,24 @@
-version: "3.9"
-
 services:
+  dentales-backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: dentales-backend
+    restart: unless-stopped
+    env_file:
+      - ./backend/.env
+    environment:
+      SITE_URL: https://solucionodont.shop
+    networks:
+      - traefik
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik"
+      - "traefik.http.routers.odonto-api.rule=Host(`api.solucionodont.shop`)"
+      - "traefik.http.routers.odonto-api.entrypoints=websecure"
+      - "traefik.http.routers.odonto-api.tls.certresolver=letsencrypt"
+      - "traefik.http.services.odonto-api.loadbalancer.server.port=8000"
+
   dentales-frontend:
     build:
       context: ./frontend
@@ -9,27 +27,22 @@ services:
         NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL}
         NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY}
         NEXT_PUBLIC_WA_NUMBER: ${NEXT_PUBLIC_WA_NUMBER}
-        API_URL: ${API_URL}
+        API_URL: https://api.solucionodont.shop
     container_name: dentales-frontend
-    ports:
-      - "3000:3000"
     restart: unless-stopped
     depends_on:
       - dentales-backend
+    networks:
+      - traefik
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik"
+      - "traefik.http.routers.odonto-web.rule=Host(`solucionodont.shop`) || Host(`www.solucionodont.shop`)"
+      - "traefik.http.routers.odonto-web.entrypoints=websecure"
+      - "traefik.http.routers.odonto-web.tls.certresolver=letsencrypt"
+      - "traefik.http.services.odonto-web.loadbalancer.server.port=3000"
 
-  dentales-backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    container_name: dentales-backend
-    ports:
-      - "8001:8000"
-    env_file:
-      - ./backend/.env
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 10s
+networks:
+  traefik:
+    external: true
+    name: traefik
