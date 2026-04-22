@@ -22,9 +22,10 @@ export default function LoginPage() {
     setLoading(true)
     setError('')
     try {
-      const { access_token, user } = await loginStaff(email, password)
-      setAuth(access_token, user)
-      router.push('/admin/dashboard')
+      const { access_token, user, consultorio } = await loginStaff(email, password)
+      setAuth(access_token, user, consultorio)
+      // Superadmin va al panel del SaaS, otros al dashboard del consultorio
+      router.push(user.rol === 'superadmin' ? '/superadmin' : '/admin/dashboard')
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : t('errorGeneric'))
     } finally {

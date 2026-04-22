@@ -345,7 +345,8 @@
       "crm": "CRM",
       "usuarios": "Usuários",
       "galeria": "Galeria",
-      "configIA": "Config IA"
+      "configIA": "Config IA",
+      "compliance": "Compliance"
     },
     "layout": {
       "title": "Soluções Dentárias",
@@ -551,6 +552,177 @@
       "title": "Alertas",
       "noAlarms": "Sem alertas ativos",
       "markResolved": "Marcar como resolvido"
+    },
+    "compliance": {
+      "title": "Compliance do consultório",
+      "subtitle": "Documentação necessária para operar legalmente em {pais}",
+      "loading": "Carregando estado de compliance...",
+      "summary": "{aprobados} de {total} documentos aprovados",
+      "obligatorios": "Obrigatórios: {aprobados}/{total}",
+      "complete": "✓ Compliance completo",
+      "incomplete": "Faltam {n, plural, one {# documento obrigatório} other {# documentos obrigatórios}}",
+      "estadoConsultorio": "Estado do consultório: {estado}",
+      "estados": {
+        "onboarding": "Em onboarding",
+        "docs_pendientes": "Documentos pendentes",
+        "en_revision": "Em revisão",
+        "verificado": "Verificado",
+        "suspendido": "Suspenso"
+      },
+      "doc": {
+        "no_subido": "Não enviado",
+        "pendiente_revision": "Pendente de revisão",
+        "aprobado": "Aprovado",
+        "rechazado": "Rejeitado",
+        "vencido": "Vencido",
+        "obligatorio": "Obrigatório",
+        "opcional": "Opcional",
+        "vence": "Vence: {fecha}",
+        "subido": "Enviado: {fecha}",
+        "verArchivo": "Ver arquivo",
+        "tramite": "Iniciar processo →",
+        "obs": "Observações do revisor",
+        "reemplazar": "Substituir"
+      },
+      "upload": {
+        "title": "Enviar documento",
+        "selectFile": "Selecionar arquivo",
+        "dragOrClick": "Arraste um arquivo ou toque para selecionar",
+        "fileSelected": "Arquivo selecionado: {name}",
+        "vencimiento": "Data de vencimento (opcional)",
+        "submit": "Enviar",
+        "submitting": "Enviando...",
+        "errorUpload": "Erro ao enviar o documento",
+        "supportedFormats": "PDF, JPG ou PNG · máx 10 MB"
+      }
+    }
+  },
+  "superadmin": {
+    "title": "Painel SaaS",
+    "subtitle": "Administração multi-consultório",
+    "nav": {
+      "consultorios": "Consultórios",
+      "auditLog": "Audit log",
+      "logout": "Sair"
+    },
+    "consultorios": {
+      "title": "Consultórios",
+      "totalCount": "{n, plural, one {# consultório} other {# consultórios}}",
+      "filterEstado": "Filtrar por estado",
+      "filterPais": "Filtrar por país",
+      "allStates": "Todos os estados",
+      "allCountries": "Todos os países",
+      "newConsultorio": "+ Novo consultório",
+      "loading": "Carregando consultórios...",
+      "noResults": "Nenhum consultório corresponde",
+      "table": {
+        "name": "Nome",
+        "country": "País",
+        "state": "Estado",
+        "created": "Criado",
+        "actions": "Ações"
+      },
+      "actions": {
+        "view": "Ver",
+        "suspend": "Suspender",
+        "reactivate": "Reativar",
+        "confirmSuspend": "Suspender este consultório? O cliente não poderá usar o sistema.",
+        "confirmReactivate": "Reativar este consultório?"
+      }
+    },
+    "consultorio": {
+      "title": "Consultório {nombre}",
+      "loading": "Carregando consultório...",
+      "info": "Informação",
+      "documents": "Documentos de compliance",
+      "noDocuments": "Ainda não foram enviados documentos",
+      "review": {
+        "approve": "Aprovar",
+        "reject": "Rejeitar",
+        "approving": "Aprovando...",
+        "rejecting": "Rejeitando...",
+        "observations": "Observações (opcional)",
+        "observationsPlaceholder": "Indique ao consultório o que corrigir...",
+        "errorReview": "Erro ao revisar o documento"
+      }
+    },
+    "audit": {
+      "title": "Audit log",
+      "subtitle": "Registro completo de ações do sistema",
+      "loading": "Carregando log...",
+      "noEntries": "Sem entradas para os filtros selecionados",
+      "filterConsultorio": "ID do consultório",
+      "filterAccion": "Ação",
+      "limitLabel": "Mostrar últimos:",
+      "table": {
+        "fecha": "Data",
+        "consultorio": "Consultório",
+        "usuario": "Usuário",
+        "accion": "Ação",
+        "recurso": "Recurso",
+        "ip": "IP"
+      }
+    }
+  },
+  "onboarding": {
+    "title": "Criar novo consultório",
+    "subtitle": "Configure um consultório para operar no SaaS",
+    "stepLabel": "Etapa {current} de {total}",
+    "back": "Voltar",
+    "next": "Próximo",
+    "create": "Criar consultório",
+    "creating": "Criando...",
+    "errorCreate": "Erro ao criar o consultório",
+    "success": "Consultório criado",
+    "successHint": "Agora você pode enviar os documentos de compliance",
+    "viewChecklist": "Ver checklist",
+    "step1": {
+      "title": "Dados do consultório",
+      "subtitle": "Informações básicas",
+      "nombre": "Nome do consultório",
+      "nombrePlaceholder": "Ex: Clínica Sorrisos LTDA",
+      "direccion": "Endereço",
+      "direccionPlaceholder": "Rua, número, cidade"
+    },
+    "step2": {
+      "title": "País de operação",
+      "subtitle": "Determina o marco legal e os documentos necessários",
+      "select": "Selecione um país",
+      "loadingCountries": "Carregando países..."
+    },
+    "step3": {
+      "title": "Identificação fiscal e profissional",
+      "subtitle": "Varia por país",
+      "identificacion": "Identificação fiscal",
+      "identificacionHelp": {
+        "AR": "CUIT (11 dígitos)",
+        "BO": "NIT",
+        "US": "EIN ou SSN",
+        "BR": "CNPJ"
+      },
+      "matricula": "Matrícula do dentista titular"
+    },
+    "step4": {
+      "title": "Contato",
+      "subtitle": "Como seus pacientes vão te encontrar",
+      "telefono": "Telefone",
+      "email": "Email",
+      "wa": "WhatsApp (formato 549...)",
+      "waHelp": "Sem + nem espaços. Ex: 5491112345678"
+    },
+    "step5": {
+      "title": "Resumo",
+      "subtitle": "Verifique os dados antes de criar",
+      "labels": {
+        "nombre": "Nome",
+        "pais": "País",
+        "direccion": "Endereço",
+        "fiscal": "Identificação fiscal",
+        "matricula": "Matrícula",
+        "telefono": "Telefone",
+        "email": "Email",
+        "wa": "WhatsApp"
+      }
     }
   }
 }

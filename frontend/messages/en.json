@@ -345,7 +345,8 @@
       "crm": "CRM",
       "usuarios": "Users",
       "galeria": "Gallery",
-      "configIA": "AI Config"
+      "configIA": "AI Config",
+      "compliance": "Compliance"
     },
     "layout": {
       "title": "Dental Solutions",
@@ -551,6 +552,177 @@
       "title": "Alarms",
       "noAlarms": "No active alarms",
       "markResolved": "Mark resolved"
+    },
+    "compliance": {
+      "title": "Office compliance",
+      "subtitle": "Required documentation to legally operate in {pais}",
+      "loading": "Loading compliance status...",
+      "summary": "{aprobados} of {total} approved documents",
+      "obligatorios": "Required: {aprobados}/{total}",
+      "complete": "✓ Compliance complete",
+      "incomplete": "Missing {n, plural, one {# required document} other {# required documents}}",
+      "estadoConsultorio": "Office state: {estado}",
+      "estados": {
+        "onboarding": "In onboarding",
+        "docs_pendientes": "Pending documents",
+        "en_revision": "Under review",
+        "verificado": "Verified",
+        "suspendido": "Suspended"
+      },
+      "doc": {
+        "no_subido": "Not uploaded",
+        "pendiente_revision": "Pending review",
+        "aprobado": "Approved",
+        "rechazado": "Rejected",
+        "vencido": "Expired",
+        "obligatorio": "Required",
+        "opcional": "Optional",
+        "vence": "Expires: {fecha}",
+        "subido": "Uploaded: {fecha}",
+        "verArchivo": "View file",
+        "tramite": "Start process →",
+        "obs": "Reviewer notes",
+        "reemplazar": "Replace"
+      },
+      "upload": {
+        "title": "Upload document",
+        "selectFile": "Select file",
+        "dragOrClick": "Drag a file or tap to select",
+        "fileSelected": "Selected file: {name}",
+        "vencimiento": "Expiration date (optional)",
+        "submit": "Upload",
+        "submitting": "Uploading...",
+        "errorUpload": "Error uploading document",
+        "supportedFormats": "PDF, JPG or PNG · max 10 MB"
+      }
+    }
+  },
+  "superadmin": {
+    "title": "SaaS Panel",
+    "subtitle": "Multi-office administration",
+    "nav": {
+      "consultorios": "Offices",
+      "auditLog": "Audit log",
+      "logout": "Log out"
+    },
+    "consultorios": {
+      "title": "Offices",
+      "totalCount": "{n, plural, one {# office} other {# offices}}",
+      "filterEstado": "Filter by state",
+      "filterPais": "Filter by country",
+      "allStates": "All states",
+      "allCountries": "All countries",
+      "newConsultorio": "+ New office",
+      "loading": "Loading offices...",
+      "noResults": "No matching offices",
+      "table": {
+        "name": "Name",
+        "country": "Country",
+        "state": "State",
+        "created": "Created",
+        "actions": "Actions"
+      },
+      "actions": {
+        "view": "View",
+        "suspend": "Suspend",
+        "reactivate": "Reactivate",
+        "confirmSuspend": "Suspend this office? The client will not be able to use the system.",
+        "confirmReactivate": "Reactivate this office?"
+      }
+    },
+    "consultorio": {
+      "title": "Office {nombre}",
+      "loading": "Loading office...",
+      "info": "Information",
+      "documents": "Compliance documents",
+      "noDocuments": "No documents uploaded yet",
+      "review": {
+        "approve": "Approve",
+        "reject": "Reject",
+        "approving": "Approving...",
+        "rejecting": "Rejecting...",
+        "observations": "Notes (optional)",
+        "observationsPlaceholder": "Tell the office what to fix...",
+        "errorReview": "Error reviewing document"
+      }
+    },
+    "audit": {
+      "title": "Audit log",
+      "subtitle": "Complete record of system actions",
+      "loading": "Loading log...",
+      "noEntries": "No entries for the selected filters",
+      "filterConsultorio": "Office ID",
+      "filterAccion": "Action",
+      "limitLabel": "Show last:",
+      "table": {
+        "fecha": "Date",
+        "consultorio": "Office",
+        "usuario": "User",
+        "accion": "Action",
+        "recurso": "Resource",
+        "ip": "IP"
+      }
+    }
+  },
+  "onboarding": {
+    "title": "Create new office",
+    "subtitle": "Set up an office to operate in the SaaS",
+    "stepLabel": "Step {current} of {total}",
+    "back": "Back",
+    "next": "Next",
+    "create": "Create office",
+    "creating": "Creating...",
+    "errorCreate": "Error creating office",
+    "success": "Office created",
+    "successHint": "Now you can upload compliance documents",
+    "viewChecklist": "View checklist",
+    "step1": {
+      "title": "Office details",
+      "subtitle": "Basic information",
+      "nombre": "Office name",
+      "nombrePlaceholder": "Ex: Smiles Clinic Inc.",
+      "direccion": "Address",
+      "direccionPlaceholder": "Street, number, city"
+    },
+    "step2": {
+      "title": "Country of operation",
+      "subtitle": "Determines the legal framework and required documents",
+      "select": "Select a country",
+      "loadingCountries": "Loading countries..."
+    },
+    "step3": {
+      "title": "Tax and professional ID",
+      "subtitle": "Varies by country",
+      "identificacion": "Tax ID",
+      "identificacionHelp": {
+        "AR": "CUIT (11 digits)",
+        "BO": "NIT",
+        "US": "EIN or SSN",
+        "BR": "CNPJ"
+      },
+      "matricula": "Lead dentist license number"
+    },
+    "step4": {
+      "title": "Contact",
+      "subtitle": "How patients will reach you",
+      "telefono": "Phone",
+      "email": "Email",
+      "wa": "WhatsApp (format 549...)",
+      "waHelp": "Without + or spaces. Ex: 5491112345678"
+    },
+    "step5": {
+      "title": "Summary",
+      "subtitle": "Check the data before creating",
+      "labels": {
+        "nombre": "Name",
+        "pais": "Country",
+        "direccion": "Address",
+        "fiscal": "Tax ID",
+        "matricula": "License",
+        "telefono": "Phone",
+        "email": "Email",
+        "wa": "WhatsApp"
+      }
     }
   }
 }

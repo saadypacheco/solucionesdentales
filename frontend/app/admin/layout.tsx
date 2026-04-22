@@ -11,17 +11,18 @@ function Sidebar({ open, onClose }: { open: boolean; onClose: () => void }) {
   const t = useTranslations('admin')
   const tNav = useTranslations('admin.nav')
   const pathname = usePathname()
-  const { logout, user } = useAuthStore()
+  const { logout, user, consultorio } = useAuthStore()
   const router = useRouter()
 
   const NAV = [
-    { href: '/admin/dashboard',     label: tNav('dashboard'),  icono: '📊' },
-    { href: '/admin/agenda',        label: tNav('agenda'),     icono: '📅' },
-    { href: '/admin/pacientes',     label: tNav('pacientes'),  icono: '👥' },
-    { href: '/admin/crm',           label: tNav('crm'),        icono: '🎯' },
-    { href: '/admin/usuarios',      label: tNav('usuarios'),   icono: '👨‍⚕️' },
-    { href: '/admin/galeria',       label: tNav('galeria'),    icono: '🖼️' },
-    { href: '/admin/configuracion', label: tNav('configIA'),   icono: '⚙️' },
+    { href: '/admin/dashboard',                label: tNav('dashboard'),  icono: '📊' },
+    { href: '/admin/agenda',                   label: tNav('agenda'),     icono: '📅' },
+    { href: '/admin/pacientes',                label: tNav('pacientes'),  icono: '👥' },
+    { href: '/admin/crm',                      label: tNav('crm'),        icono: '🎯' },
+    { href: '/admin/usuarios',                 label: tNav('usuarios'),   icono: '👨‍⚕️' },
+    { href: '/admin/galeria',                  label: tNav('galeria'),    icono: '🖼️' },
+    { href: '/admin/configuracion',            label: tNav('configIA'),   icono: '⚙️' },
+    { href: '/admin/configuracion/compliance', label: tNav('compliance'), icono: '✅' },
   ]
 
   function handleLogout() {
@@ -46,8 +47,11 @@ function Sidebar({ open, onClose }: { open: boolean; onClose: () => void }) {
         md:translate-x-0 md:static md:flex md:h-screen md:flex-shrink-0
       `}>
         <div className="px-5 py-5 border-b border-white/5">
-          <p className="text-white font-black text-sm">{t('layout.title')}</p>
-          <p className="text-slate-600 text-xs">{t('layout.subtitle')}</p>
+          <p className="text-white font-black text-sm">{consultorio?.nombre ?? t('layout.title')}</p>
+          <p className="text-slate-600 text-xs">
+            {t('layout.subtitle')}
+            {consultorio?.pais_codigo && ` · ${consultorio.pais_codigo}`}
+          </p>
         </div>
 
         <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
@@ -102,10 +106,10 @@ function Sidebar({ open, onClose }: { open: boolean; onClose: () => void }) {
 }
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  const t = useTranslations('admin')
   const router = useRouter()
   const pathname = usePathname()
   const token = useAuthStore((s) => s.token)
+  const consultorio = useAuthStore((s) => s.consultorio)
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   const esLogin = pathname === '/admin/login'
@@ -132,7 +136,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
             </svg>
           </button>
-          <p className="text-white font-bold text-sm">{t('layout.title')}</p>
+          <p className="text-white font-bold text-sm">{consultorio?.nombre ?? 'Soluciones Dentales'}</p>
           <div className="w-6" />
         </div>
 

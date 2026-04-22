@@ -28,7 +28,11 @@ export async function loginStaff(email: string, password: string) {
     const err = await res.json().catch(() => ({}))
     throw new Error(err.detail ?? 'Credenciales incorrectas')
   }
-  return res.json() as Promise<{ access_token: string; user: StaffUser }>
+  return res.json() as Promise<{
+    access_token: string
+    user: StaffUser
+    consultorio: ConsultorioInfo | null
+  }>
 }
 
 export async function getMe(token: string): Promise<StaffUser> {
@@ -155,7 +159,23 @@ export interface StaffUser {
   id: string
   email: string
   nombre: string
-  rol: 'admin' | 'odontologo' | 'recepcionista'
+  rol: 'admin' | 'odontologo' | 'recepcionista' | 'superadmin'
+  consultorio_id?: number | null
+}
+
+export interface ConsultorioInfo {
+  id: number
+  nombre: string
+  pais_codigo: string
+  idioma_override: string | null
+  timezone_override: string | null
+  paises?: {
+    codigo: string
+    nombre: string
+    idioma_default: string
+    moneda: string
+    timezone_default: string
+  }
 }
 
 export interface TurnoAdmin {

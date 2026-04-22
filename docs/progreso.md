@@ -339,7 +339,7 @@ paciente → /turnos/virtual → elige slot virtual → completa datos
 - ✅ **Fase 1 (2026-04-22):** i18n completo con next-intl (es/en/pt-BR), 100% cobertura, detección automática
 - ✅ **Fase 2 (2026-04-22):** Schema multi-país + consultorio default — migraciones 013 y 014
 - ✅ **Fase 3 (2026-04-22):** Backend multi-tenant — todos los routers filtran por consultorio_id, audit log activo, endpoints onboarding y superadmin listos
-- ⏸️ **Fase 4:** Frontend onboarding wizard + panel superadmin
+- ✅ **Fase 4 (2026-04-22):** Frontend onboarding wizard + panel superadmin + branding dinámico
 - ⏸️ **Fase 5:** Lock down (consultorio_id NOT NULL) + selector consultorio + idioma derivado del país
 
 **Decisiones tomadas:**
