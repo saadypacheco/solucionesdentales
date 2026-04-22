@@ -120,17 +120,24 @@ export default function Home() {
 
       {/* ══ HERO ═════════════════════════════════════════════ */}
       <section className="gradient-hero noise relative overflow-hidden pt-36 pb-32 px-4">
-        {/* Foto de fondo — reemplazar por /hero-smile.jpg cuando subas la propia */}
+        {/* Foto de fondo — el archivo vive en frontend/public/hero-smile.jpg */}
         <div
-          className="absolute inset-0 pointer-events-none bg-cover bg-center opacity-40"
+          className="absolute inset-0 pointer-events-none bg-cover bg-center"
           style={{
-            backgroundImage: "url('https://images.unsplash.com/photo-1606811971618-4486d14f3f99?w=1920&q=80&auto=format&fit=crop')",
+            backgroundImage: "url('/hero-smile.jpg')",
           }}
           aria-hidden="true"
         />
-        {/* Overlay para contraste del texto: oscuro a la izquierda → transparente a la derecha */}
-        <div className="absolute inset-0 pointer-events-none bg-gradient-to-r from-[#020d12] via-[#020d12]/85 to-[#020d12]/30" aria-hidden="true" />
-        <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-[#020d12] via-transparent to-transparent" aria-hidden="true" />
+        {/* Overlay paleta integrada: #071F1E 90% (izq donde va el texto) → transparente 20% (der donde están las personas) */}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background: "linear-gradient(to right, rgba(7, 31, 30, 0.9) 0%, rgba(7, 31, 30, 0.65) 45%, rgba(7, 31, 30, 0.2) 100%)",
+          }}
+          aria-hidden="true"
+        />
+        {/* Fade vertical sutil arriba/abajo para integrar con secciones contiguas */}
+        <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-[#020d12]/60 via-transparent to-[#020d12]/85" aria-hidden="true" />
 
         {/* Orbs */}
         <div className="absolute top-10 right-1/4 w-[500px] h-[500px] bg-teal-500/8 rounded-full blur-[120px] pointer-events-none" />
@@ -168,7 +175,7 @@ export default function Home() {
                 <a
                   href="https://wa.me/5491100000000"
                   target="_blank"
-                  className="glass text-white font-semibold px-6 py-3.5 rounded-full hover:bg-white/10 transition-all text-sm flex items-center gap-2"
+                  className="border border-white/40 text-white font-semibold px-6 py-3.5 rounded-full hover:bg-white/10 hover:border-white/70 transition-all text-sm flex items-center gap-2 backdrop-blur-sm"
                 >
                   <span>💬</span> {lang === 'es' ? 'Urgencias' : 'Emergencies'}
                 </a>
