@@ -1,4 +1,6 @@
 import type { Metadata } from 'next'
+import { NextIntlClientProvider } from 'next-intl'
+import { getLocale, getMessages, getTranslations } from 'next-intl/server'
 import localFont from 'next/font/local'
 import './globals.css'
 import ChatWidget from '@/components/agente/ChatWidget'
@@ -14,21 +16,29 @@ const geistMono = localFont({
   weight: '100 900',
 })
 
-export const metadata: Metadata = {
-  title: 'Soluciones Dentales | Consultorio Odontológico',
-  description: 'Tu sonrisa, nuestra prioridad. Agendá tu turno online de forma rápida y sencilla.',
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('metadata')
+  return {
+    title: t('title'),
+    description: t('description'),
+  }
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  const locale = await getLocale()
+  const messages = await getMessages()
+
   return (
-    <html lang="es">
+    <html lang={locale}>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        {children}
-        <ChatWidget />
+        <NextIntlClientProvider locale={locale} messages={messages}>
+          {children}
+          <ChatWidget />
+        </NextIntlClientProvider>
       </body>
     </html>
   )

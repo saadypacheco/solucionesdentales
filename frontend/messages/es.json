@@ -1,0 +1,550 @@
+{
+  "metadata": {
+    "title": "Soluciones Dentales | Consultorio Odontológico",
+    "description": "Tu sonrisa, nuestra prioridad. Agendá tu turno online de forma rápida y sencilla.",
+    "htmlLang": "es"
+  },
+  "common": {
+    "save": "Guardar",
+    "saving": "Guardando...",
+    "saved": "Guardado",
+    "cancel": "Cancelar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "loading": "Cargando...",
+    "back": "Volver",
+    "next": "Siguiente",
+    "previous": "Anterior",
+    "confirm": "Confirmar",
+    "confirming": "Confirmando...",
+    "close": "Cerrar",
+    "error": "Error",
+    "search": "Buscar",
+    "all": "Todos",
+    "yes": "Sí",
+    "no": "No",
+    "of": "de",
+    "step": "Paso"
+  },
+  "navbar": {
+    "services": "Servicios",
+    "howItWorks": "Cómo funciona",
+    "cases": "Casos",
+    "faq": "FAQ",
+    "bookCta": "Agendar turno",
+    "back": "Volver"
+  },
+  "landing": {
+    "hero": {
+      "badge": "Asistente IA disponible 24hs",
+      "titleLine1": "Tu mejor",
+      "titleLine2": "sonrisa",
+      "titleLine3": "te espera.",
+      "subtitle": "Agendá tu turno en 2 minutos, sin registro y sin llamadas. Confirmación instantánea por WhatsApp.",
+      "ctaPrimary": "Agendar turno gratis",
+      "ctaEmergency": "Urgencias",
+      "feature1": "Sin registro",
+      "feature2": "Confirmación en minutos",
+      "feature3": "Hasta 12 cuotas sin interés"
+    },
+    "cards": {
+      "appointmentConfirmed": "Turno confirmado",
+      "tomorrow10": "Mañana · 10:00hs",
+      "newSmile": "Tu nueva sonrisa",
+      "realResults": "Resultados reales",
+      "patientsCount": "pacientes",
+      "patientJustBooked": "{nombre} agendó recién",
+      "minutesAgo": "Hace {n} minutos"
+    },
+    "services": {
+      "kicker": "Tratamientos",
+      "title": "Todo lo que tu",
+      "title2": "sonrisa necesita",
+      "seeAll": "Ver todos",
+      "consult": "Consultar",
+      "items": {
+        "estetica": {
+          "titulo": "Estética dental",
+          "desc": "Diseño de sonrisa, carillas de porcelana y blanqueamiento. Resultados desde la primera sesión.",
+          "tag": "Más solicitado"
+        },
+        "implantes": {
+          "titulo": "Implantes",
+          "desc": "Implantes de titanio de última generación. Resultado permanente, estética natural.",
+          "tag": "Alta tecnología"
+        },
+        "ortodoncia": {
+          "titulo": "Ortodoncia",
+          "desc": "Brackets metálicos y alineadores invisibles con seguimiento digital mensual.",
+          "tag": "Alineadores incluidos"
+        },
+        "urgencias": {
+          "titulo": "Urgencias",
+          "desc": "Dolor agudo, fracturas y emergencias. Atención el mismo día, sin turno previo.",
+          "tag": "Mismo día"
+        }
+      }
+    },
+    "howItWorks": {
+      "kicker": "Proceso",
+      "title": "Agendá en",
+      "titleHighlight": "2 minutos",
+      "subtitle": "Sin llamadas, sin esperas. Tu turno confirmado antes de que termines de leer esto.",
+      "ctaBook": "Reservar mi turno",
+      "steps": {
+        "s1": { "titulo": "Contanos qué necesitás", "desc": "El asistente IA clasifica tu consulta y te orienta en segundos, a cualquier hora." },
+        "s2": { "titulo": "Elegí tu horario", "desc": "Disponibilidad en tiempo real. Elegís el slot que más te conviene en el calendario." },
+        "s3": { "titulo": "Confirmación al instante", "desc": "Recibís confirmación por WhatsApp. Sin registro, sin contraseñas, sin esperas." }
+      }
+    },
+    "gallery": {
+      "kicker": "Galería",
+      "titleLine1": "Resultados",
+      "titleLine2": "que hablan",
+      "seeAll": "Ver todos los casos",
+      "viewCase": "Ver caso completo",
+      "before": "Antes",
+      "after": "Después",
+      "items": {
+        "blanqueamiento": { "tratamiento": "Blanqueamiento", "duracion": "1 sesión", "desc": "Aclaración de 8 tonos con láser LED" },
+        "diseno": { "tratamiento": "Diseño de sonrisa", "duracion": "2 semanas", "desc": "6 carillas de porcelana ultrafinas" },
+        "ortodoncia": { "tratamiento": "Ortodoncia", "duracion": "18 meses", "desc": "Alineadores invisibles Invisalign" }
+      }
+    },
+    "testimonials": {
+      "kicker": "Testimonios",
+      "titleLine1": "Lo que dicen",
+      "titleLine2": "nuestros pacientes",
+      "items": {
+        "maria": { "nombre": "María G.", "tratamiento": "Blanqueamiento", "texto": "Agendé a las 11 de la noche y al día siguiente ya tenía turno confirmado. La atención fue increíble." },
+        "carlos": { "nombre": "Carlos R.", "tratamiento": "Implante", "texto": "Hacía años que postergaba el implante. El presupuesto fue claro desde el inicio y el resultado superó todo." },
+        "lucia": { "nombre": "Lucía M.", "tratamiento": "Ortodoncia", "texto": "Llevo 8 meses con los alineadores y los cambios son increíbles. El seguimiento por WhatsApp es un plus enorme." }
+      }
+    },
+    "ctaSection": {
+      "badge": "Slots disponibles esta semana",
+      "titleLine1": "Tu turno",
+      "titleLine2": "en 2 minutos.",
+      "subtitle": "Sin registro, sin llamadas. Confirmación instantánea por WhatsApp.",
+      "cta": "Agendar mi turno gratis",
+      "small": "Primera consulta sin cargo · Presupuesto detallado"
+    },
+    "faq": {
+      "kicker": "FAQ",
+      "title": "Preguntas frecuentes",
+      "items": {
+        "q1": { "q": "¿Necesito crear una cuenta para agendar?", "a": "No. Solo necesitamos tu nombre y teléfono. Sin contraseñas, sin formularios largos." },
+        "q2": { "q": "¿Cuánto tarda en confirmarse el turno?", "a": "La confirmación es automática. Recibís un mensaje por WhatsApp en menos de 5 minutos." },
+        "q3": { "q": "¿Tienen financiación?", "a": "Sí, hasta 12 cuotas sin interés con todas las tarjetas. Te damos el detalle en la consulta sin cargo." },
+        "q4": { "q": "¿Atienden urgencias sin turno?", "a": "Sí. Para urgencias contactanos directamente por WhatsApp y te atendemos el mismo día." }
+      }
+    },
+    "footer": {
+      "tagline": "Consultorio odontológico de excelencia en Buenos Aires. Tecnología de vanguardia para tu mejor sonrisa.",
+      "ctaWa": "Escribinos por WhatsApp",
+      "hoursTitle": "Horarios",
+      "weekdays": "Lunes – Viernes",
+      "weekend": "Sábados",
+      "emergency": "⚡ Urgencias fuera de horario",
+      "contactTitle": "Contacto",
+      "rights": "© 2026 Soluciones Dentales. Todos los derechos reservados.",
+      "privacy": "Privacidad",
+      "terms": "Términos"
+    }
+  },
+  "turnos": {
+    "title": "Agendar turno",
+    "stepLabel": "Paso {current} de {total}",
+    "paso1": {
+      "title": "¿Qué tratamiento necesitás?",
+      "subtitle": "Tocá uno para continuar",
+      "loading": "Buscando disponibilidad...",
+      "selected": "Seleccionado"
+    },
+    "paso2": {
+      "title": "Elegí tu odontólogo",
+      "subtitle": "Selecciona al profesional que prefieres"
+    },
+    "paso3": {
+      "title": "Elegí fecha y hora",
+      "subtitle": "Elige el momento que mejor te va",
+      "labelDay": "Día",
+      "labelTime": "Horario",
+      "tapToContinue": "(tocá uno para continuar)",
+      "noSlots": "Sin disponibilidad para este día."
+    },
+    "paso4": {
+      "title": "Tus datos",
+      "subtitle": "Completa la información para confirmar",
+      "summary": "Resumen del turno",
+      "change": "Cambiar",
+      "nombre": "Nombre completo",
+      "nombrePlaceholder": "Ej: María García",
+      "telefono": "Teléfono",
+      "telefonoPlaceholder": "Ej: 11 1234-5678",
+      "telefonoHint": "Te avisamos por WhatsApp cuando se confirme",
+      "email": "Email",
+      "emailPlaceholder": "Ej: maria@ejemplo.com",
+      "emailHint": "O ingresá tu email para recibir la confirmación",
+      "contactHint": "Necesitamos al menos un medio de contacto (teléfono o email)",
+      "notas": "Notas",
+      "notasOptional": "(opcional)",
+      "notasPlaceholder": "Alergias, derivaciones, cualquier dato útil...",
+      "confirm": "Confirmar turno",
+      "confirming": "Confirmando...",
+      "invalidPhone": "Teléfono inválido",
+      "invalidEmail": "Email inválido",
+      "confidentialNote": "Tu información es confidencial y no será compartida con terceros."
+    },
+    "paso5": {
+      "title": "¡Turno solicitado!",
+      "subtitle": "Te vamos a contactar al {telefono} para confirmar. Revisá WhatsApp.",
+      "summary": "Resumen del turno",
+      "ctaWhatsApp": "💬 Confirmar por WhatsApp",
+      "seeMisTurnos": "📋 Ver mis turnos",
+      "backHome": "Volver al inicio",
+      "ref": "Ref. #{id}"
+    },
+    "errores": {
+      "loadHours": "Error al cargar horarios",
+      "submit": "Error al confirmar el turno"
+    }
+  },
+  "misTurnos": {
+    "title": "Mis turnos",
+    "verifiedBadge": "Verificado ✓",
+    "pasoTelefono": {
+      "title": "Ingresá tu teléfono",
+      "hint": "Te enviaremos un código por WhatsApp",
+      "placeholder": "Ej: 11 1234-5678",
+      "send": "Enviar código",
+      "sending": "Enviando...",
+      "errorSend": "Error al enviar código"
+    },
+    "pasoOTP": {
+      "greeting": "Hola, {nombre}!",
+      "title": "Verificar identidad",
+      "subtitle": "Te enviamos un código de 4 dígitos al {telefono}.",
+      "openWhatsApp": "Abrir WhatsApp",
+      "devModeLabel": "Modo desarrollo — código:",
+      "label": "Ingresá el código",
+      "placeholder": "Ej: 1234",
+      "verify": "Verificar",
+      "verifying": "Verificando...",
+      "errorCode": "Código incorrecto",
+      "changePhone": "← Cambiar teléfono"
+    },
+    "pasoTurnos": {
+      "greeting": "Hola, {nombre}",
+      "subtitle": "Tus turnos en Soluciones Dentales",
+      "logout": "Salir",
+      "noTurnos": "No tenés turnos agendados",
+      "bookNew": "Agendar turno",
+      "upcoming": "Próximos turnos",
+      "history": "Historial",
+      "bookAnother": "Agendar nuevo turno",
+      "cancel": "Cancelar turno",
+      "canceling": "Cancelando...",
+      "confirmCancel": "¿Seguro que querés cancelar este turno?",
+      "errorCancel": "No se pudo cancelar"
+    }
+  },
+  "galeria": {
+    "title": "Galería",
+    "kicker": "Galería",
+    "subtitle": "Conocé nuestro trabajo",
+    "headerLine1": "Resultados",
+    "headerLine2": "reales",
+    "drag": "Arrastrá el divisor para comparar antes y después de cada tratamiento.",
+    "before": "ANTES",
+    "after": "DESPUÉS",
+    "noCases": "Próximamente más casos publicados",
+    "noCasesHint": "Contactanos por WhatsApp para ver más fotos",
+    "loadError": "Error al cargar la galería",
+    "ctaTitle": "¿Querés un resultado así?",
+    "ctaSubtitle": "Agendá tu consulta gratuita hoy",
+    "ctaButton": "Agendar mi turno",
+    "filtros": {
+      "todos": "Todos",
+      "estetica": "Estética dental",
+      "blanqueamiento": "Blanqueamiento",
+      "ortodoncia": "Ortodoncia",
+      "implante": "Implantes"
+    }
+  },
+  "tratamientos": {
+    "estetica": "Estética dental",
+    "blanqueamiento": "Blanqueamiento",
+    "ortodoncia": "Ortodoncia",
+    "implante": "Implante",
+    "limpieza": "Limpieza dental",
+    "urgencia": "Urgencia / Dolor",
+    "consulta": "Consulta general"
+  },
+  "duraciones": {
+    "minutes": "{n} min"
+  },
+  "estadosTurno": {
+    "solicitado": "Solicitado",
+    "confirmado": "Confirmado",
+    "realizado": "Realizado",
+    "cancelado": "Cancelado",
+    "ausente": "Ausente",
+    "labels": {
+      "solicitado": "Solicitado — pendiente de confirmación",
+      "confirmado": "Confirmado ✓",
+      "realizado": "Realizado",
+      "cancelado": "Cancelado",
+      "ausente": "No asistió"
+    }
+  },
+  "estadosPaciente": {
+    "nuevo": "Nuevo",
+    "contactado": "Contactado",
+    "interesado": "Interesado",
+    "turno_agendado": "Turno agendado",
+    "paciente_activo": "Paciente activo",
+    "inactivo": "Inactivo",
+    "perdido": "Perdido"
+  },
+  "prioridades": {
+    "alta": "Alta",
+    "media": "Media",
+    "baja": "Baja"
+  },
+  "chat": {
+    "greeting": "¡Hola! Soy la asistente virtual del consultorio. ¿En qué puedo ayudarte hoy? 😊",
+    "openTooltip": "¿Necesitás turno? ¡Escribime!",
+    "headerTitle": "Soluciones Dentales",
+    "headerSubtitle": "Asistente virtual · IA",
+    "online": "En línea",
+    "inputPlaceholder": "Escribí tu consulta...",
+    "openAria": "Abrir chat",
+    "errorMessage": "En este momento no puedo responder. Contactanos por WhatsApp para una respuesta inmediata.",
+    "quickReplies": {
+      "book": "Quiero agendar un turno",
+      "prices": "Precios y tratamientos",
+      "emergency": "Tengo dolor, es urgente"
+    }
+  },
+  "languageSwitcher": {
+    "label": "Idioma",
+    "selectLanguage": "Seleccionar idioma"
+  },
+  "admin": {
+    "nav": {
+      "dashboard": "Dashboard",
+      "agenda": "Agenda",
+      "pacientes": "Pacientes",
+      "crm": "CRM",
+      "usuarios": "Usuarios",
+      "galeria": "Galería",
+      "configIA": "Config IA"
+    },
+    "layout": {
+      "title": "Soluciones Dentales",
+      "subtitle": "Panel admin",
+      "viewSite": "Ver web",
+      "logout": "Salir"
+    },
+    "login": {
+      "title": "Soluciones Dentales",
+      "subtitle": "Panel de administración",
+      "cardTitle": "Iniciar sesión",
+      "email": "Email",
+      "emailPlaceholder": "doctora@consultorio.com",
+      "password": "Contraseña",
+      "passwordPlaceholder": "••••••••",
+      "submit": "Ingresar",
+      "submitting": "Ingresando...",
+      "errorGeneric": "Error al iniciar sesión",
+      "footer": "Solo para staff autorizado del consultorio"
+    },
+    "dashboard": {
+      "title": "Dashboard",
+      "viewSite": "Ver sitio",
+      "errorPrefix": "Error al cargar datos",
+      "kpi": {
+        "appointmentsToday": "Turnos hoy",
+        "appointmentsConfirmed": "{n} confirmados",
+        "unconfirmed": "Sin confirmar",
+        "unconfirmedHint": "Requieren confirmación",
+        "newToday": "Nuevos hoy",
+        "newTodayHint": "Pacientes ingresados",
+        "alarmsActive": "Alarmas activas",
+        "alarmsHint": "Requieren atención"
+      },
+      "agendaToday": "Agenda de hoy",
+      "appointmentsCount": "{n} turnos",
+      "viewWeek": "Ver semana",
+      "noAppointments": "Sin turnos para hoy",
+      "patient": "Paciente",
+      "alarms": "Alarmas",
+      "noAlarms": "Sin alarmas activas",
+      "markResolved": "Marcar resuelta",
+      "pipeline": "Pipeline CRM",
+      "viewKanban": "Ver kanban",
+      "whatsappMessage": "Hola {nombre}, te confirmamos tu turno de {tratamiento} para hoy a las {hora}."
+    },
+    "agenda": {
+      "title": "Agenda",
+      "weekOf": "Semana del {fecha}",
+      "today": "Hoy",
+      "loading": "Cargando agenda...",
+      "noAppointmentsDay": "Sin turnos este día",
+      "appointmentsCount": "{n, plural, =0 {0 turnos} one {# turno} other {# turnos}}",
+      "noAppointments": "—",
+      "minutes": "{n}min",
+      "whatsappMessage": "Hola {nombre}! Te confirmamos tu turno de {tratamiento} para el {hora}."
+    },
+    "pacientes": {
+      "title": "Pacientes",
+      "totalCount": "{n} total",
+      "searchPlaceholder": "Buscar por nombre, teléfono o email...",
+      "filterAllStates": "Todos los estados",
+      "sortNewest": "Más recientes",
+      "sortScore": "Mayor score",
+      "sortName": "Nombre A-Z",
+      "loading": "Cargando...",
+      "noResults": "No hay pacientes que coincidan",
+      "table": {
+        "patient": "Paciente",
+        "phone": "Teléfono",
+        "stateCRM": "Estado CRM",
+        "score": "Score",
+        "registered": "Registro"
+      },
+      "whatsAppContact": "Contactar por WhatsApp",
+      "whatsapp": "WhatsApp"
+    },
+    "crm": {
+      "title": "CRM / Pipeline",
+      "totalPatients": "{n} pacientes totales",
+      "searchPlaceholder": "Buscar...",
+      "loading": "Cargando pipeline...",
+      "scoreLegendHot": "≥60 caliente",
+      "scoreLegendWarm": "30-59 tibio",
+      "scoreLegendCold": "<30 frío",
+      "score": "Score:",
+      "scorePoints": "{n}pts",
+      "columns": {
+        "nuevo": "Nuevo",
+        "contactado": "Contactado",
+        "interesado": "Interesado",
+        "turno_agendado": "Turno agendado",
+        "paciente_activo": "Paciente activo",
+        "inactivo": "Inactivo",
+        "perdido": "Perdido"
+      }
+    },
+    "galeria": {
+      "title": "Galería de casos",
+      "summary": "{publicados} publicados · {pendientes} pendientes",
+      "uploadCase": "Subir caso",
+      "loading": "Cargando...",
+      "noCases": "No hay casos todavía. Subí el primero.",
+      "publish": "Publicar",
+      "unpublish": "Despublicar",
+      "delete": "Eliminar",
+      "confirmDelete": "¿Eliminar este caso?",
+      "before": "ANTES",
+      "after": "DESPUÉS",
+      "badge": {
+        "published": "Publicado",
+        "pending": "Pendiente"
+      },
+      "modal": {
+        "title": "Subir caso",
+        "treatment": "Tratamiento",
+        "description": "Descripción",
+        "descriptionPlaceholder": "Describe el caso brevemente...",
+        "duration": "Duración (opcional)",
+        "durationPlaceholder": "Ej: 3 meses, 1 sesión...",
+        "photoBefore": "Foto ANTES",
+        "photoAfter": "Foto DESPUÉS",
+        "uploadPhoto": "+ Subir foto",
+        "submit": "Subir caso",
+        "submitting": "Subiendo...",
+        "errorUpload": "Error al subir"
+      }
+    },
+    "configuracion": {
+      "title": "Configuración IA",
+      "subtitle": "Personalizá el agente y ejecutá el seguimiento automático",
+      "loading": "Cargando configuración...",
+      "emptyValue": "Sin configurar",
+      "section": {
+        "agentTitle": "Personalidad del agente",
+        "agentDesc": "System prompt que define cómo responde el agente IA a los pacientes",
+        "pricesTitle": "Rangos de precios",
+        "pricesDesc": "El agente usa estos rangos para orientar a los pacientes sobre costos",
+        "reminderTitle": "Mensaje de recordatorio WhatsApp",
+        "reminderDesc": "Plantilla para recordatorios manuales. Variables: {nombre}, {hora}, {tratamiento}",
+        "waTitle": "Número de WhatsApp",
+        "waDesc": "Número completo con código de país (ej: 5491112345678)"
+      },
+      "follow": {
+        "title": "Seguimiento automático",
+        "desc": "Detecta pacientes inactivos, turnos sin confirmar y leads sin seguimiento. Genera alarmas automáticamente.",
+        "execute": "▶ Ejecutar ahora",
+        "executing": "Ejecutando...",
+        "errorExecute": "Error al ejecutar",
+        "alarmsGenerated": "{n, plural, =0 {0 alarmas generadas} one {# alarma generada} other {# alarmas generadas}}",
+        "metric": {
+          "inactivos": "Pacientes inactivos",
+          "turnos_sin_confirmar": "Turnos sin confirmar",
+          "leads_sin_seguimiento": "Leads sin seguimiento",
+          "tratamientos_incompletos": "Tratamientos incompletos"
+        },
+        "rulesTitle": "Reglas activas",
+        "rules": {
+          "leads": "🔴 Leads sin actividad en +24hs → alarma alta",
+          "appointments": "🔴 Turnos sin confirmar a menos de 48hs → alarma alta",
+          "inactive": "🟡 Pacientes activos sin turno hace +6 meses → alarma media",
+          "incomplete": "🟡 Ortodoncia/implantes sin próximo turno → alarma media"
+        }
+      }
+    },
+    "usuarios": {
+      "title": "Usuarios Staff",
+      "newUser": "+ Nuevo usuario",
+      "loading": "Cargando...",
+      "errorLoad": "Error cargando staff",
+      "errorSave": "Error guardando",
+      "errorReset": "Error reseteando contraseña",
+      "errorToggle": "Error desactivando usuario",
+      "errorRequired": "Completa nombre, email y rol",
+      "errorPassword": "La contraseña es requerida al crear",
+      "noUsers": "No hay usuarios staff creados",
+      "table": {
+        "name": "Nombre",
+        "email": "Email",
+        "role": "Rol",
+        "specialties": "Especialidades",
+        "state": "Estado",
+        "actions": "Acciones"
+      },
+      "active": "Activo",
+      "inactive": "Inactivo",
+      "edit": "Editar",
+      "reset": "Reset",
+      "deactivate": "Desactiv.",
+      "activate": "Activar",
+      "modal": {
+        "createTitle": "Nuevo usuario",
+        "editTitle": "Editar usuario",
+        "name": "Nombre",
+        "email": "Email",
+        "role": "Rol",
+        "specialties": "Especialidades",
+        "password": "Contraseña"
+      },
+      "promptResetPassword": "Nueva contraseña para {nombre}:"
+    },
+    "alarmas": {
+      "title": "Alarmas",
+      "noAlarms": "Sin alarmas activas",
+      "markResolved": "Marcar resuelta"
+    }
+  }
+}

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useTranslations } from 'next-intl'
 import { useAuthStore } from '@/store/authStore'
 import { useRouter } from 'next/navigation'
 import {
@@ -8,10 +9,8 @@ import {
   type ConfigIA, type SeguimientoResultado,
 } from '@/lib/api/admin'
 
-/* ─── Sección editable ─── */
 function SeccionConfig({
-  titulo, descripcion, clave, valor, token, onGuardado,
-  tipo = 'textarea',
+  titulo, descripcion, clave, valor, token, onGuardado, tipo = 'textarea',
 }: {
   titulo: string
   descripcion: string
@@ -21,12 +20,13 @@ function SeccionConfig({
   onGuardado: (clave: string, valor: string) => void
   tipo?: 'textarea' | 'input'
 }) {
+  const t = useTranslations('admin.configuracion')
+  const tCommon = useTranslations('common')
   const [editando, setEditando] = useState(false)
   const [draft, setDraft] = useState(valor)
   const [guardando, setGuardando] = useState(false)
   const [ok, setOk] = useState(false)
 
-  // Sync cuando cambia el valor externo
   useEffect(() => { setDraft(valor) }, [valor])
 
   async function guardar() {
@@ -50,13 +50,13 @@ function SeccionConfig({
           <p className="text-slate-500 text-xs mt-0.5">{descripcion}</p>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0 ml-4">
-          {ok && <span className="text-green-400 text-xs font-bold">✓ Guardado</span>}
+          {ok && <span className="text-green-400 text-xs font-bold">✓ {tCommon('saved')}</span>}
           {!editando ? (
             <button
               onClick={() => setEditando(true)}
               className="text-xs text-teal-400 hover:text-teal-300 border border-teal-500/30 px-3 py-1.5 rounded-lg transition-colors"
             >
-              Editar
+              {tCommon('edit')}
             </button>
           ) : (
             <div className="flex gap-2">
@@ -64,14 +64,14 @@ function SeccionConfig({
                 onClick={() => { setDraft(valor); setEditando(false) }}
                 className="text-xs text-slate-400 hover:text-slate-300 border border-white/10 px-3 py-1.5 rounded-lg transition-colors"
               >
-                Cancelar
+                {tCommon('cancel')}
               </button>
               <button
                 onClick={guardar}
                 disabled={guardando}
                 className="text-xs text-white bg-teal-600 hover:bg-teal-500 disabled:opacity-50 px-3 py-1.5 rounded-lg transition-colors font-bold"
               >
-                {guardando ? 'Guardando...' : 'Guardar'}
+                {guardando ? tCommon('saving') : tCommon('save')}
               </button>
             </div>
           )}
@@ -98,15 +98,15 @@ function SeccionConfig({
         )
       ) : (
         <pre className="text-slate-400 text-xs leading-relaxed whitespace-pre-wrap font-mono bg-slate-900/50 rounded-xl px-4 py-3 max-h-48 overflow-y-auto">
-          {valor || <span className="text-slate-600 italic">Sin configurar</span>}
+          {valor || <span className="text-slate-600 italic">{t('emptyValue')}</span>}
         </pre>
       )}
     </div>
   )
 }
 
-/* ─── Panel seguimiento ─── */
 function PanelSeguimiento({ token }: { token: string }) {
+  const t = useTranslations('admin.configuracion.follow')
   const [ejecutando, setEjecutando] = useState(false)
   const [resultado, setResultado] = useState<SeguimientoResultado | null>(null)
   const [error, setError] = useState('')
@@ -119,7 +119,7 @@ function PanelSeguimiento({ token }: { token: string }) {
       const r = await ejecutarSeguimiento(token)
       setResultado(r)
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Error al ejecutar')
+      setError(e instanceof Error ? e.message : t('errorExecute'))
     } finally {
       setEjecutando(false)
     }
@@ -129,9 +129,9 @@ function PanelSeguimiento({ token }: { token: string }) {
     <div className="bg-[--bg-card] border border-white/5 rounded-2xl p-5">
       <div className="flex items-start justify-between mb-4">
         <div>
-          <h3 className="text-white font-bold">Seguimiento automático</h3>
+          <h3 className="text-white font-bold">{t('title')}</h3>
           <p className="text-slate-500 text-xs mt-0.5">
-            Detecta pacientes inactivos, turnos sin confirmar y leads sin seguimiento. Genera alarmas automáticamente.
+            {t('desc')}
           </p>
         </div>
         <button
@@ -145,9 +145,9 @@ function PanelSeguimiento({ token }: { token: string }) {
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
               </svg>
-              Ejecutando...
+              {t('executing')}
             </>
-          ) : '▶ Ejecutar ahora'}
+          ) : t('execute')}
         </button>
       </div>
 
@@ -160,17 +160,17 @@ function PanelSeguimiento({ token }: { token: string }) {
       {resultado && (
         <div className="bg-green-500/10 border border-green-500/20 rounded-xl p-4">
           <p className="text-green-400 font-bold text-sm mb-3">
-            ✓ {resultado.alarmas_generadas} alarma{resultado.alarmas_generadas !== 1 ? 's' : ''} generada{resultado.alarmas_generadas !== 1 ? 's' : ''}
+            ✓ {t('alarmsGenerated', { n: resultado.alarmas_generadas })}
           </p>
           <div className="grid grid-cols-2 gap-3">
             {[
-              { label: 'Pacientes inactivos',      valor: resultado.detalle.inactivos },
-              { label: 'Turnos sin confirmar',      valor: resultado.detalle.turnos_sin_confirmar },
-              { label: 'Leads sin seguimiento',     valor: resultado.detalle.leads_sin_seguimiento },
-              { label: 'Tratamientos incompletos',  valor: resultado.detalle.tratamientos_incompletos },
+              { key: 'inactivos',                valor: resultado.detalle.inactivos },
+              { key: 'turnos_sin_confirmar',     valor: resultado.detalle.turnos_sin_confirmar },
+              { key: 'leads_sin_seguimiento',    valor: resultado.detalle.leads_sin_seguimiento },
+              { key: 'tratamientos_incompletos', valor: resultado.detalle.tratamientos_incompletos },
             ].map((item) => (
-              <div key={item.label} className="bg-black/20 rounded-lg px-3 py-2">
-                <p className="text-slate-400 text-xs">{item.label}</p>
+              <div key={item.key} className="bg-black/20 rounded-lg px-3 py-2">
+                <p className="text-slate-400 text-xs">{t(`metric.${item.key}`)}</p>
                 <p className="text-white font-black text-xl number-display">{item.valor}</p>
               </div>
             ))}
@@ -179,20 +179,20 @@ function PanelSeguimiento({ token }: { token: string }) {
       )}
 
       <div className="mt-4 border-t border-white/5 pt-4">
-        <p className="text-slate-600 text-xs font-bold uppercase tracking-widest mb-2">Reglas activas</p>
+        <p className="text-slate-600 text-xs font-bold uppercase tracking-widest mb-2">{t('rulesTitle')}</p>
         <ul className="space-y-1 text-xs text-slate-500">
-          <li>🔴 Leads sin actividad en +24hs → alarma alta</li>
-          <li>🔴 Turnos sin confirmar a menos de 48hs → alarma alta</li>
-          <li>🟡 Pacientes activos sin turno hace +6 meses → alarma media</li>
-          <li>🟡 Ortodoncia/implantes sin próximo turno → alarma media</li>
+          <li>{t('rules.leads')}</li>
+          <li>{t('rules.appointments')}</li>
+          <li>{t('rules.inactive')}</li>
+          <li>{t('rules.incomplete')}</li>
         </ul>
       </div>
     </div>
   )
 }
 
-/* ─── PAGE ─── */
 export default function AdminConfiguracionPage() {
+  const t = useTranslations('admin.configuracion')
   const router = useRouter()
   const { token } = useAuthStore()
   const [configs, setConfigs] = useState<ConfigIA[]>([])
@@ -218,23 +218,21 @@ export default function AdminConfiguracionPage() {
   return (
     <div className="p-4 md:p-6 space-y-5" style={{ background: 'var(--bg-base)', minHeight: '100%' }}>
       <div className="mb-2">
-        <h1 className="text-2xl font-black text-white">Configuración IA</h1>
+        <h1 className="text-2xl font-black text-white">{t('title')}</h1>
         <p className="text-slate-400 text-sm mt-0.5">
-          Personalizá el agente y ejecutá el seguimiento automático
+          {t('subtitle')}
         </p>
       </div>
 
       {loading ? (
-        <div className="text-slate-400 text-center py-20">Cargando configuración...</div>
+        <div className="text-slate-400 text-center py-20">{t('loading')}</div>
       ) : (
         <>
-          {/* Seguimiento */}
           {token && <PanelSeguimiento token={token} />}
 
-          {/* System prompt */}
           <SeccionConfig
-            titulo="Personalidad del agente"
-            descripcion="System prompt que define cómo responde el agente IA a los pacientes"
+            titulo={t('section.agentTitle')}
+            descripcion={t('section.agentDesc')}
             clave="system_prompt"
             valor={getValor('system_prompt')}
             token={token!}
@@ -242,10 +240,9 @@ export default function AdminConfiguracionPage() {
             tipo="textarea"
           />
 
-          {/* Rangos de precios */}
           <SeccionConfig
-            titulo="Rangos de precios"
-            descripcion="El agente usa estos rangos para orientar a los pacientes sobre costos"
+            titulo={t('section.pricesTitle')}
+            descripcion={t('section.pricesDesc')}
             clave="rangos_precios"
             valor={getValor('rangos_precios')}
             token={token!}
@@ -253,10 +250,9 @@ export default function AdminConfiguracionPage() {
             tipo="textarea"
           />
 
-          {/* Mensaje recordatorio */}
           <SeccionConfig
-            titulo="Mensaje de recordatorio WhatsApp"
-            descripcion="Plantilla para recordatorios manuales. Variables: {nombre}, {hora}, {tratamiento}"
+            titulo={t('section.reminderTitle')}
+            descripcion={t('section.reminderDesc')}
             clave="mensaje_recordatorio"
             valor={getValor('mensaje_recordatorio')}
             token={token!}
@@ -264,10 +260,9 @@ export default function AdminConfiguracionPage() {
             tipo="textarea"
           />
 
-          {/* WhatsApp */}
           <SeccionConfig
-            titulo="Número de WhatsApp"
-            descripcion="Número completo con código de país (ej: 5491112345678)"
+            titulo={t('section.waTitle')}
+            descripcion={t('section.waDesc')}
             clave="wa_numero"
             valor={getValor('wa_numero')}
             token={token!}

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useMemo } from 'react'
+import { useTranslations, useLocale } from 'next-intl'
 import { useAuthStore } from '@/store/authStore'
 import { useRouter } from 'next/navigation'
 import { getPacientesAdmin, type Paciente } from '@/lib/api/admin'
@@ -13,6 +14,12 @@ const estadoColor: Record<string, string> = {
   paciente_activo: 'bg-green-500/15 text-green-400',
   inactivo:        'bg-slate-500/15 text-slate-500',
   perdido:         'bg-red-500/15 text-red-400',
+}
+
+function localeForDateFormat(locale: string): string {
+  if (locale === 'pt-BR') return 'pt-BR'
+  if (locale === 'en') return 'en-US'
+  return 'es-AR'
 }
 
 function ScoreBar({ score }: { score: number }) {
@@ -28,12 +35,12 @@ function ScoreBar({ score }: { score: number }) {
   )
 }
 
-function formatFecha(iso: string): string {
-  return new Date(iso).toLocaleDateString('es-AR', { day: 'numeric', month: 'short', year: '2-digit' })
-}
-
-/* ─── PAGE ─── */
 export default function AdminPacientesPage() {
+  const t = useTranslations('admin.pacientes')
+  const tEstados = useTranslations('estadosPaciente')
+  const locale = useLocale()
+  const dateLocale = localeForDateFormat(locale)
+
   const router = useRouter()
   const { token } = useAuthStore()
   const [pacientes, setPacientes] = useState<Paciente[]>([])
@@ -41,6 +48,10 @@ export default function AdminPacientesPage() {
   const [busqueda, setBusqueda] = useState('')
   const [filtroEstado, setFiltroEstado] = useState('')
   const [ordenarPor, setOrdenarPor] = useState<'score' | 'fecha' | 'nombre'>('fecha')
+
+  function formatFecha(iso: string): string {
+    return new Date(iso).toLocaleDateString(dateLocale, { day: 'numeric', month: 'short', year: '2-digit' })
+  }
 
   useEffect(() => {
     if (!token) { router.push('/admin/login'); return }
@@ -72,13 +83,11 @@ export default function AdminPacientesPage() {
 
   return (
     <div className="min-h-screen p-4 md:p-6" style={{ background: 'var(--bg-base)' }}>
-      {/* Header */}
       <div className="mb-6">
-        <h1 className="text-2xl font-black text-white">Pacientes</h1>
-        <p className="text-slate-400 text-sm mt-0.5">{pacientes.length} total</p>
+        <h1 className="text-2xl font-black text-white">{t('title')}</h1>
+        <p className="text-slate-400 text-sm mt-0.5">{t('totalCount', { n: pacientes.length })}</p>
       </div>
 
-      {/* Filtros */}
       <div className="flex flex-col sm:flex-row gap-3 mb-6">
         <div className="flex-1 relative">
           <svg className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -88,7 +97,7 @@ export default function AdminPacientesPage() {
             type="text"
             value={busqueda}
             onChange={(e) => setBusqueda(e.target.value)}
-            placeholder="Buscar por nombre, teléfono o email..."
+            placeholder={t('searchPlaceholder')}
             className="w-full bg-slate-800/60 border border-white/10 text-white rounded-xl pl-9 pr-4 py-2.5 text-sm focus:outline-none focus:border-teal-500 placeholder:text-slate-600"
           />
         </div>
@@ -98,8 +107,8 @@ export default function AdminPacientesPage() {
           onChange={(e) => setFiltroEstado(e.target.value)}
           className="bg-slate-800/60 border border-white/10 text-slate-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-teal-500"
         >
-          <option value="">Todos los estados</option>
-          {estados.map((e) => <option key={e} value={e}>{e}</option>)}
+          <option value="">{t('filterAllStates')}</option>
+          {estados.map((e) => <option key={e} value={e}>{tEstados(e)}</option>)}
         </select>
 
         <select
@@ -107,33 +116,31 @@ export default function AdminPacientesPage() {
           onChange={(e) => setOrdenarPor(e.target.value as 'score' | 'fecha' | 'nombre')}
           className="bg-slate-800/60 border border-white/10 text-slate-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-teal-500"
         >
-          <option value="fecha">Más recientes</option>
-          <option value="score">Mayor score</option>
-          <option value="nombre">Nombre A-Z</option>
+          <option value="fecha">{t('sortNewest')}</option>
+          <option value="score">{t('sortScore')}</option>
+          <option value="nombre">{t('sortName')}</option>
         </select>
       </div>
 
-      {/* Tabla */}
       {loading ? (
-        <div className="text-slate-400 text-center py-20">Cargando...</div>
+        <div className="text-slate-400 text-center py-20">{t('loading')}</div>
       ) : filtrados.length === 0 ? (
         <div className="text-center py-20">
           <p className="text-4xl mb-3">👥</p>
-          <p className="text-slate-400">No hay pacientes que coincidan</p>
+          <p className="text-slate-400">{t('noResults')}</p>
         </div>
       ) : (
         <>
-          {/* Desktop table */}
           <div className="hidden md:block">
             <div className="bg-[--bg-card] border border-white/5 rounded-2xl overflow-hidden">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-white/5 text-slate-500 text-xs uppercase tracking-widest">
-                    <th className="text-left px-4 py-3">Paciente</th>
-                    <th className="text-left px-4 py-3">Teléfono</th>
-                    <th className="text-left px-4 py-3">Estado CRM</th>
-                    <th className="text-left px-4 py-3 w-36">Score</th>
-                    <th className="text-left px-4 py-3">Registro</th>
+                    <th className="text-left px-4 py-3">{t('table.patient')}</th>
+                    <th className="text-left px-4 py-3">{t('table.phone')}</th>
+                    <th className="text-left px-4 py-3">{t('table.stateCRM')}</th>
+                    <th className="text-left px-4 py-3 w-36">{t('table.score')}</th>
+                    <th className="text-left px-4 py-3">{t('table.registered')}</th>
                     <th className="px-4 py-3"></th>
                   </tr>
                 </thead>
@@ -155,7 +162,7 @@ export default function AdminPacientesPage() {
                       </td>
                       <td className="px-4 py-3">
                         <span className={`text-xs font-bold px-2 py-1 rounded-full ${estadoColor[p.estado] ?? 'text-slate-500'}`}>
-                          {p.estado ?? '—'}
+                          {p.estado ? tEstados(p.estado) : '—'}
                         </span>
                       </td>
                       <td className="px-4 py-3">
@@ -164,10 +171,10 @@ export default function AdminPacientesPage() {
                       <td className="px-4 py-3 text-slate-500 text-xs">{formatFecha(p.created_at)}</td>
                       <td className="px-4 py-3">
                         <a
-                          href={`https://wa.me/${p.telefono?.replace(/\D/g, '')}?text=${encodeURIComponent(`Hola ${p.nombre ?? ''}!`)}`}
+                          href={`https://wa.me/${p.telefono?.replace(/\D/g, '')}`}
                           target="_blank"
                           className="text-green-400 hover:text-green-300 transition-colors"
-                          title="Contactar por WhatsApp"
+                          title={t('whatsAppContact')}
                         >
                           <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
                             <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
@@ -182,7 +189,6 @@ export default function AdminPacientesPage() {
             </div>
           </div>
 
-          {/* Mobile cards */}
           <div className="md:hidden space-y-3">
             {filtrados.map((p) => (
               <div key={p.id} className="bg-[--bg-card] border border-white/5 rounded-xl p-4">
@@ -192,7 +198,7 @@ export default function AdminPacientesPage() {
                     <p className="text-slate-400 text-sm font-mono">{p.telefono}</p>
                   </div>
                   <span className={`text-xs font-bold px-2 py-1 rounded-full ${estadoColor[p.estado] ?? 'text-slate-500'}`}>
-                    {p.estado ?? '—'}
+                    {p.estado ? tEstados(p.estado) : '—'}
                   </span>
                 </div>
                 <ScoreBar score={p.score} />
@@ -203,7 +209,7 @@ export default function AdminPacientesPage() {
                     target="_blank"
                     className="text-green-400 text-xs font-bold hover:text-green-300 transition-colors"
                   >
-                    WhatsApp →
+                    {t('whatsapp')} →
                   </a>
                 </div>
               </div>

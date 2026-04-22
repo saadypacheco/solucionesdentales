@@ -1,25 +1,16 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useTranslations } from 'next-intl'
 import { useAuthStore } from '@/store/authStore'
 import {
-  getStaff,
-  createStaff,
-  updateStaff,
-  resetStaffPassword,
-  toggleStaff,
+  getStaff, createStaff, updateStaff, resetStaffPassword, toggleStaff,
   type StaffUserDetailed,
 } from '@/lib/api/admin'
 
 const ROLES = ['admin', 'odontologo', 'recepcionista']
 const ESPECIALIDADES_OPTIONS = [
-  'blanqueamiento',
-  'ortodoncia',
-  'implante',
-  'limpieza',
-  'estetica',
-  'urgencia',
-  'consulta',
+  'blanqueamiento','ortodoncia','implante','limpieza','estetica','urgencia','consulta',
 ]
 
 interface FormModal {
@@ -28,6 +19,9 @@ interface FormModal {
 }
 
 export default function UsuariosPage() {
+  const t = useTranslations('admin.usuarios')
+  const tCommon = useTranslations('common')
+  const tTratamientos = useTranslations('tratamientos')
   const { token } = useAuthStore()
   const [staff, setStaff] = useState<StaffUserDetailed[]>([])
   const [loading, setLoading] = useState(true)
@@ -35,19 +29,13 @@ export default function UsuariosPage() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
-  // Form state
   const [form, setForm] = useState({
-    nombre: '',
-    email: '',
-    rol: 'recepcionista',
-    password: '',
-    especialidades: [] as string[],
+    nombre: '', email: '', rol: 'recepcionista', password: '', especialidades: [] as string[],
   })
 
   useEffect(() => {
-    if (token) {
-      loadStaff()
-    }
+    if (token) loadStaff()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token])
 
   async function loadStaff() {
@@ -56,7 +44,7 @@ export default function UsuariosPage() {
       const data = await getStaff(token!)
       setStaff(data)
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Error cargando staff')
+      setError(e instanceof Error ? e.message : t('errorLoad'))
     } finally {
       setLoading(false)
     }
@@ -82,12 +70,12 @@ export default function UsuariosPage() {
 
   async function handleSave() {
     if (!form.nombre || !form.email || !form.rol) {
-      setError('Completa nombre, email y rol')
+      setError(t('errorRequired'))
       return
     }
 
     if (modal?.type === 'crear' && !form.password) {
-      setError('La contraseña es requerida al crear')
+      setError(t('errorPassword'))
       return
     }
 
@@ -114,14 +102,14 @@ export default function UsuariosPage() {
       setModal(null)
       await loadStaff()
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Error guardando')
+      setError(e instanceof Error ? e.message : t('errorSave'))
     } finally {
       setSaving(false)
     }
   }
 
   async function handleResetPassword(usuario: StaffUserDetailed) {
-    const newPass = prompt(`Nueva contraseña para ${usuario.nombre}:`)
+    const newPass = prompt(t('promptResetPassword', { nombre: usuario.nombre }))
     if (!newPass) return
 
     try {
@@ -129,7 +117,7 @@ export default function UsuariosPage() {
       setError('')
       await loadStaff()
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Error reseteando contraseña')
+      setError(e instanceof Error ? e.message : t('errorReset'))
     }
   }
 
@@ -138,23 +126,23 @@ export default function UsuariosPage() {
       await toggleStaff(token!, usuario.id)
       await loadStaff()
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Error desactivando usuario')
+      setError(e instanceof Error ? e.message : t('errorToggle'))
     }
   }
 
   if (loading) {
-    return <div className="p-6 text-center">Cargando...</div>
+    return <div className="p-6 text-center">{t('loading')}</div>
   }
 
   return (
     <div className="p-6 max-w-6xl mx-auto">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-3xl font-black text-slate-800">Usuarios Staff</h1>
+        <h1 className="text-3xl font-black text-slate-800">{t('title')}</h1>
         <button
           onClick={openCrearModal}
           className="bg-teal-600 text-white font-bold px-6 py-2.5 rounded-xl hover:bg-teal-700 transition-colors"
         >
-          + Nuevo usuario
+          {t('newUser')}
         </button>
       </div>
 
@@ -168,19 +156,19 @@ export default function UsuariosPage() {
         <table className="w-full">
           <thead className="bg-slate-50 border-b border-slate-100">
             <tr>
-              <th className="px-6 py-4 text-left text-sm font-bold text-slate-700">Nombre</th>
-              <th className="px-6 py-4 text-left text-sm font-bold text-slate-700">Email</th>
-              <th className="px-6 py-4 text-left text-sm font-bold text-slate-700">Rol</th>
-              <th className="px-6 py-4 text-left text-sm font-bold text-slate-700">Especialidades</th>
-              <th className="px-6 py-4 text-left text-sm font-bold text-slate-700">Estado</th>
-              <th className="px-6 py-4 text-left text-sm font-bold text-slate-700">Acciones</th>
+              <th className="px-6 py-4 text-left text-sm font-bold text-slate-700">{t('table.name')}</th>
+              <th className="px-6 py-4 text-left text-sm font-bold text-slate-700">{t('table.email')}</th>
+              <th className="px-6 py-4 text-left text-sm font-bold text-slate-700">{t('table.role')}</th>
+              <th className="px-6 py-4 text-left text-sm font-bold text-slate-700">{t('table.specialties')}</th>
+              <th className="px-6 py-4 text-left text-sm font-bold text-slate-700">{t('table.state')}</th>
+              <th className="px-6 py-4 text-left text-sm font-bold text-slate-700">{t('table.actions')}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
             {staff.length === 0 ? (
               <tr>
                 <td colSpan={6} className="px-6 py-8 text-center text-slate-500">
-                  No hay usuarios staff creados
+                  {t('noUsers')}
                 </td>
               </tr>
             ) : (
@@ -203,7 +191,7 @@ export default function UsuariosPage() {
                   </td>
                   <td className="px-6 py-4 text-sm text-slate-600">
                     {usuario.especialidades && usuario.especialidades.length > 0
-                      ? usuario.especialidades.join(', ')
+                      ? usuario.especialidades.map((e) => tTratamientos(e)).join(', ')
                       : '—'}
                   </td>
                   <td className="px-6 py-4">
@@ -214,7 +202,7 @@ export default function UsuariosPage() {
                           : 'bg-red-100 text-red-700'
                       }`}
                     >
-                      {usuario.activo ? 'Activo' : 'Inactivo'}
+                      {usuario.activo ? t('active') : t('inactive')}
                     </span>
                   </td>
                   <td className="px-6 py-4">
@@ -223,13 +211,13 @@ export default function UsuariosPage() {
                         onClick={() => openEditarModal(usuario)}
                         className="text-xs text-teal-600 hover:text-teal-700 font-semibold transition-colors"
                       >
-                        Editar
+                        {t('edit')}
                       </button>
                       <button
                         onClick={() => handleResetPassword(usuario)}
                         className="text-xs text-amber-600 hover:text-amber-700 font-semibold transition-colors"
                       >
-                        Reset
+                        {t('reset')}
                       </button>
                       <button
                         onClick={() => handleToggle(usuario)}
@@ -239,7 +227,7 @@ export default function UsuariosPage() {
                             : 'text-green-600 hover:text-green-700'
                         }`}
                       >
-                        {usuario.activo ? 'Desactiv.' : 'Activar'}
+                        {usuario.activo ? t('deactivate') : t('activate')}
                       </button>
                     </div>
                   </td>
@@ -250,18 +238,17 @@ export default function UsuariosPage() {
         </table>
       </div>
 
-      {/* Modal crear/editar */}
       {modal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6">
             <h2 className="text-2xl font-black text-slate-800 mb-4">
-              {modal.type === 'crear' ? 'Nuevo usuario' : 'Editar usuario'}
+              {modal.type === 'crear' ? t('modal.createTitle') : t('modal.editTitle')}
             </h2>
 
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-semibold text-slate-700 mb-1.5">
-                  Nombre
+                  {t('modal.name')}
                 </label>
                 <input
                   type="text"
@@ -274,7 +261,7 @@ export default function UsuariosPage() {
 
               <div>
                 <label className="block text-sm font-semibold text-slate-700 mb-1.5">
-                  Email
+                  {t('modal.email')}
                 </label>
                 <input
                   type="email"
@@ -286,7 +273,7 @@ export default function UsuariosPage() {
 
               <div>
                 <label className="block text-sm font-semibold text-slate-700 mb-1.5">
-                  Rol
+                  {t('modal.role')}
                 </label>
                 <select
                   value={form.rol}
@@ -294,9 +281,7 @@ export default function UsuariosPage() {
                   className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-teal-400 focus:ring-2 focus:ring-teal-100"
                 >
                   {ROLES.map((r) => (
-                    <option key={r} value={r}>
-                      {r}
-                    </option>
+                    <option key={r} value={r}>{r}</option>
                   ))}
                 </select>
               </div>
@@ -304,7 +289,7 @@ export default function UsuariosPage() {
               {form.rol === 'odontologo' && (
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-2">
-                    Especialidades
+                    {t('modal.specialties')}
                   </label>
                   <div className="space-y-2">
                     {ESPECIALIDADES_OPTIONS.map((esp) => (
@@ -322,7 +307,7 @@ export default function UsuariosPage() {
                           }}
                           className="w-4 h-4 rounded border-slate-300"
                         />
-                        <span className="text-sm text-slate-700 capitalize">{esp}</span>
+                        <span className="text-sm text-slate-700">{tTratamientos(esp)}</span>
                       </label>
                     ))}
                   </div>
@@ -332,7 +317,7 @@ export default function UsuariosPage() {
               {modal.type === 'crear' && (
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-1.5">
-                    Contraseña
+                    {t('modal.password')}
                   </label>
                   <input
                     type="password"
@@ -355,14 +340,14 @@ export default function UsuariosPage() {
                 onClick={() => setModal(null)}
                 className="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 text-slate-700 font-bold hover:bg-slate-50 transition-colors"
               >
-                Cancelar
+                {tCommon('cancel')}
               </button>
               <button
                 onClick={handleSave}
                 disabled={saving}
                 className="flex-1 px-4 py-2.5 rounded-xl bg-teal-600 text-white font-bold disabled:opacity-40 hover:bg-teal-700 transition-colors"
               >
-                {saving ? 'Guardando...' : 'Guardar'}
+                {saving ? tCommon('saving') : tCommon('save')}
               </button>
             </div>
           </div>

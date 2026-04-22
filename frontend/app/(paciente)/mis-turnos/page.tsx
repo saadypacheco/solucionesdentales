@@ -2,20 +2,15 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useTranslations, useLocale } from 'next-intl'
 import { usePacienteStore } from '@/store/pacienteStore'
 import { enviarOTP, verificarOTP, getMisTurnos, cancelarTurno, type MiTurno } from '@/lib/api/paciente'
-import { useLangStore } from '@/store/langStore'
-import { useT } from '@/lib/i18n'
+import LanguageSwitcher from '@/components/LanguageSwitcher'
 
-/* ─── HELPERS ─── */
-function formatFecha(iso: string): string {
-  return new Date(iso).toLocaleDateString('es-AR', {
-    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
-  })
-}
-
-function formatHora(iso: string): string {
-  return new Date(iso).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })
+function localeForDateFormat(locale: string): string {
+  if (locale === 'pt-BR') return 'pt-BR'
+  if (locale === 'en') return 'en-US'
+  return 'es-AR'
 }
 
 const estadoBadge: Record<string, string> = {
@@ -26,20 +21,12 @@ const estadoBadge: Record<string, string> = {
   ausente:     'bg-orange-100 text-orange-600 border-orange-200',
 }
 
-const estadoLabel: Record<string, string> = {
-  solicitado:  'Solicitado — pendiente de confirmación',
-  confirmado:  'Confirmado ✓',
-  realizado:   'Realizado',
-  cancelado:   'Cancelado',
-  ausente:     'No asistió',
-}
-
-/* ─── VISTA: Formulario teléfono ─── */
+/* ─── PASO TELÉFONO ─── */
 function PasoTelefono({ onEnviado }: {
   onEnviado: (tel: string, waLink: string, codigoDev: string | null, nombre: string | null) => void
 }) {
-  const t = useT()
-  const { lang } = useLangStore()
+  const t = useTranslations('misTurnos.pasoTelefono')
+  const tTitle = useTranslations('misTurnos')
   const [telefono, setTelefono] = useState('')
   const [cargando, setCargando] = useState(false)
   const [error, setError] = useState('')
@@ -52,7 +39,7 @@ function PasoTelefono({ onEnviado }: {
       const res = await enviarOTP(telefono.trim())
       onEnviado(telefono.trim(), res.wa_link, res.codigo_dev, res.nombre)
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : (lang === 'es' ? 'Error al enviar código' : 'Error sending code'))
+      setError(e instanceof Error ? e.message : t('errorSend'))
     } finally {
       setCargando(false)
     }
@@ -64,22 +51,22 @@ function PasoTelefono({ onEnviado }: {
         <div className="w-16 h-16 bg-teal-100 rounded-full flex items-center justify-center mx-auto mb-4">
           <span className="text-3xl">📱</span>
         </div>
-        <h1 className="text-2xl font-black text-slate-800 mb-2">{t.misTurnos.title}</h1>
+        <h1 className="text-2xl font-black text-slate-800 mb-2">{tTitle('title')}</h1>
         <p className="text-slate-500 text-sm">
-          {t.misTurnos.pasoTelefono.hint}
+          {t('hint')}
         </p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block text-sm font-semibold text-slate-700 mb-1.5">
-            {t.misTurnos.pasoTelefono.title}
+            {t('title')}
           </label>
           <input
             type="tel"
             value={telefono}
             onChange={(e) => setTelefono(e.target.value)}
-            placeholder={t.misTurnos.pasoTelefono.placeholder}
+            placeholder={t('placeholder')}
             autoFocus
             className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:border-teal-400 focus:ring-2 focus:ring-teal-100 text-slate-800 transition-all"
           />
@@ -96,14 +83,14 @@ function PasoTelefono({ onEnviado }: {
           disabled={!telefono.trim() || cargando}
           className="w-full bg-teal-600 text-white py-3.5 rounded-xl font-bold disabled:opacity-40 hover:bg-teal-700 transition-colors"
         >
-          {cargando ? t.misTurnos.pasoTelefono.sending : `${t.misTurnos.pasoTelefono.send} →`}
+          {cargando ? t('sending') : `${t('send')} →`}
         </button>
       </form>
     </div>
   )
 }
 
-/* ─── VISTA: Ingresar código OTP ─── */
+/* ─── PASO OTP ─── */
 function PasoOTP({ telefono, waLink, codigoDev, nombre, onVerificado, onVolver }: {
   telefono: string
   waLink: string
@@ -112,8 +99,7 @@ function PasoOTP({ telefono, waLink, codigoDev, nombre, onVerificado, onVolver }
   onVerificado: (token: string, paciente: { id: number; nombre: string; telefono: string }) => void
   onVolver: () => void
 }) {
-  const t = useT()
-  const { lang } = useLangStore()
+  const t = useTranslations('misTurnos.pasoOTP')
   const [codigo, setCodigo] = useState('')
   const [cargando, setCargando] = useState(false)
   const [error, setError] = useState('')
@@ -126,7 +112,7 @@ function PasoOTP({ telefono, waLink, codigoDev, nombre, onVerificado, onVolver }
       const res = await verificarOTP(telefono, codigo)
       onVerificado(res.access_token, res.paciente)
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : (lang === 'es' ? 'Código incorrecto' : 'Incorrect code'))
+      setError(e instanceof Error ? e.message : t('errorCode'))
       setCodigo('')
     } finally {
       setCargando(false)
@@ -140,23 +126,11 @@ function PasoOTP({ telefono, waLink, codigoDev, nombre, onVerificado, onVolver }
           <span className="text-3xl">🔐</span>
         </div>
         <h1 className="text-2xl font-black text-slate-800 mb-2">
-          {nombre
-            ? lang === 'es'
-              ? `Hola, ${nombre.split(' ')[0]}!`
-              : `Hi, ${nombre.split(' ')[0]}!`
-            : lang === 'es'
-            ? 'Verificar identidad'
-            : 'Verify identity'}
+          {nombre ? t('greeting', { nombre: nombre.split(' ')[0] }) : t('title')}
         </h1>
-        <p className="text-slate-500 text-sm">
-          {lang === 'es'
-            ? `Te enviamos un código de 4 dígitos al `
-            : `We sent a 4-digit code to `}
-          <span className="font-semibold text-slate-700">{telefono}</span>.
-        </p>
+        <p className="text-slate-500 text-sm">{t('subtitle', { telefono })}</p>
       </div>
 
-      {/* Botón WhatsApp para recibir el código */}
       <a
         href={waLink}
         target="_blank"
@@ -166,14 +140,13 @@ function PasoOTP({ telefono, waLink, codigoDev, nombre, onVerificado, onVolver }
           <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
           <path d="M12 0C5.373 0 0 5.373 0 12c0 2.25.626 4.35 1.714 6.126L.057 23.882l5.9-1.548A11.95 11.95 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 01-5.007-1.37l-.36-.213-3.504.92.936-3.41-.234-.37A9.818 9.818 0 112 12c0-5.422 4.396-9.818 9.818-9.818S21.636 6.578 21.636 12 17.24 21.818 12 21.818z"/>
         </svg>
-        {t.misTurnos.pasoOTP.hint}
+        {t('openWhatsApp')}
       </a>
 
-      {/* En desarrollo, mostramos el código directamente */}
       {codigoDev && (
         <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 mb-4 text-center">
           <p className="text-xs text-amber-600 font-medium mb-1">
-            {lang === 'es' ? 'Modo desarrollo — código:' : 'Development mode — code:'}
+            {t('devModeLabel')}
           </p>
           <p className="text-3xl font-black text-amber-700 tracking-widest">{codigoDev}</p>
         </div>
@@ -182,7 +155,7 @@ function PasoOTP({ telefono, waLink, codigoDev, nombre, onVerificado, onVolver }
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block text-sm font-semibold text-slate-700 mb-1.5">
-            {t.misTurnos.pasoOTP.title}
+            {t('label')}
           </label>
           <input
             type="text"
@@ -190,7 +163,7 @@ function PasoOTP({ telefono, waLink, codigoDev, nombre, onVerificado, onVolver }
             maxLength={4}
             value={codigo}
             onChange={(e) => setCodigo(e.target.value.replace(/\D/g, '').slice(0, 4))}
-            placeholder={t.misTurnos.pasoOTP.placeholder}
+            placeholder={t('placeholder')}
             autoFocus
             className="w-full px-4 py-4 rounded-xl border border-slate-200 focus:outline-none focus:border-teal-400 focus:ring-2 focus:ring-teal-100 text-slate-800 text-center text-2xl font-black tracking-widest transition-all"
           />
@@ -207,7 +180,7 @@ function PasoOTP({ telefono, waLink, codigoDev, nombre, onVerificado, onVolver }
           disabled={codigo.length !== 4 || cargando}
           className="w-full bg-teal-600 text-white py-3.5 rounded-xl font-bold disabled:opacity-40 hover:bg-teal-700 transition-colors"
         >
-          {cargando ? t.misTurnos.pasoOTP.verifying : `${t.misTurnos.pasoOTP.verify} →`}
+          {cargando ? t('verifying') : `${t('verify')} →`}
         </button>
       </form>
 
@@ -215,46 +188,60 @@ function PasoOTP({ telefono, waLink, codigoDev, nombre, onVerificado, onVolver }
         onClick={onVolver}
         className="mt-4 text-sm text-slate-400 hover:text-slate-600 transition-colors w-full text-center"
       >
-        ← {lang === 'es' ? 'Cambiar teléfono' : 'Change phone'}
+        {t('changePhone')}
       </button>
     </div>
   )
 }
 
-/* ─── VISTA: Lista de turnos ─── */
+/* ─── LISTA TURNOS ─── */
 function MisTurnosLista({ token, nombre, onLogout }: {
   token: string
   nombre: string
   onLogout: () => void
 }) {
-  const t = useT()
-  const { lang } = useLangStore()
+  const t = useTranslations('misTurnos.pasoTurnos')
+  const tEstados = useTranslations('estadosTurno.labels')
+  const tEstadosShort = useTranslations('estadosTurno')
+  const locale = useLocale()
+  const dateLocale = localeForDateFormat(locale)
+
   const [turnos, setTurnos] = useState<MiTurno[]>([])
   const [loading, setLoading] = useState(true)
   const [cancelando, setCancelando] = useState<number | null>(null)
+
+  function formatFecha(iso: string): string {
+    return new Date(iso).toLocaleDateString(dateLocale, {
+      weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
+    })
+  }
+
+  function formatHora(iso: string): string {
+    return new Date(iso).toLocaleTimeString(dateLocale, { hour: '2-digit', minute: '2-digit' })
+  }
 
   useEffect(() => {
     getMisTurnos(token).then(setTurnos).finally(() => setLoading(false))
   }, [token])
 
   async function handleCancelar(id: number) {
-    if (!confirm(lang === 'es' ? '¿Seguro que querés cancelar este turno?' : 'Are you sure you want to cancel this appointment?')) return
+    if (!confirm(t('confirmCancel'))) return
     setCancelando(id)
     try {
       await cancelarTurno(token, id)
-      setTurnos((prev) => prev.map((t) => t.id === id ? { ...t, estado: 'cancelado' } : t))
+      setTurnos((prev) => prev.map((tt) => tt.id === id ? { ...tt, estado: 'cancelado' } : tt))
     } catch (e: unknown) {
-      alert(e instanceof Error ? e.message : (lang === 'es' ? 'No se pudo cancelar' : 'Could not cancel'))
+      alert(e instanceof Error ? e.message : t('errorCancel'))
     } finally {
       setCancelando(null)
     }
   }
 
-  const proximos = turnos.filter((t) =>
-    t.estado !== 'cancelado' && new Date(t.fecha_hora) >= new Date()
+  const proximos = turnos.filter((tt) =>
+    tt.estado !== 'cancelado' && new Date(tt.fecha_hora) >= new Date()
   )
-  const pasados = turnos.filter((t) =>
-    t.estado === 'realizado' || (t.estado !== 'cancelado' && new Date(t.fecha_hora) < new Date())
+  const pasados = turnos.filter((tt) =>
+    tt.estado === 'realizado' || (tt.estado !== 'cancelado' && new Date(tt.fecha_hora) < new Date())
   )
 
   if (loading) {
@@ -269,69 +256,67 @@ function MisTurnosLista({ token, nombre, onLogout }: {
 
   return (
     <div className="max-w-lg mx-auto">
-      {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-black text-slate-800">
-            {lang === 'es' ? 'Hola' : 'Hi'}, {nombre.split(' ')[0]}
+            {t('greeting', { nombre: nombre.split(' ')[0] })}
           </h1>
           <p className="text-slate-400 text-sm">
-            {lang === 'es' ? 'Tus turnos en Soluciones Dentales' : 'Your appointments at Dental Solutions'}
+            {t('subtitle')}
           </p>
         </div>
         <button onClick={onLogout} className="text-slate-400 text-xs hover:text-slate-600 transition-colors">
-          {t.misTurnos.pasoTurnos.logout}
+          {t('logout')}
         </button>
       </div>
 
       {turnos.length === 0 ? (
         <div className="text-center py-16">
           <p className="text-4xl mb-3">📅</p>
-          <p className="text-slate-500 mb-4">{t.misTurnos.pasoTurnos.noTurnos}</p>
+          <p className="text-slate-500 mb-4">{t('noTurnos')}</p>
           <Link
             href="/turnos"
             className="inline-block bg-teal-600 text-white font-bold px-6 py-3 rounded-full hover:bg-teal-700 transition-colors"
           >
-            {t.misTurnos.pasoTurnos.bookNew}
+            {t('bookNew')}
           </Link>
         </div>
       ) : (
         <>
-          {/* Próximos turnos */}
           {proximos.length > 0 && (
             <div className="mb-6">
               <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">
-                {lang === 'es' ? 'Próximos turnos' : 'Upcoming appointments'}
+                {t('upcoming')}
               </p>
               <div className="space-y-3">
-                {proximos.map((t) => (
-                  <div key={t.id} className="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm">
+                {proximos.map((tt) => (
+                  <div key={tt.id} className="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm">
                     <div className="flex items-start justify-between mb-2">
                       <div>
-                        <p className="font-bold text-slate-800 capitalize">{t.tipo_tratamiento}</p>
-                        <p className="text-teal-600 text-sm font-medium">{formatFecha(t.fecha_hora)}</p>
-                        <p className="text-slate-500 text-sm">{formatHora(t.fecha_hora)} · {t.duracion_minutos} min</p>
+                        <p className="font-bold text-slate-800 capitalize">{tt.tipo_tratamiento}</p>
+                        <p className="text-teal-600 text-sm font-medium">{formatFecha(tt.fecha_hora)}</p>
+                        <p className="text-slate-500 text-sm">{formatHora(tt.fecha_hora)} · {tt.duracion_minutos} min</p>
                       </div>
-                      <span className={`text-xs font-bold px-2.5 py-1 rounded-full border ${estadoBadge[t.estado] ?? ''}`}>
-                        {t.estado}
+                      <span className={`text-xs font-bold px-2.5 py-1 rounded-full border ${estadoBadge[tt.estado] ?? ''}`}>
+                        {tEstadosShort(tt.estado)}
                       </span>
                     </div>
 
-                    {t.notas && (
+                    {tt.notas && (
                       <p className="text-slate-400 text-xs mt-2 bg-slate-50 rounded-lg px-3 py-2">
-                        📝 {t.notas}
+                        📝 {tt.notas}
                       </p>
                     )}
 
                     <div className="mt-3 pt-3 border-t border-slate-50 flex items-center justify-between">
-                      <p className="text-xs text-slate-400">{estadoLabel[t.estado]}</p>
-                      {(t.estado === 'solicitado' || t.estado === 'confirmado') && (
+                      <p className="text-xs text-slate-400">{tEstados(tt.estado)}</p>
+                      {(tt.estado === 'solicitado' || tt.estado === 'confirmado') && (
                         <button
-                          onClick={() => handleCancelar(t.id)}
-                          disabled={cancelando === t.id}
+                          onClick={() => handleCancelar(tt.id)}
+                          disabled={cancelando === tt.id}
                           className="text-xs text-red-400 hover:text-red-600 transition-colors disabled:opacity-50"
                         >
-                          {cancelando === t.id ? 'Cancelando...' : 'Cancelar turno'}
+                          {cancelando === tt.id ? t('canceling') : t('cancel')}
                         </button>
                       )}
                     </div>
@@ -341,21 +326,20 @@ function MisTurnosLista({ token, nombre, onLogout }: {
             </div>
           )}
 
-          {/* Historial */}
           {pasados.length > 0 && (
             <div>
               <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">
-                {lang === 'es' ? 'Historial' : 'History'}
+                {t('history')}
               </p>
               <div className="space-y-2">
-                {pasados.map((t) => (
-                  <div key={t.id} className="bg-slate-50 border border-slate-100 rounded-xl p-3 flex items-center justify-between">
+                {pasados.map((tt) => (
+                  <div key={tt.id} className="bg-slate-50 border border-slate-100 rounded-xl p-3 flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-semibold text-slate-600 capitalize">{t.tipo_tratamiento}</p>
-                      <p className="text-slate-400 text-xs">{formatFecha(t.fecha_hora)}</p>
+                      <p className="text-sm font-semibold text-slate-600 capitalize">{tt.tipo_tratamiento}</p>
+                      <p className="text-slate-400 text-xs">{formatFecha(tt.fecha_hora)}</p>
                     </div>
-                    <span className={`text-xs font-bold px-2 py-0.5 rounded-full border ${estadoBadge[t.estado] ?? ''}`}>
-                      {t.estado}
+                    <span className={`text-xs font-bold px-2 py-0.5 rounded-full border ${estadoBadge[tt.estado] ?? ''}`}>
+                      {tEstadosShort(tt.estado)}
                     </span>
                   </div>
                 ))}
@@ -367,7 +351,7 @@ function MisTurnosLista({ token, nombre, onLogout }: {
             href="/turnos"
             className="mt-6 flex items-center justify-center gap-2 w-full bg-teal-600 text-white font-bold py-3.5 rounded-full hover:bg-teal-700 transition-colors shadow-md shadow-teal-100"
           >
-            + {lang === 'es' ? 'Agendar nuevo turno' : 'Book another appointment'}
+            + {t('bookAnother')}
           </Link>
         </>
       )}
@@ -377,8 +361,8 @@ function MisTurnosLista({ token, nombre, onLogout }: {
 
 /* ─── PAGE ─── */
 export default function MisTurnosPage() {
-  const t = useT()
-  const { lang, setLang } = useLangStore()
+  const tTitle = useTranslations('misTurnos')
+  const tNavbar = useTranslations('navbar')
   const { token, paciente, setAuth, logout } = usePacienteStore()
   const [paso, setPaso] = useState<'telefono' | 'otp' | 'turnos'>(
     token ? 'turnos' : 'telefono'
@@ -414,20 +398,15 @@ export default function MisTurnosPage() {
             <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
             </svg>
-            {t.landing.title}
+            {tNavbar('back')}
           </Link>
           <div className="flex items-center gap-4">
             {paso === 'turnos' && (
               <span className="text-xs text-teal-400 font-bold bg-teal-500/20 px-3 py-1 rounded-full border border-teal-500/30">
-                {lang === 'es' ? 'Verificado ✓' : 'Verified ✓'}
+                {tTitle('verifiedBadge')}
               </span>
             )}
-            <button
-              onClick={() => setLang(lang === 'es' ? 'en' : 'es')}
-              className="text-xs font-semibold text-slate-400 hover:text-white transition-colors"
-            >
-              {lang === 'es' ? 'EN' : 'ES'}
-            </button>
+            <LanguageSwitcher />
           </div>
         </div>
       </header>

@@ -1,11 +1,11 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useTranslations, useLocale } from 'next-intl'
 import { useAuthStore } from '@/store/authStore'
 import { useRouter } from 'next/navigation'
 import { getTurnosAdmin, patchTurnoEstado, type TurnoAdmin } from '@/lib/api/admin'
 
-/* ─── HELPERS ─── */
 function semanaDesde(base: Date): Date[] {
   const dias: Date[] = []
   const lunes = new Date(base)
@@ -24,16 +24,10 @@ function toDateStr(d: Date): string {
   return d.toISOString().split('T')[0]
 }
 
-function formatHora(iso: string): string {
-  return new Date(iso).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })
-}
-
-function formatDia(d: Date, corto = false): string {
-  return d.toLocaleDateString('es-AR', {
-    weekday: corto ? 'short' : 'long',
-    day: 'numeric',
-    month: corto ? undefined : 'short',
-  })
+function localeForDateFormat(locale: string): string {
+  if (locale === 'pt-BR') return 'pt-BR'
+  if (locale === 'en') return 'en-US'
+  return 'es-AR'
 }
 
 const ESTADOS = ['solicitado', 'confirmado', 'realizado', 'cancelado', 'ausente'] as const
@@ -47,11 +41,14 @@ const estadoBadge: Record<Estado, string> = {
   ausente:     'bg-orange-500/15 text-orange-400 border-orange-500/20',
 }
 
-function TarjetaTurno({ turno, token, onChange }: {
+function TarjetaTurno({ turno, token, onChange, formatHora }: {
   turno: TurnoAdmin
   token: string
   onChange: (t: TurnoAdmin) => void
+  formatHora: (iso: string) => string
 }) {
+  const t = useTranslations('admin.agenda')
+  const tEstados = useTranslations('estadosTurno')
   const [cambiando, setCambiando] = useState(false)
 
   async function cambiarEstado(estado: string) {
@@ -65,7 +62,11 @@ function TarjetaTurno({ turno, token, onChange }: {
   }
 
   const waLink = `https://wa.me/${turno.pacientes?.telefono?.replace(/\D/g, '')}?text=${encodeURIComponent(
-    `Hola ${turno.pacientes?.nombre ?? ''}! Te confirmamos tu turno de ${turno.tipo_tratamiento} para el ${formatHora(turno.fecha_hora)}.`
+    t('whatsappMessage', {
+      nombre: turno.pacientes?.nombre ?? '',
+      tratamiento: turno.tipo_tratamiento,
+      hora: formatHora(turno.fecha_hora),
+    })
   )}`
 
   return (
@@ -74,7 +75,7 @@ function TarjetaTurno({ turno, token, onChange }: {
         <div>
           <p className="text-white text-sm font-bold">{formatHora(turno.fecha_hora)}</p>
           <p className="text-slate-300 text-sm">{turno.pacientes?.nombre ?? '—'}</p>
-          <p className="text-slate-500 text-xs">{turno.tipo_tratamiento} · {turno.duracion_minutos}min</p>
+          <p className="text-slate-500 text-xs">{turno.tipo_tratamiento} · {t('minutes', { n: turno.duracion_minutos })}</p>
         </div>
         {turno.pacientes?.telefono && (
           <a href={waLink} target="_blank" className="text-green-400 hover:text-green-300 flex-shrink-0 mt-0.5" title="WhatsApp">
@@ -92,7 +93,7 @@ function TarjetaTurno({ turno, token, onChange }: {
         onChange={(e) => cambiarEstado(e.target.value)}
         className="w-full bg-transparent border border-white/10 text-slate-300 rounded-lg px-2 py-1 text-xs focus:outline-none focus:border-teal-500 disabled:opacity-50"
       >
-        {ESTADOS.map((e) => <option key={e} value={e}>{e}</option>)}
+        {ESTADOS.map((e) => <option key={e} value={e}>{tEstados(e)}</option>)}
       </select>
 
       {turno.notas && (
@@ -102,8 +103,12 @@ function TarjetaTurno({ turno, token, onChange }: {
   )
 }
 
-/* ─── PAGE ─── */
 export default function AdminAgendaPage() {
+  const t = useTranslations('admin.agenda')
+  const tEstados = useTranslations('estadosTurno')
+  const locale = useLocale()
+  const dateLocale = localeForDateFormat(locale)
+
   const router = useRouter()
   const { token } = useAuthStore()
   const [semanaBase, setSemanaBase] = useState<Date>(new Date())
@@ -112,14 +117,23 @@ export default function AdminAgendaPage() {
   const [diaSeleccionado, setDiaSeleccionado] = useState<string>(toDateStr(new Date()))
 
   const semana = semanaDesde(semanaBase)
-
-  // En mobile solo mostramos el día seleccionado; en desktop la semana completa
   const diasMostrar = semana
+
+  function formatHora(iso: string): string {
+    return new Date(iso).toLocaleTimeString(dateLocale, { hour: '2-digit', minute: '2-digit' })
+  }
+
+  function formatDia(d: Date, corto = false): string {
+    return d.toLocaleDateString(dateLocale, {
+      weekday: corto ? 'short' : 'long',
+      day: 'numeric',
+      month: corto ? undefined : 'short',
+    })
+  }
 
   useEffect(() => {
     if (!token) { router.push('/admin/login'); return }
     setLoading(true)
-    // Carga todos los turnos de la semana (fechas inicio y fin)
     Promise.all(semana.map((d) => getTurnosAdmin(token, toDateStr(d))))
       .then((resultados) => setTurnos(resultados.flat()))
       .finally(() => setLoading(false))
@@ -129,24 +143,23 @@ export default function AdminAgendaPage() {
   function turnosDel(dia: Date): TurnoAdmin[] {
     const fecha = toDateStr(dia)
     return turnos
-      .filter((t) => t.fecha_hora.startsWith(fecha))
+      .filter((tt) => tt.fecha_hora.startsWith(fecha))
       .sort((a, b) => a.fecha_hora.localeCompare(b.fecha_hora))
   }
 
   function handleCambio(actualizado: TurnoAdmin) {
-    setTurnos((prev) => prev.map((t) => t.id === actualizado.id ? actualizado : t))
+    setTurnos((prev) => prev.map((tt) => tt.id === actualizado.id ? actualizado : tt))
   }
 
   const hoy = toDateStr(new Date())
 
   return (
     <div className="min-h-screen p-4 md:p-6" style={{ background: 'var(--bg-base)' }}>
-      {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-black text-white">Agenda</h1>
+          <h1 className="text-2xl font-black text-white">{t('title')}</h1>
           <p className="text-slate-400 text-sm mt-0.5">
-            Semana del {semana[0].toLocaleDateString('es-AR', { day: 'numeric', month: 'long' })}
+            {t('weekOf', { fecha: semana[0].toLocaleDateString(dateLocale, { day: 'numeric', month: 'long' }) })}
           </p>
         </div>
         <div className="flex gap-2">
@@ -160,7 +173,7 @@ export default function AdminAgendaPage() {
             onClick={() => setSemanaBase(new Date())}
             className="px-4 py-1.5 text-xs font-bold text-teal-400 border border-teal-500/30 rounded-xl hover:bg-teal-500/10 transition-colors"
           >
-            Hoy
+            {t('today')}
           </button>
           <button
             onClick={() => { const d = new Date(semanaBase); d.setDate(d.getDate() + 7); setSemanaBase(d) }}
@@ -171,7 +184,6 @@ export default function AdminAgendaPage() {
         </div>
       </div>
 
-      {/* Tabs mobile */}
       <div className="flex gap-1 overflow-x-auto pb-2 mb-4 md:hidden scrollbar-hide">
         {semana.map((dia) => {
           const fecha = toDateStr(dia)
@@ -194,12 +206,10 @@ export default function AdminAgendaPage() {
         })}
       </div>
 
-      {/* Grid desktop — columnas por día */}
       {loading ? (
-        <div className="text-slate-400 text-center py-20">Cargando agenda...</div>
+        <div className="text-slate-400 text-center py-20">{t('loading')}</div>
       ) : (
         <>
-          {/* Desktop */}
           <div className="hidden md:grid grid-cols-7 gap-3">
             {diasMostrar.map((dia) => {
               const fecha = toDateStr(dia)
@@ -212,19 +222,19 @@ export default function AdminAgendaPage() {
                     <p className={`text-xs font-bold uppercase tracking-widest ${
                       fecha === hoy ? 'text-teal-400' : 'text-slate-500'
                     }`}>
-                      {dia.toLocaleDateString('es-AR', { weekday: 'short' })}
+                      {dia.toLocaleDateString(dateLocale, { weekday: 'short' })}
                     </p>
                     <p className={`text-lg font-black ${fecha === hoy ? 'text-teal-400' : 'text-slate-300'}`}>
                       {dia.getDate()}
                     </p>
-                    <p className="text-slate-600 text-xs">{turnosDia.length} turno{turnosDia.length !== 1 ? 's' : ''}</p>
+                    <p className="text-slate-600 text-xs">{t('appointmentsCount', { n: turnosDia.length })}</p>
                   </div>
                   <div className="space-y-2">
-                    {turnosDia.map((t) => (
-                      <TarjetaTurno key={t.id} turno={t} token={token!} onChange={handleCambio} />
+                    {turnosDia.map((tt) => (
+                      <TarjetaTurno key={tt.id} turno={tt} token={token!} onChange={handleCambio} formatHora={formatHora} />
                     ))}
                     {turnosDia.length === 0 && (
-                      <p className="text-slate-700 text-xs text-center py-4">—</p>
+                      <p className="text-slate-700 text-xs text-center py-4">{t('noAppointments')}</p>
                     )}
                   </div>
                 </div>
@@ -232,7 +242,6 @@ export default function AdminAgendaPage() {
             })}
           </div>
 
-          {/* Mobile — día seleccionado */}
           <div className="md:hidden">
             {(() => {
               const dia = semana.find((d) => toDateStr(d) === diaSeleccionado)
@@ -241,10 +250,10 @@ export default function AdminAgendaPage() {
               return (
                 <div className="space-y-3">
                   {turnosDia.length === 0 ? (
-                    <div className="text-center py-16 text-slate-500">Sin turnos este día</div>
+                    <div className="text-center py-16 text-slate-500">{t('noAppointmentsDay')}</div>
                   ) : (
-                    turnosDia.map((t) => (
-                      <TarjetaTurno key={t.id} turno={t} token={token!} onChange={handleCambio} />
+                    turnosDia.map((tt) => (
+                      <TarjetaTurno key={tt.id} turno={tt} token={token!} onChange={handleCambio} formatHora={formatHora} />
                     ))
                   )}
                 </div>

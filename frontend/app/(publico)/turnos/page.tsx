@@ -2,20 +2,32 @@
 
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import Link from 'next/link'
+import { useTranslations, useLocale } from 'next-intl'
 import { getDoctores, getSlots, solicitarTurno, type Doctor, type TurnoResponse } from '@/lib/api/turnos'
-import { useLangStore } from '@/store/langStore'
-import { useT } from '@/lib/i18n'
+import LanguageSwitcher from '@/components/LanguageSwitcher'
 
 /* ─── CONFIG ─── */
-const tratamientos = [
-  { id: 'estetica',       label: 'Estética dental',  icono: '✨', duracion: '60 min' },
-  { id: 'blanqueamiento', label: 'Blanqueamiento',    icono: '🪥', duracion: '45 min' },
-  { id: 'ortodoncia',     label: 'Ortodoncia',        icono: '😬', duracion: '30 min' },
-  { id: 'implante',       label: 'Implante',          icono: '🦷', duracion: '90 min' },
-  { id: 'limpieza',       label: 'Limpieza dental',   icono: '✅', duracion: '30 min' },
-  { id: 'urgencia',       label: 'Urgencia / Dolor',  icono: '🚨', duracion: '45 min' },
-  { id: 'consulta',       label: 'Consulta general',  icono: '📋', duracion: '30 min' },
-]
+const TRATAMIENTOS_ICONOS: Record<string, string> = {
+  estetica: '✨',
+  blanqueamiento: '🪥',
+  ortodoncia: '😬',
+  implante: '🦷',
+  limpieza: '✅',
+  urgencia: '🚨',
+  consulta: '📋',
+}
+
+const TRATAMIENTOS_DURACION: Record<string, number> = {
+  estetica: 60,
+  blanqueamiento: 45,
+  ortodoncia: 30,
+  implante: 90,
+  limpieza: 30,
+  urgencia: 45,
+  consulta: 30,
+}
+
+const TRATAMIENTOS_IDS = ['estetica','blanqueamiento','ortodoncia','implante','limpieza','urgencia','consulta'] as const
 
 function proximosDiasHabiles(n: number): Date[] {
   const dias: Date[] = []
@@ -29,8 +41,10 @@ function proximosDiasHabiles(n: number): Date[] {
   return dias
 }
 
-function formatFechaDisplay(d: Date): string {
-  return d.toLocaleDateString('es-AR', { weekday: 'short', day: 'numeric', month: 'short' })
+function localeForDateFormat(locale: string): string {
+  if (locale === 'pt-BR') return 'pt-BR'
+  if (locale === 'en') return 'en-US'
+  return 'es-AR'
 }
 
 function toISOLocal(d: Date, hora: string): string {
@@ -47,6 +61,14 @@ type Paso = 1 | 2 | 3 | 4 | 5
 
 /* ─── COMPONENT ─── */
 export default function TurnosPage() {
+  const t = useTranslations('turnos')
+  const tTratamientos = useTranslations('tratamientos')
+  const tDuraciones = useTranslations('duraciones')
+  const tNavbar = useTranslations('navbar')
+  const tLanding = useTranslations('landing')
+  const locale = useLocale()
+  const dateLocale = localeForDateFormat(locale)
+
   const topRef = useRef<HTMLDivElement>(null)
   const [paso, setPaso] = useState<Paso>(1)
 
@@ -76,7 +98,6 @@ export default function TurnosPage() {
   const [enviando, setEnviando] = useState(false)
   const [errorEnvio, setErrorEnvio] = useState('')
 
-  // Validación de contacto
   function validarTelefono(t: string): boolean {
     return /^\+?[\d\s\-().]{8,15}$/.test(t.trim())
   }
@@ -94,9 +115,15 @@ export default function TurnosPage() {
   // Paso 5 — confirmado
   const [turnoConfirmado, setTurnoConfirmado] = useState<TurnoResponse | null>(null)
 
-  const tratamientoObj = tratamientos.find((t) => t.id === tratamiento)
+  const tratamientoLabel = tratamiento ? tTratamientos(tratamiento) : ''
+  const tratamientoIcono = TRATAMIENTOS_ICONOS[tratamiento] ?? ''
+  const tratamientoDuracion = TRATAMIENTOS_DURACION[tratamiento] ?? 30
   const diaSeleccionado = dias[diaIndex]
   const totalPasos = mostrarSelectDoctor ? 4 : 3
+
+  function formatFechaDisplay(d: Date): string {
+    return d.toLocaleDateString(dateLocale, { weekday: 'short', day: 'numeric', month: 'short' })
+  }
 
   function pasoVisible(): number {
     if (!mostrarSelectDoctor) {
@@ -113,7 +140,6 @@ export default function TurnosPage() {
     topRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
 
-  // Validar si puede retroceder/avanzar
   function puedeRetroceder(): boolean {
     return paso > 1
   }
@@ -126,7 +152,6 @@ export default function TurnosPage() {
     return false
   }
 
-  // ── Paso 1 → siguiente: auto-avanza al seleccionar tratamiento ──
   async function seleccionarTratamiento(id: string) {
     setTratamiento(id)
     setLoadingDoctores(true)
@@ -172,12 +197,13 @@ export default function TurnosPage() {
       const fecha = diaSeleccionado.toISOString().split('T')[0]
       const res = await getSlots(fecha, tratamiento, doctorId)
       setSlots(res.slots)
-      if (res.slots.length === 0) setErrorSlots(res.mensaje ?? 'Sin disponibilidad para este día.')
+      if (res.slots.length === 0) setErrorSlots(res.mensaje ?? t('paso3.noSlots'))
     } catch (e: unknown) {
-      setErrorSlots(e instanceof Error ? e.message : 'Error al cargar horarios')
+      setErrorSlots(e instanceof Error ? e.message : t('errores.loadHours'))
     } finally {
       setLoadingSlots(false)
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tratamiento, diaSeleccionado, doctorId])
 
   useEffect(() => {
@@ -201,7 +227,7 @@ export default function TurnosPage() {
       setTurnoConfirmado(res)
       irAPaso(5)
     } catch (e: unknown) {
-      setErrorEnvio(e instanceof Error ? e.message : 'Error al confirmar el turno')
+      setErrorEnvio(e instanceof Error ? e.message : t('errores.submit'))
     } finally {
       setEnviando(false)
     }
@@ -209,8 +235,6 @@ export default function TurnosPage() {
 
   const pasoActual = pasoVisible()
   const esConfirmacion = paso === 5
-  const t = useT()
-  const { lang, setLang } = useLangStore()
 
   return (
     <div ref={topRef} className="min-h-screen overflow-x-hidden" style={{ background: 'linear-gradient(135deg, #020d12 0%, #071e22 40%, #0c3530 70%, #0f6b62 100%)' }}>
@@ -221,20 +245,15 @@ export default function TurnosPage() {
             <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
             </svg>
-            {t.landing.title}
+            {tNavbar('back')}
           </Link>
           <div className="flex items-center gap-4">
             {!esConfirmacion && (
               <span className="text-xs text-teal-400 bg-teal-500/20 px-3 py-1 rounded-full border border-teal-500/30">
-                Paso {pasoActual} de {totalPasos}
+                {t('stepLabel', { current: pasoActual, total: totalPasos })}
               </span>
             )}
-            <button
-              onClick={() => setLang(lang === 'es' ? 'en' : 'es')}
-              className="text-xs font-semibold text-slate-400 hover:text-white transition-colors"
-            >
-              {lang === 'es' ? 'EN' : 'ES'}
-            </button>
+            <LanguageSwitcher />
           </div>
         </div>
       </header>
@@ -262,11 +281,9 @@ export default function TurnosPage() {
           </div>
         )}
 
-        {/* Contenedor con navegación manual (flechas) */}
         <div className="relative">
           {!esConfirmacion && (
             <>
-              {/* Flecha izquierda */}
               <button
                 onClick={() => irAPaso((paso - 1) as Paso)}
                 disabled={!puedeRetroceder()}
@@ -277,7 +294,6 @@ export default function TurnosPage() {
                 </svg>
               </button>
 
-              {/* Flecha derecha */}
               <button
                 onClick={() => irAPaso((paso + 1) as Paso)}
                 disabled={!puedeAvanzar()}
@@ -290,41 +306,41 @@ export default function TurnosPage() {
             </>
           )}
 
-          {/* ── PASO 1: Tratamiento ── */}
+          {/* PASO 1 */}
           {paso === 1 && (
             <div>
-              <h1 className="text-3xl font-black text-white mb-1">¿Qué tratamiento necesitás?</h1>
-              <p className="text-slate-400 text-sm mb-6">Tocá uno para continuar</p>
+              <h1 className="text-3xl font-black text-white mb-1">{t('paso1.title')}</h1>
+              <p className="text-slate-400 text-sm mb-6">{t('paso1.subtitle')}</p>
 
               {loadingDoctores ? (
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                  {tratamientos.map((t) => (
-                    <div key={t.id} className="p-4 rounded-2xl border-2 border-cyan-200 bg-white/50 opacity-50">
-                      <div className="text-3xl mb-2">{t.icono}</div>
-                      <p className="font-semibold text-slate-700 text-sm leading-tight">{t.label}</p>
-                      <p className="text-slate-400 text-xs mt-1">⏱ {t.duracion}</p>
+                  {TRATAMIENTOS_IDS.map((id) => (
+                    <div key={id} className="p-4 rounded-2xl border-2 border-cyan-200 bg-white/50 opacity-50">
+                      <div className="text-3xl mb-2">{TRATAMIENTOS_ICONOS[id]}</div>
+                      <p className="font-semibold text-slate-700 text-sm leading-tight">{tTratamientos(id)}</p>
+                      <p className="text-slate-400 text-xs mt-1">⏱ {tDuraciones('minutes', { n: TRATAMIENTOS_DURACION[id] })}</p>
                     </div>
                   ))}
                 </div>
               ) : (
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                  {tratamientos.map((t) => (
+                  {TRATAMIENTOS_IDS.map((id) => (
                     <button
-                      key={t.id}
-                      onClick={() => seleccionarTratamiento(t.id)}
+                      key={id}
+                      onClick={() => seleccionarTratamiento(id)}
                       className={`p-4 rounded-2xl border-2 transition-all active:scale-95 ${
-                        tratamiento === t.id
+                        tratamiento === id
                           ? 'border-teal-500 bg-teal-50'
                           : 'border-slate-200 bg-white hover:border-teal-400'
                       }`}
                     >
-                      <div className="text-3xl mb-2">{t.icono}</div>
-                      <p className="font-semibold text-slate-800 text-sm leading-tight">{t.label}</p>
-                      <p className="text-slate-400 text-xs mt-1">⏱ {t.duracion}</p>
-                      {tratamiento === t.id && (
+                      <div className="text-3xl mb-2">{TRATAMIENTOS_ICONOS[id]}</div>
+                      <p className="font-semibold text-slate-800 text-sm leading-tight">{tTratamientos(id)}</p>
+                      <p className="text-slate-400 text-xs mt-1">⏱ {tDuraciones('minutes', { n: TRATAMIENTOS_DURACION[id] })}</p>
+                      {tratamiento === id && (
                         <div className="mt-2 flex items-center gap-1 text-teal-700 text-xs font-bold">
                           <svg width="12" height="12" fill="currentColor" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" /></svg>
-                          Seleccionado
+                          {t('paso1.selected')}
                         </div>
                       )}
                     </button>
@@ -338,18 +354,18 @@ export default function TurnosPage() {
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
                   </svg>
-                  Buscando disponibilidad...
+                  {t('paso1.loading')}
                 </div>
               )}
             </div>
           )}
 
-          {/* ── PASO 2: Doctor ── */}
+          {/* PASO 2 */}
           {paso === 2 && (
             <div>
-              <h1 className="text-3xl font-black text-white mb-1">Elegí tu odontólogo</h1>
+              <h1 className="text-3xl font-black text-white mb-1">{t('paso2.title')}</h1>
               <p className="text-slate-400 text-sm mb-6">
-                {tratamientoObj?.icono} {tratamientoObj?.label}
+                {tratamientoIcono} {tratamientoLabel}
               </p>
 
               <div className="space-y-3">
@@ -368,7 +384,7 @@ export default function TurnosPage() {
                     </div>
                     <div className="flex-1 text-left">
                       <p className="font-semibold text-slate-800">{doc.nombre}</p>
-                      <p className="text-teal-700 text-sm">{tratamientoObj?.label} · {tratamientoObj?.duracion}</p>
+                      <p className="text-teal-700 text-sm">{tratamientoLabel} · {tDuraciones('minutes', { n: tratamientoDuracion })}</p>
                     </div>
                     {doctorId === doc.id && (
                       <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24" className="text-teal-600 flex-shrink-0">
@@ -381,19 +397,18 @@ export default function TurnosPage() {
             </div>
           )}
 
-          {/* ── PASO 3: Fecha y hora ── */}
+          {/* PASO 3 */}
           {paso === 3 && (
             <div>
-              <h1 className="text-3xl font-black text-white mb-1">Elegí fecha y hora</h1>
+              <h1 className="text-3xl font-black text-white mb-1">{t('paso3.title')}</h1>
               <div className="flex flex-wrap items-center gap-2 mb-6 text-sm text-slate-300">
-                <span>{tratamientoObj?.icono} {tratamientoObj?.label}</span>
+                <span>{tratamientoIcono} {tratamientoLabel}</span>
                 {doctorNombre && (
                   <span className="text-teal-400 font-medium">· 👨‍⚕️ {doctorNombre}</span>
                 )}
               </div>
 
-              {/* Días — scroll horizontal */}
-              <p className="text-xs font-bold text-slate-300 uppercase tracking-widest mb-3">Día</p>
+              <p className="text-xs font-bold text-slate-300 uppercase tracking-widest mb-3">{t('paso3.labelDay')}</p>
               <div className="flex gap-2 overflow-x-auto pb-2 mb-6 -mx-4 px-4 scrollbar-hide">
                 {dias.map((dia, i) => (
                   <button
@@ -410,9 +425,8 @@ export default function TurnosPage() {
                 ))}
               </div>
 
-              {/* Horarios */}
               <p className="text-xs font-bold text-slate-300 uppercase tracking-widest mb-3">
-                Horario <span className="text-teal-400 normal-case font-normal">(tocá uno para continuar)</span>
+                {t('paso3.labelTime')} <span className="text-teal-400 normal-case font-normal">{t('paso3.tapToContinue')}</span>
               </p>
               {loadingSlots ? (
                 <div className="grid grid-cols-3 sm:grid-cols-4 gap-2.5">
@@ -444,17 +458,16 @@ export default function TurnosPage() {
             </div>
           )}
 
-          {/* ── PASO 4: Datos personales ── */}
+          {/* PASO 4 */}
           {paso === 4 && (
             <div>
-              <h1 className="text-3xl font-black text-white mb-1">{t.turnos.paso4.title}</h1>
-              <p className="text-slate-400 text-sm mb-6">{t.turnos.paso4.subtitle}</p>
+              <h1 className="text-3xl font-black text-white mb-1">{t('paso4.title')}</h1>
+              <p className="text-slate-400 text-sm mb-6">{t('paso4.subtitle')}</p>
 
-              {/* Resumen compacto */}
               <div className="border-2 border-teal-200 bg-teal-50 rounded-2xl p-4 mb-6 flex items-center justify-between">
                 <div>
                   <p className="text-teal-800 font-bold text-sm">
-                    {tratamientoObj?.icono} {tratamientoObj?.label}
+                    {tratamientoIcono} {tratamientoLabel}
                   </p>
                   <p className="text-slate-500 text-xs mt-0.5">
                     {formatFechaDisplay(diaSeleccionado)} · {horaSeleccionada}
@@ -465,77 +478,77 @@ export default function TurnosPage() {
                   onClick={() => irAPaso(3)}
                   className="text-teal-700 text-xs font-bold hover:text-teal-600 transition-colors flex-shrink-0 ml-2"
                 >
-                  Cambiar
+                  {t('paso4.change')}
                 </button>
               </div>
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-1.5">{t.turnos.paso4.nombre} *</label>
+                  <label className="block text-sm font-semibold text-slate-700 mb-1.5">{t('paso4.nombre')} *</label>
                   <input
                     type="text"
                     value={nombre}
                     onChange={(e) => setNombre(e.target.value)}
-                    placeholder={t.turnos.paso4.nombrePlaceholder}
+                    placeholder={t('paso4.nombrePlaceholder')}
                     autoFocus
                     className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-teal-400 focus:ring-2 focus:ring-teal-100 transition-all"
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-1.5">
-                    {t.turnos.paso4.telefono}
+                    {t('paso4.telefono')}
                     {!email.trim() && ' *'}
                   </label>
                   <input
                     type="tel"
                     value={telefono}
                     onChange={(e) => setTelefono(e.target.value)}
-                    placeholder={t.turnos.paso4.telefonoPlaceholder}
+                    placeholder={t('paso4.telefonoPlaceholder')}
                     className={`w-full px-4 py-3 rounded-xl border transition-all bg-white text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 ${
                       telefono.trim() && !validarTelefono(telefono)
                         ? 'border-red-300 focus:border-red-400 focus:ring-red-100'
                         : 'border-slate-200 focus:border-teal-400 focus:ring-teal-100'
                     }`}
                   />
-                  <p className="text-slate-400 text-xs mt-1.5">{t.turnos.paso4.telefonoHint}</p>
+                  <p className="text-slate-400 text-xs mt-1.5">{t('paso4.telefonoHint')}</p>
                   {telefono.trim() && !validarTelefono(telefono) && (
-                    <p className="text-red-600 text-xs mt-1.5">{t.turnos.paso4.invalidPhone}</p>
+                    <p className="text-red-600 text-xs mt-1.5">{t('paso4.invalidPhone')}</p>
                   )}
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-1.5">
-                    {t.turnos.paso4.email}
+                    {t('paso4.email')}
                     {!telefono.trim() && ' *'}
                   </label>
                   <input
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder={t.turnos.paso4.emailPlaceholder}
+                    placeholder={t('paso4.emailPlaceholder')}
                     className={`w-full px-4 py-3 rounded-xl border transition-all bg-white text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 ${
                       email.trim() && !validarEmail(email)
                         ? 'border-red-300 focus:border-red-400 focus:ring-red-100'
                         : 'border-slate-200 focus:border-teal-400 focus:ring-teal-100'
                     }`}
                   />
-                  <p className="text-slate-400 text-xs mt-1.5">{t.turnos.paso4.emailHint}</p>
+                  <p className="text-slate-400 text-xs mt-1.5">{t('paso4.emailHint')}</p>
                   {email.trim() && !validarEmail(email) && (
-                    <p className="text-red-600 text-xs mt-1.5">{t.turnos.paso4.invalidEmail}</p>
+                    <p className="text-red-600 text-xs mt-1.5">{t('paso4.invalidEmail')}</p>
                   )}
                 </div>
                 {!contactoValido() && telefono.trim() === '' && email.trim() === '' && (
                   <p className="text-teal-700 text-xs bg-teal-50 border border-teal-200 rounded-lg px-3 py-2">
-                    {t.turnos.paso4.contactHint}
+                    {t('paso4.contactHint')}
                   </p>
                 )}
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-1.5">
-                    {t.turnos.paso4.notas} <span className="font-normal text-slate-400">(opcional)</span>
+                    {t('paso4.notas')} <span className="font-normal text-slate-400">{t('paso4.notasOptional')}</span>
                   </label>
                   <textarea
                     value={notas}
                     onChange={(e) => setNotas(e.target.value)}
-                    placeholder={t.turnos.paso4.notasPlaceholder}
+                    placeholder={t('paso4.notasPlaceholder')}
                     rows={2}
                     className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-teal-400 focus:ring-2 focus:ring-teal-100 resize-none transition-all"
                   />
@@ -559,59 +572,57 @@ export default function TurnosPage() {
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
                     </svg>
-                    {t.turnos.paso4.confirming}
+                    {t('paso4.confirming')}
                   </>
-                ) : t.turnos.paso4.confirm}
+                ) : t('paso4.confirm')}
               </button>
 
               <p className="text-center text-slate-400 text-xs mt-3">
-                Tu información es confidencial y no será compartida con terceros.
+                {t('paso4.confidentialNote')}
               </p>
             </div>
           )}
 
-          {/* ── PASO 5: Confirmación ── */}
+          {/* PASO 5 */}
           {paso === 5 && turnoConfirmado && (
             <div className="text-center py-4">
               <div className="w-20 h-20 bg-gradient-to-br from-teal-500 to-teal-600 rounded-full flex items-center justify-center mx-auto mb-6">
                 <span className="text-4xl">✅</span>
               </div>
-              <h1 className="text-3xl font-black text-white mb-2">¡Turno solicitado!</h1>
+              <h1 className="text-3xl font-black text-white mb-2">{t('paso5.title')}</h1>
               <p className="text-slate-400 text-sm mb-6 max-w-xs mx-auto">
-                Te vamos a contactar al{' '}
-                <span className="font-semibold text-slate-700">{telefono}</span>{' '}
-                para confirmar. Revisá WhatsApp.
+                {t('paso5.subtitle', { telefono })}
               </p>
 
               <div className="border-2 border-teal-200 bg-teal-50 rounded-2xl p-5 text-left mb-6 max-w-xs mx-auto">
-                <p className="font-bold text-teal-800 text-sm mb-3">Resumen del turno</p>
+                <p className="font-bold text-teal-800 text-sm mb-3">{t('paso5.summary')}</p>
                 <div className="space-y-1.5 text-sm text-slate-600">
                   <p>👤 <span className="text-slate-800 font-medium">{nombre}</span></p>
-                  <p>{tratamientoObj?.icono} <span className="text-slate-800 font-medium">{tratamientoObj?.label}</span></p>
+                  <p>{tratamientoIcono} <span className="text-slate-800 font-medium">{tratamientoLabel}</span></p>
                   {doctorNombre && <p>👨‍⚕️ <span className="text-slate-800 font-medium">{doctorNombre}</span></p>}
-                  <p>📅 <span className="text-slate-800 font-medium">{formatFechaDisplay(diaSeleccionado)} a las {horaSeleccionada}</span></p>
+                  <p>📅 <span className="text-slate-800 font-medium">{formatFechaDisplay(diaSeleccionado)} {horaSeleccionada}</span></p>
                   <p>📱 <span className="text-slate-800 font-medium">{telefono}</span></p>
-                  <p className="text-slate-400 text-xs pt-1">Ref. #{turnoConfirmado.turno_id}</p>
+                  <p className="text-slate-400 text-xs pt-1">{t('paso5.ref', { id: turnoConfirmado.turno_id })}</p>
                 </div>
               </div>
 
               <a
                 href={`https://wa.me/${process.env.NEXT_PUBLIC_WA_NUMBER ?? '5491100000000'}?text=${encodeURIComponent(
-                  `Hola! Acabo de solicitar un turno de ${tratamientoObj?.label} para el ${formatFechaDisplay(diaSeleccionado)} a las ${horaSeleccionada}. Mi nombre es ${nombre}.`
+                  `${nombre} - ${tratamientoLabel} - ${formatFechaDisplay(diaSeleccionado)} ${horaSeleccionada}`
                 )}`}
                 target="_blank"
                 className="block max-w-xs mx-auto bg-green-500 text-white py-3.5 rounded-full font-bold hover:bg-green-600 transition-colors shadow-lg shadow-green-200 mb-3"
               >
-                💬 Confirmar por WhatsApp
+                {t('paso5.ctaWhatsApp')}
               </a>
               <Link
                 href="/mis-turnos"
                 className="block max-w-xs mx-auto border-2 border-teal-300 bg-white text-teal-700 hover:bg-teal-50 py-3 rounded-full font-bold transition-all mb-3 text-sm"
               >
-                📋 Ver mis turnos
+                {t('paso5.seeMisTurnos')}
               </Link>
               <Link href="/" className="block text-slate-400 text-sm hover:text-slate-600 transition-colors">
-                Volver al inicio
+                {t('paso5.backHome')}
               </Link>
             </div>
           )}

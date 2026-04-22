@@ -3,22 +3,26 @@
 import { useEffect, useState } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 import { useAuthStore } from '@/store/authStore'
-
-const NAV = [
-  { href: '/admin/dashboard',      label: 'Dashboard',  icono: '📊' },
-  { href: '/admin/agenda',         label: 'Agenda',     icono: '📅' },
-  { href: '/admin/pacientes',      label: 'Pacientes',  icono: '👥' },
-  { href: '/admin/crm',            label: 'CRM',        icono: '🎯' },
-  { href: '/admin/usuarios',       label: 'Usuarios',   icono: '👨‍⚕️' },
-  { href: '/admin/galeria',        label: 'Galería',    icono: '🖼️' },
-  { href: '/admin/configuracion',  label: 'Config IA',  icono: '⚙️' },
-]
+import LanguageSwitcher from '@/components/LanguageSwitcher'
 
 function Sidebar({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const t = useTranslations('admin')
+  const tNav = useTranslations('admin.nav')
   const pathname = usePathname()
   const { logout, user } = useAuthStore()
   const router = useRouter()
+
+  const NAV = [
+    { href: '/admin/dashboard',     label: tNav('dashboard'),  icono: '📊' },
+    { href: '/admin/agenda',        label: tNav('agenda'),     icono: '📅' },
+    { href: '/admin/pacientes',     label: tNav('pacientes'),  icono: '👥' },
+    { href: '/admin/crm',           label: tNav('crm'),        icono: '🎯' },
+    { href: '/admin/usuarios',      label: tNav('usuarios'),   icono: '👨‍⚕️' },
+    { href: '/admin/galeria',       label: tNav('galeria'),    icono: '🖼️' },
+    { href: '/admin/configuracion', label: tNav('configIA'),   icono: '⚙️' },
+  ]
 
   function handleLogout() {
     logout()
@@ -27,7 +31,6 @@ function Sidebar({ open, onClose }: { open: boolean; onClose: () => void }) {
 
   return (
     <>
-      {/* Overlay mobile */}
       {open && (
         <div
           className="fixed inset-0 z-30 bg-black/60 md:hidden"
@@ -42,13 +45,11 @@ function Sidebar({ open, onClose }: { open: boolean; onClose: () => void }) {
         ${open ? 'translate-x-0' : '-translate-x-full'}
         md:translate-x-0 md:static md:flex md:h-screen md:flex-shrink-0
       `}>
-        {/* Logo */}
         <div className="px-5 py-5 border-b border-white/5">
-          <p className="text-white font-black text-sm">Soluciones Dentales</p>
-          <p className="text-slate-600 text-xs">Panel admin</p>
+          <p className="text-white font-black text-sm">{t('layout.title')}</p>
+          <p className="text-slate-600 text-xs">{t('layout.subtitle')}</p>
         </div>
 
-        {/* Nav */}
         <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
           {NAV.map((item) => {
             const activo = pathname === item.href
@@ -70,26 +71,28 @@ function Sidebar({ open, onClose }: { open: boolean; onClose: () => void }) {
           })}
         </nav>
 
-        {/* Footer usuario */}
-        <div className="px-4 py-4 border-t border-white/5">
+        <div className="px-4 py-4 border-t border-white/5 space-y-3">
           {user && (
-            <div className="mb-3">
+            <div>
               <p className="text-white text-xs font-bold truncate">{user.nombre}</p>
               <p className="text-slate-600 text-xs truncate">{user.email}</p>
             </div>
           )}
+          <div className="flex justify-between items-center">
+            <LanguageSwitcher variant="full" />
+          </div>
           <div className="flex gap-2">
             <Link
               href="/"
               className="flex-1 text-center text-slate-500 hover:text-slate-300 text-xs py-1.5 rounded-lg hover:bg-white/5 transition-colors"
             >
-              Ver web
+              {t('layout.viewSite')}
             </Link>
             <button
               onClick={handleLogout}
               className="flex-1 text-slate-500 hover:text-red-400 text-xs py-1.5 rounded-lg hover:bg-red-500/5 transition-colors"
             >
-              Salir
+              {t('layout.logout')}
             </button>
           </div>
         </div>
@@ -99,6 +102,7 @@ function Sidebar({ open, onClose }: { open: boolean; onClose: () => void }) {
 }
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
+  const t = useTranslations('admin')
   const router = useRouter()
   const pathname = usePathname()
   const token = useAuthStore((s) => s.token)
@@ -118,9 +122,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     <div className="flex h-screen overflow-hidden" style={{ background: 'var(--bg-base)' }}>
       <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-      {/* Main */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        {/* Topbar mobile */}
         <div className="md:hidden flex items-center justify-between px-4 py-3 border-b border-white/5 bg-[#080f1a]">
           <button
             onClick={() => setSidebarOpen(true)}
@@ -130,11 +132,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
             </svg>
           </button>
-          <p className="text-white font-bold text-sm">Soluciones Dentales</p>
+          <p className="text-white font-bold text-sm">{t('layout.title')}</p>
           <div className="w-6" />
         </div>
 
-        {/* Content */}
         <main className="flex-1 overflow-y-auto">
           {children}
         </main>

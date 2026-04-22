@@ -2,19 +2,21 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useTranslations, useLocale } from 'next-intl'
 import { useAuthStore } from '@/store/authStore'
 import {
   getTurnosAdmin, getPacientesAdmin, getAlarmas, patchTurnoEstado, resolverAlarma,
   type TurnoAdmin, type Paciente, type Alarma,
 } from '@/lib/api/admin'
 
-/* ─── HELPERS ─── */
 function fechaHoy(): string {
   return new Date().toISOString().split('T')[0]
 }
 
-function formatHora(iso: string): string {
-  return new Date(iso).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })
+function localeForDateFormat(locale: string): string {
+  if (locale === 'pt-BR') return 'pt-BR'
+  if (locale === 'en') return 'en-US'
+  return 'es-AR'
 }
 
 const estadoBadge: Record<string, string> = {
@@ -29,8 +31,15 @@ const prioridadIcon: Record<string, string> = {
   alta: '🔴', media: '🟡', baja: '🟢',
 }
 
-/* ─── COMPONENT ─── */
+const ESTADOS_TURNO = ['solicitado','confirmado','realizado','cancelado','ausente'] as const
+
 export default function AdminDashboard() {
+  const t = useTranslations('admin.dashboard')
+  const tEstados = useTranslations('estadosTurno')
+  const tEstadosPaciente = useTranslations('estadosPaciente')
+  const tCrm = useTranslations('admin.crm')
+  const locale = useLocale()
+  const dateLocale = localeForDateFormat(locale)
   const { token } = useAuthStore()
 
   const [turnos, setTurnos] = useState<TurnoAdmin[]>([])
@@ -39,32 +48,37 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
+  function formatHora(iso: string): string {
+    return new Date(iso).toLocaleTimeString(dateLocale, { hour: '2-digit', minute: '2-digit' })
+  }
+
   useEffect(() => {
     if (!token) return
     async function cargar() {
       try {
-        const [t, p, a] = await Promise.all([
+        const [tts, p, a] = await Promise.all([
           getTurnosAdmin(token!, fechaHoy()),
           getPacientesAdmin(token!),
           getAlarmas(token!),
         ])
-        setTurnos(t)
+        setTurnos(tts)
         setPacientes(p)
         setAlarmas(a)
       } catch (e: unknown) {
-        setError(e instanceof Error ? e.message : 'Error al cargar datos')
+        setError(e instanceof Error ? e.message : t('errorPrefix'))
       } finally {
         setLoading(false)
       }
     }
     cargar()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token])
 
   async function cambiarEstado(turnoId: number, estado: string) {
     if (!token) return
     try {
       const actualizado = await patchTurnoEstado(token, turnoId, estado)
-      setTurnos((prev) => prev.map((t) => t.id === turnoId ? { ...t, estado: actualizado.estado } : t))
+      setTurnos((prev) => prev.map((tt) => tt.id === turnoId ? { ...tt, estado: actualizado.estado } : tt))
     } catch { /* silencioso */ }
   }
 
@@ -76,39 +90,36 @@ export default function AdminDashboard() {
     } catch { /* silencioso */ }
   }
 
-  const turnosConfirmados = turnos.filter((t) => t.estado === 'confirmado').length
-  const turnosSolicitados = turnos.filter((t) => t.estado === 'solicitado').length
+  const turnosConfirmados = turnos.filter((tt) => tt.estado === 'confirmado').length
+  const turnosSolicitados = turnos.filter((tt) => tt.estado === 'solicitado').length
   const pacientesNuevosHoy = pacientes.filter((p) => p.created_at.startsWith(fechaHoy())).length
   const alarmasActivas = alarmas.filter((a) => !a.resuelta).length
 
   const kpis = [
-    { label: 'Turnos hoy',      valor: turnos.length,        delta: `${turnosConfirmados} confirmados`,  icono: '📅' },
-    { label: 'Sin confirmar',   valor: turnosSolicitados,    delta: 'Requieren confirmación',            icono: '⏳' },
-    { label: 'Nuevos hoy',      valor: pacientesNuevosHoy,   delta: 'Pacientes ingresados',              icono: '👤' },
-    { label: 'Alarmas activas', valor: alarmasActivas,       delta: 'Requieren atención',                icono: '🔔' },
+    { label: t('kpi.appointmentsToday'), valor: turnos.length, delta: t('kpi.appointmentsConfirmed', { n: turnosConfirmados }), icono: '📅' },
+    { label: t('kpi.unconfirmed'),       valor: turnosSolicitados, delta: t('kpi.unconfirmedHint'), icono: '⏳' },
+    { label: t('kpi.newToday'),          valor: pacientesNuevosHoy, delta: t('kpi.newTodayHint'), icono: '👤' },
+    { label: t('kpi.alarmsActive'),      valor: alarmasActivas, delta: t('kpi.alarmsHint'), icono: '🔔' },
   ]
 
-  const pipeline = [
-    { estado: 'Nuevo',          id: 'nuevo',           count: pacientes.filter(p => p.estado === 'nuevo').length },
-    { estado: 'Contactado',     id: 'contactado',      count: pacientes.filter(p => p.estado === 'contactado').length },
-    { estado: 'Interesado',     id: 'interesado',      count: pacientes.filter(p => p.estado === 'interesado').length },
-    { estado: 'Turno agendado', id: 'turno_agendado',  count: pacientes.filter(p => p.estado === 'turno_agendado').length },
-    { estado: 'Activo',         id: 'paciente_activo', count: pacientes.filter(p => p.estado === 'paciente_activo').length },
-    { estado: 'Inactivo',       id: 'inactivo',        count: pacientes.filter(p => p.estado === 'inactivo').length },
-  ]
+  const PIPELINE_KEYS = ['nuevo','contactado','interesado','turno_agendado','paciente_activo','inactivo'] as const
+  const pipeline = PIPELINE_KEYS.map((id) => ({
+    id,
+    estado: tCrm(`columns.${id}`),
+    count: pacientes.filter(p => p.estado === id).length,
+  }))
 
   return (
     <div className="p-4 sm:p-6 space-y-6" style={{ background: 'var(--bg-base)', minHeight: '100%' }}>
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-black text-white">Dashboard</h1>
+          <h1 className="text-2xl font-black text-white">{t('title')}</h1>
           <p className="text-slate-500 text-sm mt-0.5">
-            {new Date().toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' })}
+            {new Date().toLocaleDateString(dateLocale, { weekday: 'long', day: 'numeric', month: 'long' })}
           </p>
         </div>
         <Link href="/" target="_blank" className="text-slate-500 hover:text-teal-400 text-sm transition-colors">
-          Ver sitio →
+          {t('viewSite')} →
         </Link>
       </div>
 
@@ -118,7 +129,6 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      {/* KPIs */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {kpis.map((k) => (
           <div key={k.label} className="bg-[--bg-card] border border-white/5 rounded-2xl p-4">
@@ -142,16 +152,15 @@ export default function AdminDashboard() {
       </div>
 
       <div className="grid lg:grid-cols-3 gap-5">
-        {/* Agenda del día */}
         <div className="lg:col-span-2 bg-[--bg-card] border border-white/5 rounded-2xl">
           <div className="px-5 py-4 border-b border-white/5 flex items-center justify-between">
-            <h2 className="font-bold text-white">Agenda de hoy</h2>
+            <h2 className="font-bold text-white">{t('agendaToday')}</h2>
             <div className="flex items-center gap-3">
               <span className="text-xs text-slate-500 bg-slate-800 px-2 py-1 rounded-full">
-                {turnos.length} turnos
+                {t('appointmentsCount', { n: turnos.length })}
               </span>
               <Link href="/admin/agenda" className="text-teal-400 text-xs hover:text-teal-300 transition-colors">
-                Ver semana →
+                {t('viewWeek')} →
               </Link>
             </div>
           </div>
@@ -166,30 +175,30 @@ export default function AdminDashboard() {
               ))}
             </div>
           ) : turnos.length === 0 ? (
-            <div className="px-5 py-10 text-center text-slate-500 text-sm">Sin turnos para hoy</div>
+            <div className="px-5 py-10 text-center text-slate-500 text-sm">{t('noAppointments')}</div>
           ) : (
             <div className="divide-y divide-white/[.04]">
-              {turnos.map((t) => (
-                <div key={t.id} className="px-5 py-3 flex items-center gap-3 hover:bg-white/[.02] transition-colors">
-                  <span className="text-sm font-bold text-slate-400 w-14 flex-shrink-0">{formatHora(t.fecha_hora)}</span>
+              {turnos.map((tt) => (
+                <div key={tt.id} className="px-5 py-3 flex items-center gap-3 hover:bg-white/[.02] transition-colors">
+                  <span className="text-sm font-bold text-slate-400 w-14 flex-shrink-0">{formatHora(tt.fecha_hora)}</span>
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold text-white text-sm truncate">
-                      {t.pacientes?.nombre ?? 'Paciente'}
+                      {tt.pacientes?.nombre ?? t('patient')}
                     </p>
-                    <p className="text-slate-500 text-xs truncate capitalize">{t.tipo_tratamiento}</p>
+                    <p className="text-slate-500 text-xs truncate capitalize">{tt.tipo_tratamiento}</p>
                   </div>
                   <select
-                    value={t.estado}
-                    onChange={(e) => cambiarEstado(t.id, e.target.value)}
-                    className={`text-xs font-bold px-2.5 py-1.5 rounded-full border-0 cursor-pointer outline-none ${estadoBadge[t.estado] ?? 'bg-slate-800 text-slate-400'}`}
+                    value={tt.estado}
+                    onChange={(e) => cambiarEstado(tt.id, e.target.value)}
+                    className={`text-xs font-bold px-2.5 py-1.5 rounded-full border-0 cursor-pointer outline-none ${estadoBadge[tt.estado] ?? 'bg-slate-800 text-slate-400'}`}
                   >
-                    {['solicitado','confirmado','realizado','cancelado','ausente'].map((e) => (
-                      <option key={e} value={e}>{e}</option>
+                    {ESTADOS_TURNO.map((e) => (
+                      <option key={e} value={e}>{tEstados(e)}</option>
                     ))}
                   </select>
-                  {t.pacientes?.telefono && (
+                  {tt.pacientes?.telefono && (
                     <a
-                      href={`https://wa.me/549${t.pacientes.telefono.replace(/\D/g, '')}?text=${encodeURIComponent(`Hola ${t.pacientes.nombre}, te confirmamos tu turno de ${t.tipo_tratamiento} para hoy a las ${formatHora(t.fecha_hora)}.`)}`}
+                      href={`https://wa.me/549${tt.pacientes.telefono.replace(/\D/g, '')}?text=${encodeURIComponent(t('whatsappMessage', { nombre: tt.pacientes.nombre ?? '', tratamiento: tt.tipo_tratamiento, hora: formatHora(tt.fecha_hora) }))}`}
                       target="_blank"
                       className="text-green-500 hover:text-green-400 transition-colors flex-shrink-0"
                       title="WhatsApp"
@@ -206,10 +215,9 @@ export default function AdminDashboard() {
           )}
         </div>
 
-        {/* Alarmas */}
         <div className="bg-[--bg-card] border border-white/5 rounded-2xl">
           <div className="px-5 py-4 border-b border-white/5 flex items-center justify-between">
-            <h2 className="font-bold text-white">Alarmas</h2>
+            <h2 className="font-bold text-white">{t('alarms')}</h2>
             {alarmasActivas > 0 && (
               <span className="bg-red-500/20 text-red-400 text-xs font-bold px-2 py-0.5 rounded-full">
                 {alarmasActivas}
@@ -223,7 +231,7 @@ export default function AdminDashboard() {
           ) : alarmas.length === 0 ? (
             <div className="px-5 py-10 text-center text-slate-500 text-sm">
               <span className="text-2xl block mb-2">✅</span>
-              Sin alarmas activas
+              {t('noAlarms')}
             </div>
           ) : (
             <div className="divide-y divide-white/[.04]">
@@ -238,7 +246,7 @@ export default function AdminDashboard() {
                     <button
                       onClick={() => marcarResuelta(a.id)}
                       className="flex-shrink-0 text-slate-600 hover:text-green-400 transition-colors"
-                      title="Marcar resuelta"
+                      title={t('markResolved')}
                     >
                       <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
@@ -252,12 +260,11 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* Pipeline CRM */}
       <div className="bg-[--bg-card] border border-white/5 rounded-2xl">
         <div className="px-5 py-4 border-b border-white/5 flex items-center justify-between">
-          <h2 className="font-bold text-white">Pipeline CRM</h2>
+          <h2 className="font-bold text-white">{t('pipeline')}</h2>
           <Link href="/admin/crm" className="text-teal-400 text-xs hover:text-teal-300 transition-colors">
-            Ver kanban →
+            {t('viewKanban')} →
           </Link>
         </div>
         <div className="p-5 overflow-x-auto">

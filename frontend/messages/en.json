@@ -1,0 +1,550 @@
+{
+  "metadata": {
+    "title": "Dental Solutions | Dental Office",
+    "description": "Your smile, our priority. Book your appointment online quickly and easily.",
+    "htmlLang": "en"
+  },
+  "common": {
+    "save": "Save",
+    "saving": "Saving...",
+    "saved": "Saved",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "loading": "Loading...",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "confirm": "Confirm",
+    "confirming": "Confirming...",
+    "close": "Close",
+    "error": "Error",
+    "search": "Search",
+    "all": "All",
+    "yes": "Yes",
+    "no": "No",
+    "of": "of",
+    "step": "Step"
+  },
+  "navbar": {
+    "services": "Services",
+    "howItWorks": "How it works",
+    "cases": "Cases",
+    "faq": "FAQ",
+    "bookCta": "Book appointment",
+    "back": "Back"
+  },
+  "landing": {
+    "hero": {
+      "badge": "AI Assistant available 24/7",
+      "titleLine1": "Your best",
+      "titleLine2": "smile",
+      "titleLine3": "awaits you.",
+      "subtitle": "Book your appointment in 2 minutes, no signup, no calls. Instant WhatsApp confirmation.",
+      "ctaPrimary": "Book free appointment",
+      "ctaEmergency": "Emergencies",
+      "feature1": "No signup",
+      "feature2": "Confirmation in minutes",
+      "feature3": "Up to 12 interest-free installments"
+    },
+    "cards": {
+      "appointmentConfirmed": "Appointment confirmed",
+      "tomorrow10": "Tomorrow · 10:00am",
+      "newSmile": "Your new smile",
+      "realResults": "Real results",
+      "patientsCount": "patients",
+      "patientJustBooked": "{nombre} just booked",
+      "minutesAgo": "{n} minutes ago"
+    },
+    "services": {
+      "kicker": "Treatments",
+      "title": "Everything your",
+      "title2": "smile needs",
+      "seeAll": "See all",
+      "consult": "Consult",
+      "items": {
+        "estetica": {
+          "titulo": "Cosmetic dentistry",
+          "desc": "Smile design, porcelain veneers and whitening. Results from the first session.",
+          "tag": "Most requested"
+        },
+        "implantes": {
+          "titulo": "Implants",
+          "desc": "State-of-the-art titanium implants. Permanent results, natural aesthetics.",
+          "tag": "High technology"
+        },
+        "ortodoncia": {
+          "titulo": "Orthodontics",
+          "desc": "Metal braces and invisible aligners with monthly digital follow-up.",
+          "tag": "Aligners included"
+        },
+        "urgencias": {
+          "titulo": "Emergencies",
+          "desc": "Acute pain, fractures and emergencies. Same-day care, no appointment needed.",
+          "tag": "Same day"
+        }
+      }
+    },
+    "howItWorks": {
+      "kicker": "Process",
+      "title": "Book in",
+      "titleHighlight": "2 minutes",
+      "subtitle": "No calls, no waiting. Your appointment confirmed before you finish reading this.",
+      "ctaBook": "Book my appointment",
+      "steps": {
+        "s1": { "titulo": "Tell us what you need", "desc": "The AI assistant classifies your inquiry and guides you in seconds, anytime." },
+        "s2": { "titulo": "Pick your time", "desc": "Real-time availability. Pick the slot that suits you best on the calendar." },
+        "s3": { "titulo": "Instant confirmation", "desc": "Receive WhatsApp confirmation. No signup, no passwords, no waiting." }
+      }
+    },
+    "gallery": {
+      "kicker": "Gallery",
+      "titleLine1": "Results",
+      "titleLine2": "that speak",
+      "seeAll": "See all cases",
+      "viewCase": "View full case",
+      "before": "Before",
+      "after": "After",
+      "items": {
+        "blanqueamiento": { "tratamiento": "Whitening", "duracion": "1 session", "desc": "8-shade lightening with LED laser" },
+        "diseno": { "tratamiento": "Smile design", "duracion": "2 weeks", "desc": "6 ultra-thin porcelain veneers" },
+        "ortodoncia": { "tratamiento": "Orthodontics", "duracion": "18 months", "desc": "Invisible Invisalign aligners" }
+      }
+    },
+    "testimonials": {
+      "kicker": "Testimonials",
+      "titleLine1": "What our",
+      "titleLine2": "patients say",
+      "items": {
+        "maria": { "nombre": "Maria G.", "tratamiento": "Whitening", "texto": "I booked at 11pm and the next day my appointment was confirmed. The care was incredible." },
+        "carlos": { "nombre": "Carlos R.", "tratamiento": "Implant", "texto": "I had been postponing the implant for years. The estimate was clear from the start and the result exceeded everything." },
+        "lucia": { "nombre": "Lucia M.", "tratamiento": "Orthodontics", "texto": "I've been wearing aligners for 8 months and the changes are amazing. The WhatsApp follow-up is a huge plus." }
+      }
+    },
+    "ctaSection": {
+      "badge": "Slots available this week",
+      "titleLine1": "Your appointment",
+      "titleLine2": "in 2 minutes.",
+      "subtitle": "No signup, no calls. Instant WhatsApp confirmation.",
+      "cta": "Book my free appointment",
+      "small": "First consultation free · Detailed estimate"
+    },
+    "faq": {
+      "kicker": "FAQ",
+      "title": "Frequently asked questions",
+      "items": {
+        "q1": { "q": "Do I need an account to book?", "a": "No. We only need your name and phone. No passwords, no long forms." },
+        "q2": { "q": "How long does confirmation take?", "a": "Confirmation is automatic. You'll get a WhatsApp message in less than 5 minutes." },
+        "q3": { "q": "Do you offer financing?", "a": "Yes, up to 12 interest-free installments with all cards. We give you the details in the free consultation." },
+        "q4": { "q": "Do you handle emergencies without appointment?", "a": "Yes. For emergencies contact us directly via WhatsApp and we'll see you the same day." }
+      }
+    },
+    "footer": {
+      "tagline": "Excellence dental office in Buenos Aires. Cutting-edge technology for your best smile.",
+      "ctaWa": "Message us on WhatsApp",
+      "hoursTitle": "Hours",
+      "weekdays": "Monday – Friday",
+      "weekend": "Saturdays",
+      "emergency": "⚡ After-hours emergencies",
+      "contactTitle": "Contact",
+      "rights": "© 2026 Dental Solutions. All rights reserved.",
+      "privacy": "Privacy",
+      "terms": "Terms"
+    }
+  },
+  "turnos": {
+    "title": "Book appointment",
+    "stepLabel": "Step {current} of {total}",
+    "paso1": {
+      "title": "What treatment do you need?",
+      "subtitle": "Tap one to continue",
+      "loading": "Checking availability...",
+      "selected": "Selected"
+    },
+    "paso2": {
+      "title": "Choose your dentist",
+      "subtitle": "Pick your preferred professional"
+    },
+    "paso3": {
+      "title": "Choose date and time",
+      "subtitle": "Pick a time that works best for you",
+      "labelDay": "Day",
+      "labelTime": "Time",
+      "tapToContinue": "(tap one to continue)",
+      "noSlots": "No availability for this day."
+    },
+    "paso4": {
+      "title": "Your details",
+      "subtitle": "Complete the information to confirm",
+      "summary": "Appointment summary",
+      "change": "Change",
+      "nombre": "Full name",
+      "nombrePlaceholder": "Ex: Maria Garcia",
+      "telefono": "Phone",
+      "telefonoPlaceholder": "Ex: 11 1234-5678",
+      "telefonoHint": "We'll notify you on WhatsApp when confirmed",
+      "email": "Email",
+      "emailPlaceholder": "Ex: maria@example.com",
+      "emailHint": "Or provide your email to receive confirmation",
+      "contactHint": "We need at least one contact method (phone or email)",
+      "notas": "Notes",
+      "notasOptional": "(optional)",
+      "notasPlaceholder": "Allergies, referrals, any useful information...",
+      "confirm": "Confirm appointment",
+      "confirming": "Confirming...",
+      "invalidPhone": "Invalid phone number",
+      "invalidEmail": "Invalid email",
+      "confidentialNote": "Your information is confidential and will not be shared with third parties."
+    },
+    "paso5": {
+      "title": "Appointment requested!",
+      "subtitle": "We'll contact you at {telefono} to confirm. Check WhatsApp.",
+      "summary": "Appointment summary",
+      "ctaWhatsApp": "💬 Confirm via WhatsApp",
+      "seeMisTurnos": "📋 See my appointments",
+      "backHome": "Back to home",
+      "ref": "Ref. #{id}"
+    },
+    "errores": {
+      "loadHours": "Error loading available hours",
+      "submit": "Error confirming appointment"
+    }
+  },
+  "misTurnos": {
+    "title": "My appointments",
+    "verifiedBadge": "Verified ✓",
+    "pasoTelefono": {
+      "title": "Enter your phone number",
+      "hint": "We'll send you a code via WhatsApp",
+      "placeholder": "Ex: 11 1234-5678",
+      "send": "Send code",
+      "sending": "Sending...",
+      "errorSend": "Error sending code"
+    },
+    "pasoOTP": {
+      "greeting": "Hi, {nombre}!",
+      "title": "Verify identity",
+      "subtitle": "We sent a 4-digit code to {telefono}.",
+      "openWhatsApp": "Open WhatsApp",
+      "devModeLabel": "Development mode — code:",
+      "label": "Enter the code",
+      "placeholder": "Ex: 1234",
+      "verify": "Verify",
+      "verifying": "Verifying...",
+      "errorCode": "Incorrect code",
+      "changePhone": "← Change phone"
+    },
+    "pasoTurnos": {
+      "greeting": "Hi, {nombre}",
+      "subtitle": "Your appointments at Dental Solutions",
+      "logout": "Log out",
+      "noTurnos": "You have no scheduled appointments",
+      "bookNew": "Book appointment",
+      "upcoming": "Upcoming appointments",
+      "history": "History",
+      "bookAnother": "Book another appointment",
+      "cancel": "Cancel appointment",
+      "canceling": "Canceling...",
+      "confirmCancel": "Are you sure you want to cancel this appointment?",
+      "errorCancel": "Could not cancel"
+    }
+  },
+  "galeria": {
+    "title": "Gallery",
+    "kicker": "Gallery",
+    "subtitle": "Check out our work",
+    "headerLine1": "Real",
+    "headerLine2": "results",
+    "drag": "Drag the slider to compare before and after each treatment.",
+    "before": "BEFORE",
+    "after": "AFTER",
+    "noCases": "More cases coming soon",
+    "noCasesHint": "Contact us via WhatsApp to see more photos",
+    "loadError": "Error loading gallery",
+    "ctaTitle": "Want a result like this?",
+    "ctaSubtitle": "Book your free consultation today",
+    "ctaButton": "Book my appointment",
+    "filtros": {
+      "todos": "All",
+      "estetica": "Cosmetic",
+      "blanqueamiento": "Whitening",
+      "ortodoncia": "Orthodontics",
+      "implante": "Implants"
+    }
+  },
+  "tratamientos": {
+    "estetica": "Cosmetic dentistry",
+    "blanqueamiento": "Whitening",
+    "ortodoncia": "Orthodontics",
+    "implante": "Implant",
+    "limpieza": "Dental cleaning",
+    "urgencia": "Emergency / Pain",
+    "consulta": "General consultation"
+  },
+  "duraciones": {
+    "minutes": "{n} min"
+  },
+  "estadosTurno": {
+    "solicitado": "Requested",
+    "confirmado": "Confirmed",
+    "realizado": "Completed",
+    "cancelado": "Cancelled",
+    "ausente": "No-show",
+    "labels": {
+      "solicitado": "Requested — pending confirmation",
+      "confirmado": "Confirmed ✓",
+      "realizado": "Completed",
+      "cancelado": "Cancelled",
+      "ausente": "Did not attend"
+    }
+  },
+  "estadosPaciente": {
+    "nuevo": "New",
+    "contactado": "Contacted",
+    "interesado": "Interested",
+    "turno_agendado": "Booked",
+    "paciente_activo": "Active patient",
+    "inactivo": "Inactive",
+    "perdido": "Lost"
+  },
+  "prioridades": {
+    "alta": "High",
+    "media": "Medium",
+    "baja": "Low"
+  },
+  "chat": {
+    "greeting": "Hi! I'm the dental office's virtual assistant. How can I help you today? 😊",
+    "openTooltip": "Need an appointment? Message me!",
+    "headerTitle": "Dental Solutions",
+    "headerSubtitle": "Virtual assistant · AI",
+    "online": "Online",
+    "inputPlaceholder": "Type your question...",
+    "openAria": "Open chat",
+    "errorMessage": "I can't respond right now. Contact us via WhatsApp for an immediate answer.",
+    "quickReplies": {
+      "book": "I want to book an appointment",
+      "prices": "Prices and treatments",
+      "emergency": "I have pain, it's urgent"
+    }
+  },
+  "languageSwitcher": {
+    "label": "Language",
+    "selectLanguage": "Select language"
+  },
+  "admin": {
+    "nav": {
+      "dashboard": "Dashboard",
+      "agenda": "Schedule",
+      "pacientes": "Patients",
+      "crm": "CRM",
+      "usuarios": "Users",
+      "galeria": "Gallery",
+      "configIA": "AI Config"
+    },
+    "layout": {
+      "title": "Dental Solutions",
+      "subtitle": "Admin panel",
+      "viewSite": "View site",
+      "logout": "Log out"
+    },
+    "login": {
+      "title": "Dental Solutions",
+      "subtitle": "Administration panel",
+      "cardTitle": "Sign in",
+      "email": "Email",
+      "emailPlaceholder": "doctor@office.com",
+      "password": "Password",
+      "passwordPlaceholder": "••••••••",
+      "submit": "Sign in",
+      "submitting": "Signing in...",
+      "errorGeneric": "Error signing in",
+      "footer": "Authorized staff only"
+    },
+    "dashboard": {
+      "title": "Dashboard",
+      "viewSite": "View site",
+      "errorPrefix": "Error loading data",
+      "kpi": {
+        "appointmentsToday": "Appointments today",
+        "appointmentsConfirmed": "{n} confirmed",
+        "unconfirmed": "Unconfirmed",
+        "unconfirmedHint": "Need confirmation",
+        "newToday": "New today",
+        "newTodayHint": "New patients",
+        "alarmsActive": "Active alarms",
+        "alarmsHint": "Need attention"
+      },
+      "agendaToday": "Today's schedule",
+      "appointmentsCount": "{n} appointments",
+      "viewWeek": "View week",
+      "noAppointments": "No appointments today",
+      "patient": "Patient",
+      "alarms": "Alarms",
+      "noAlarms": "No active alarms",
+      "markResolved": "Mark resolved",
+      "pipeline": "CRM Pipeline",
+      "viewKanban": "View kanban",
+      "whatsappMessage": "Hi {nombre}, we confirm your {tratamiento} appointment for today at {hora}."
+    },
+    "agenda": {
+      "title": "Schedule",
+      "weekOf": "Week of {fecha}",
+      "today": "Today",
+      "loading": "Loading schedule...",
+      "noAppointmentsDay": "No appointments this day",
+      "appointmentsCount": "{n, plural, =0 {0 appointments} one {# appointment} other {# appointments}}",
+      "noAppointments": "—",
+      "minutes": "{n}min",
+      "whatsappMessage": "Hi {nombre}! We confirm your {tratamiento} appointment for {hora}."
+    },
+    "pacientes": {
+      "title": "Patients",
+      "totalCount": "{n} total",
+      "searchPlaceholder": "Search by name, phone or email...",
+      "filterAllStates": "All states",
+      "sortNewest": "Most recent",
+      "sortScore": "Highest score",
+      "sortName": "Name A-Z",
+      "loading": "Loading...",
+      "noResults": "No matching patients",
+      "table": {
+        "patient": "Patient",
+        "phone": "Phone",
+        "stateCRM": "CRM State",
+        "score": "Score",
+        "registered": "Registered"
+      },
+      "whatsAppContact": "Contact via WhatsApp",
+      "whatsapp": "WhatsApp"
+    },
+    "crm": {
+      "title": "CRM / Pipeline",
+      "totalPatients": "{n} total patients",
+      "searchPlaceholder": "Search...",
+      "loading": "Loading pipeline...",
+      "scoreLegendHot": "≥60 hot",
+      "scoreLegendWarm": "30-59 warm",
+      "scoreLegendCold": "<30 cold",
+      "score": "Score:",
+      "scorePoints": "{n}pts",
+      "columns": {
+        "nuevo": "New",
+        "contactado": "Contacted",
+        "interesado": "Interested",
+        "turno_agendado": "Booked",
+        "paciente_activo": "Active patient",
+        "inactivo": "Inactive",
+        "perdido": "Lost"
+      }
+    },
+    "galeria": {
+      "title": "Cases gallery",
+      "summary": "{publicados} published · {pendientes} pending",
+      "uploadCase": "Upload case",
+      "loading": "Loading...",
+      "noCases": "No cases yet. Upload the first one.",
+      "publish": "Publish",
+      "unpublish": "Unpublish",
+      "delete": "Delete",
+      "confirmDelete": "Delete this case?",
+      "before": "BEFORE",
+      "after": "AFTER",
+      "badge": {
+        "published": "Published",
+        "pending": "Pending"
+      },
+      "modal": {
+        "title": "Upload case",
+        "treatment": "Treatment",
+        "description": "Description",
+        "descriptionPlaceholder": "Briefly describe the case...",
+        "duration": "Duration (optional)",
+        "durationPlaceholder": "Ex: 3 months, 1 session...",
+        "photoBefore": "BEFORE photo",
+        "photoAfter": "AFTER photo",
+        "uploadPhoto": "+ Upload photo",
+        "submit": "Upload case",
+        "submitting": "Uploading...",
+        "errorUpload": "Upload error"
+      }
+    },
+    "configuracion": {
+      "title": "AI Configuration",
+      "subtitle": "Customize the agent and run automatic follow-up",
+      "loading": "Loading configuration...",
+      "emptyValue": "Not configured",
+      "section": {
+        "agentTitle": "Agent personality",
+        "agentDesc": "System prompt that defines how the AI agent responds to patients",
+        "pricesTitle": "Price ranges",
+        "pricesDesc": "The agent uses these ranges to guide patients on costs",
+        "reminderTitle": "WhatsApp reminder message",
+        "reminderDesc": "Template for manual reminders. Variables: {nombre}, {hora}, {tratamiento}",
+        "waTitle": "WhatsApp number",
+        "waDesc": "Full number with country code (ex: 5491112345678)"
+      },
+      "follow": {
+        "title": "Automatic follow-up",
+        "desc": "Detects inactive patients, unconfirmed appointments and unfollowed leads. Generates alarms automatically.",
+        "execute": "▶ Run now",
+        "executing": "Running...",
+        "errorExecute": "Run error",
+        "alarmsGenerated": "{n, plural, =0 {0 alarms generated} one {# alarm generated} other {# alarms generated}}",
+        "metric": {
+          "inactivos": "Inactive patients",
+          "turnos_sin_confirmar": "Unconfirmed appointments",
+          "leads_sin_seguimiento": "Unfollowed leads",
+          "tratamientos_incompletos": "Incomplete treatments"
+        },
+        "rulesTitle": "Active rules",
+        "rules": {
+          "leads": "🔴 Leads with no activity in +24h → high alarm",
+          "appointments": "🔴 Unconfirmed appointments under 48h → high alarm",
+          "inactive": "🟡 Active patients with no appointment in +6 months → medium alarm",
+          "incomplete": "🟡 Orthodontics/implants with no next appointment → medium alarm"
+        }
+      }
+    },
+    "usuarios": {
+      "title": "Staff Users",
+      "newUser": "+ New user",
+      "loading": "Loading...",
+      "errorLoad": "Error loading staff",
+      "errorSave": "Error saving",
+      "errorReset": "Error resetting password",
+      "errorToggle": "Error deactivating user",
+      "errorRequired": "Complete name, email and role",
+      "errorPassword": "Password is required when creating",
+      "noUsers": "No staff users created",
+      "table": {
+        "name": "Name",
+        "email": "Email",
+        "role": "Role",
+        "specialties": "Specialties",
+        "state": "State",
+        "actions": "Actions"
+      },
+      "active": "Active",
+      "inactive": "Inactive",
+      "edit": "Edit",
+      "reset": "Reset",
+      "deactivate": "Deactiv.",
+      "activate": "Activate",
+      "modal": {
+        "createTitle": "New user",
+        "editTitle": "Edit user",
+        "name": "Name",
+        "email": "Email",
+        "role": "Role",
+        "specialties": "Specialties",
+        "password": "Password"
+      },
+      "promptResetPassword": "New password for {nombre}:"
+    },
+    "alarmas": {
+      "title": "Alarms",
+      "noAlarms": "No active alarms",
+      "markResolved": "Mark resolved"
+    }
+  }
+}
