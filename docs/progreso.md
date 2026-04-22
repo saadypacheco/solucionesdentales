@@ -334,6 +334,14 @@ paciente → /turnos/virtual → elige slot virtual → completa datos
 
 > Solicitado: 2026-04-22 · Permite operar en AR, BO, US con reglas distintas
 
+### Estado por fase
+
+- ✅ **Fase 1 (2026-04-22):** i18n completo con next-intl (es/en/pt-BR), 100% cobertura, detección automática
+- ✅ **Fase 2 (2026-04-22):** Schema multi-país + consultorio default — migraciones 013 y 014
+- 🔄 **Fase 3:** Backend multi-tenant (middleware FastAPI, routers adaptados, onboarding endpoints)
+- ⏸️ **Fase 4:** Frontend onboarding wizard + panel superadmin
+- ⏸️ **Fase 5:** Lock down (consultorio_id NOT NULL) + selector consultorio + idioma derivado del país
+
 **Decisiones tomadas:**
 - ✅ Países iniciales: Argentina, Bolivia, EE.UU.
 - ✅ Tabla `paises` con configuración de compliance por país
@@ -341,16 +349,15 @@ paciente → /turnos/virtual → elige slot virtual → completa datos
 - ✅ Onboarding wizard con upload de docs requeridos por país
 - ✅ Audit log universal (siempre activo, obligatorio en US)
 - ✅ Modelo IA configurable por país (Gemini para AR/BO, Claude vía AWS Bedrock con BAA para US)
+- ✅ **Idioma**: 4to idioma agregado pt-BR para futuro Brasil
+- ✅ **Estrategia migración**: aditiva (consultorio default id=1, datos existentes vinculados a AR sin pérdida)
+- ✅ **Modelo de paciente**: pertenece a UNA clínica (Modelo C de la conversación). Si va a otra, es otro paciente. Alineado con realidad médica AR/BO/US.
 
-### Migración SQL (014_compliance_multipais.sql)
-- [ ] Tabla `paises` (codigo PK, nombre, idioma, moneda, timezone, ley_referencia, autoridad, nivel_seguridad, requiere_baa, requiere_audit_log, requiere_consentimiento_explicito, retencion_datos_dias, requiere_firma_receta, notif_brecha_horas, modelo_ia_default)
-- [ ] Tabla `consultorios` (id, nombre, pais_codigo FK, odontologo_titular_id, estado_compliance, fecha_verificacion)
-- [ ] Tabla `documentos_requeridos_pais` (id, pais_codigo FK, tipo_documento, nombre_display, descripcion, obligatorio, link_tramite, vencimiento_meses)
-- [ ] Tabla `documentos_consultorio` (id, consultorio_id FK, tipo_documento, archivo_url, fecha_subida, estado, fecha_vencimiento, observaciones, revisado_por, revisado_at)
-- [ ] Tabla `audit_log` (id, consultorio_id FK, usuario_id, paciente_id, accion, recurso_tipo, recurso_id, ip_address, user_agent, created_at)
-- [ ] Tabla `consentimientos` (id, paciente_id, consultorio_id, tipo, version_texto, firmado_at, ip_address)
-- [ ] Agregar `consultorio_id` FK a tablas existentes: `pacientes`, `turnos`, `usuarios`, `casos_galeria`, `alarmas`
-- [ ] Bucket Supabase Storage `documentos_compliance` (privado, signed URLs)
+### Migración SQL (013 + 014) — DONE Fase 2
+- [x] Migración 013: tablas `paises`, `consultorios`, `documentos_requeridos_pais`, `documentos_consultorio`, `audit_log`, `consentimientos` + seeds AR/BO/US + 20 docs requeridos
+- [x] Migración 014: agrega `consultorio_id` (nullable + default 1) a `usuarios`, `pacientes`, `turnos`, `sesiones_agente`, `casos_galeria`, `alarmas`, `config_ia`, `interacciones`, `historial_clinico`, `tratamientos` + índices multi-tenant
+- [x] Consultorio default id=1 creado para preservar datos existentes
+- [ ] **Pendiente manual**: crear bucket Supabase Storage `documentos_compliance` (privado, signed URLs) — no se puede crear desde SQL
 
 ### Backend
 - [ ] `routers/compliance.py` — onboarding consultorio + upload docs
