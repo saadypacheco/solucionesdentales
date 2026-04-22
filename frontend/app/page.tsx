@@ -128,16 +128,16 @@ export default function Home() {
           }}
           aria-hidden="true"
         />
-        {/* Overlay paleta integrada: #071F1E 90% (izq donde va el texto) → transparente 20% (der donde están las personas) */}
+        {/* Overlay paleta integrada: protege el texto a la izquierda, deja ver las personas en el centro/derecha */}
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
-            background: "linear-gradient(to right, rgba(7, 31, 30, 0.9) 0%, rgba(7, 31, 30, 0.65) 45%, rgba(7, 31, 30, 0.2) 100%)",
+            background: "linear-gradient(to right, rgba(7, 31, 30, 0.88) 0%, rgba(7, 31, 30, 0.45) 40%, rgba(7, 31, 30, 0.05) 100%)",
           }}
           aria-hidden="true"
         />
-        {/* Fade vertical sutil arriba/abajo para integrar con secciones contiguas */}
-        <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-[#020d12]/60 via-transparent to-[#020d12]/85" aria-hidden="true" />
+        {/* Fade vertical sutil para integrar con navbar arriba y stats abajo */}
+        <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-[#020d12]/40 via-transparent to-[#020d12]/65" aria-hidden="true" />
 
         {/* Orbs */}
         <div className="absolute top-10 right-1/4 w-[500px] h-[500px] bg-teal-500/8 rounded-full blur-[120px] pointer-events-none" />
@@ -194,20 +194,10 @@ export default function Home() {
               </div>
             </div>
 
-            {/* — Cards flotantes — */}
-            <div className="hidden md:flex justify-center items-center relative h-80">
-              {/* Card central */}
-              <div className="glass rounded-3xl p-7 w-64 text-white text-center animate-float glow-teal">
-                <div className="text-5xl mb-4">😁</div>
-                <p className="font-bold text-lg tracking-tight">Tu nueva sonrisa</p>
-                <p className="text-slate-400 text-xs mt-1.5">Resultados reales de pacientes</p>
-                <div className="flex justify-center gap-0.5 mt-3">
-                  {[1,2,3,4,5].map(i => <span key={i} className="text-yellow-400 text-sm">★</span>)}
-                </div>
-              </div>
-
-              {/* Turno confirmado */}
-              <div className="absolute -top-6 right-0 glass-white rounded-2xl px-4 py-3 shadow-2xl animate-float-slow">
+            {/* — Cards flotantes — distribuidas en bordes para no tapar caras */}
+            <div className="hidden md:block relative h-80">
+              {/* Turno confirmado — esquina superior derecha */}
+              <div className="absolute top-0 right-0 glass-white rounded-2xl px-4 py-3 shadow-2xl animate-float-slow">
                 <div className="flex items-center gap-2.5">
                   <div className="w-8 h-8 bg-teal-50 rounded-full flex items-center justify-center flex-shrink-0">
                     <span className="text-sm">✅</span>
@@ -219,8 +209,14 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* Paciente nuevo */}
-              <div className="absolute -bottom-4 -left-4 glass-white rounded-2xl px-4 py-3 shadow-2xl" style={{ animation: 'float-slow 10s ease-in-out infinite' }}>
+              {/* Stat 500+ — esquina superior izquierda (compacta) */}
+              <div className="absolute top-2 left-0 glass rounded-2xl px-4 py-3 text-white text-center animate-float">
+                <p className="text-2xl font-black number-display text-teal-400">500+</p>
+                <p className="text-[10px] text-slate-400">pacientes</p>
+              </div>
+
+              {/* Paciente nuevo — esquina inferior izquierda */}
+              <div className="absolute bottom-0 left-2 glass-white rounded-2xl px-4 py-3 shadow-2xl" style={{ animation: 'float-slow 10s ease-in-out infinite' }}>
                 <div className="flex items-center gap-2.5">
                   <div className="w-8 h-8 bg-teal-100 rounded-full flex items-center justify-center text-sm flex-shrink-0">👤</div>
                   <div>
@@ -230,10 +226,16 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* Stat */}
-              <div className="absolute top-1/2 -right-10 glass rounded-2xl px-4 py-3 text-white text-center">
-                <p className="text-2xl font-black number-display text-teal-400">500+</p>
-                <p className="text-[10px] text-slate-400">pacientes</p>
+              {/* Tu nueva sonrisa — esquina inferior derecha, más compacta */}
+              <div className="absolute bottom-0 right-0 glass rounded-2xl p-4 w-52 text-white text-center animate-float glow-teal">
+                <div className="flex items-center justify-center gap-2 mb-1.5">
+                  <span className="text-2xl">😁</span>
+                  <p className="font-bold text-sm tracking-tight">Tu nueva sonrisa</p>
+                </div>
+                <div className="flex justify-center gap-0.5">
+                  {[1,2,3,4,5].map(i => <span key={i} className="text-yellow-400 text-xs">★</span>)}
+                </div>
+                <p className="text-slate-400 text-[10px] mt-1">Resultados reales</p>
               </div>
             </div>
           </div>
