@@ -139,6 +139,12 @@
         "q4": { "q": "Do you handle emergencies without appointment?", "a": "Yes. For emergencies contact us directly via WhatsApp and we'll see you the same day." }
       }
     },
+    "stats": {
+      "patients": { "valor": "+500", "label": "Patients treated" },
+      "experience": { "valor": "10 years", "label": "Of experience" },
+      "satisfaction": { "valor": "98%", "label": "Satisfaction" },
+      "waitTime": { "valor": "<24h", "label": "Wait time" }
+    },
     "footer": {
       "tagline": "Excellence dental office in Buenos Aires. Cutting-edge technology for your best smile.",
       "ctaWa": "Message us on WhatsApp",

@@ -187,15 +187,10 @@ export default function Home() {
         <div className="max-w-6xl mx-auto relative z-10 mt-20">
           <div className="divider-teal mb-10" />
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            {[
-              { valor: '+500', label: 'Pacientes atendidos' },
-              { valor: '10 años', label: 'De experiencia' },
-              { valor: '98%', label: 'Satisfacción' },
-              { valor: '<24hs', label: 'Tiempo de espera' },
-            ].map((s) => (
-              <div key={s.label}>
-                <p className="text-3xl font-black text-white number-display tracking-tight">{s.valor}</p>
-                <p className="text-slate-500 text-sm mt-1">{s.label}</p>
+            {(['patients', 'experience', 'satisfaction', 'waitTime'] as const).map((key) => (
+              <div key={key}>
+                <p className="text-3xl font-black text-white number-display tracking-tight">{t(`stats.${key}.valor`)}</p>
+                <p className="text-slate-500 text-sm mt-1">{t(`stats.${key}.label`)}</p>
               </div>
             ))}
           </div>

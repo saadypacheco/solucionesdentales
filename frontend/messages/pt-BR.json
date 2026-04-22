@@ -139,6 +139,12 @@
         "q4": { "q": "Atendem emergências sem agendamento?", "a": "Sim. Para emergências entre em contato direto pelo WhatsApp e atendemos no mesmo dia." }
       }
     },
+    "stats": {
+      "patients": { "valor": "+500", "label": "Pacientes atendidos" },
+      "experience": { "valor": "10 anos", "label": "De experiência" },
+      "satisfaction": { "valor": "98%", "label": "Satisfação" },
+      "waitTime": { "valor": "<24h", "label": "Tempo de espera" }
+    },
     "footer": {
       "tagline": "Consultório odontológico de excelência em Buenos Aires. Tecnologia de ponta para o seu melhor sorriso.",
       "ctaWa": "Fale conosco no WhatsApp",
