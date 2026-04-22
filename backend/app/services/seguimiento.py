@@ -5,6 +5,17 @@ Se ejecuta manualmente desde admin o puede conectarse a un cron externo.
 """
 from datetime import datetime, timedelta, timezone
 from app.db.client import get_supabase_client
+from app.core.encryption import decrypt
+
+
+def _telefono_legible(p: dict) -> str:
+    """Devuelve el teléfono desencriptado si existe; sino el plano; sino ''."""
+    enc = p.get("telefono_enc")
+    if enc:
+        plain = decrypt(enc)
+        if plain:
+            return plain
+    return p.get("telefono") or ""
 
 
 def _ya_tiene_alarma(db, tipo: str, paciente_id: int | None) -> bool:
@@ -46,7 +57,7 @@ def ejecutar_seguimiento() -> dict:
     # Busca pacientes activos cuyo último turno fue hace más de 6 meses
     limite_inactividad = (ahora - timedelta(days=180)).isoformat()
     pacientes_activos = db.table("pacientes") \
-        .select("id, nombre, telefono") \
+        .select("id, nombre, telefono, telefono_enc") \
         .eq("estado", "paciente_activo") \
         .execute().data or []
 
@@ -63,7 +74,7 @@ def ejecutar_seguimiento() -> dict:
             _crear_alarma(
                 db,
                 tipo="reactivacion",
-                titulo=f"Paciente inactivo: {p['nombre'] or p['telefono']}",
+                titulo=f"Paciente inactivo: {p['nombre'] or _telefono_legible(p)}",
                 descripcion="Sin turno realizado en más de 6 meses. Candidato a campaña de reactivación.",
                 prioridad="media",
                 paciente_id=p["id"],
@@ -95,7 +106,7 @@ def ejecutar_seguimiento() -> dict:
     # Pacientes en estado 'nuevo' o 'contactado' sin actividad reciente
     limite_lead = (ahora - timedelta(hours=24)).isoformat()
     leads = db.table("pacientes") \
-        .select("id, nombre, telefono, updated_at, created_at") \
+        .select("id, nombre, telefono, telefono_enc, updated_at, created_at") \
         .in_("estado", ["nuevo", "interesado"]) \
         .execute().data or []
 
@@ -105,7 +116,7 @@ def ejecutar_seguimiento() -> dict:
             _crear_alarma(
                 db,
                 tipo="lead_sin_seguimiento",
-                titulo=f"Lead sin seguimiento: {p['nombre'] or p['telefono']}",
+                titulo=f"Lead sin seguimiento: {p['nombre'] or _telefono_legible(p)}",
                 descripcion="Más de 24hs sin actividad. Contactar para no perder el interés.",
                 prioridad="alta",
                 paciente_id=p["id"],

@@ -2,16 +2,59 @@
 
 ## Status
 
-🔄 **En Desarrollo** — Requerimiento agregado por usuario en fase 2
+✅ **Implementado** (2026-04-22) — Fernet (AES-128-CBC + HMAC-SHA256) a nivel app.
 
-## Qué necesita ser encriptado
+## Qué está encriptado
 
-Según requisitos:
-- [ ] Números de teléfono (pacientes)
-- [ ] Emails (pacientes)
-- [ ] Datos personales en historial clínico
-- [ ] Notas de turnos (si contienen info sensible)
-- [ ] OTPs (tabla paciente_otps)
+| Tabla | Campo plano | Campo encriptado | Hash determinístico |
+|---|---|---|---|
+| `pacientes` | `telefono` (legacy) | `telefono_enc` | `telefono_hash` |
+| `pacientes` | `email` (legacy) | `email_enc` | `email_hash` |
+| `paciente_otps` | `telefono` (legacy) | — | `telefono_hash` |
+| `paciente_otps` | `codigo` (legacy) | `codigo_enc` | — |
+| `turnos` | `notas` (legacy) | `notas_enc` | — |
+| `usuarios` | `email` (Supabase Auth) | `email_enc` | — |
+
+Pendiente para fase 3:
+- [ ] Datos personales en historial clínico (cuando se implemente M6)
+
+## Cómo funciona (resumen rápido)
+
+- **Fernet** para encriptación: `cryptography.fernet.Fernet`. Token ASCII, incluye HMAC.
+- **SHA-256(valor + HASH_SALT)** para búsqueda determinística por igualdad.
+- Helpers en [backend/app/core/encryption.py](../backend/app/core/encryption.py)
+- Hidratación en respuestas: [backend/app/core/paciente_helpers.py](../backend/app/core/paciente_helpers.py)
+- Backfill en startup: [backend/scripts/encrypt_backfill.py](../backend/scripts/encrypt_backfill.py)
+
+## Setup en producción
+
+```bash
+# 1. Generar las claves (una sola vez, guardarlas en password manager)
+python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+python -c "import secrets; print(secrets.token_urlsafe(32))"
+
+# 2. Agregar a backend/.env del VPS:
+ENCRYPTION_KEY=<la-key-generada>
+HASH_SALT=<el-salt-generado>
+RUN_ENCRYPTION_BACKFILL=true
+
+# 3. Aplicar migración 012 en Supabase SQL Editor
+
+# 4. Reiniciar backend — el startup correrá el backfill idempotente
+docker compose restart dentales-backend
+
+# 5. Verificar logs:
+docker compose logs dentales-backend | grep -i backfill
+
+# 6. Después del primer arranque exitoso, podés desactivar el backfill:
+RUN_ENCRYPTION_BACKFILL=false
+```
+
+## ⚠️ Riesgos críticos
+
+1. **Si perdés `ENCRYPTION_KEY`, los datos encriptados son irrecuperables.** Guardala fuera del VPS (password manager + backup en otro lugar).
+2. **Si cambiás `HASH_SALT`, los hashes existentes ya no coinciden** → no podrás buscar pacientes por teléfono. Solo cambiar con migración explícita que recalcule todos los hashes.
+3. **Backfill no es transaccional**: si se interrumpe, hay registros mixtos (encrypted + plano). Es seguro reanudar — el script es idempotente (skip si ya tiene `_enc`).
 
 ## Enfoques considerados
 

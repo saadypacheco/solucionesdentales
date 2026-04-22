@@ -1,11 +1,32 @@
+import logging
+import os
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.routers import auth, turnos, pacientes, agente, casos, admin, alarmas
+
+log = logging.getLogger(__name__)
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Backfill de encriptación al arrancar (idempotente, configurable por env)
+    if os.getenv("RUN_ENCRYPTION_BACKFILL", "false").lower() == "true":
+        try:
+            from scripts.encrypt_backfill import run as run_backfill
+            resumen = run_backfill()
+            log.info("Backfill encriptación completado: %s", resumen)
+        except Exception as e:
+            log.exception("Backfill encriptación falló: %s", e)
+    yield
+
 
 app = FastAPI(
     title="Soluciones Dentales API",
     description="API para sistema de gestión odontológica",
     version="0.1.0",
+    lifespan=lifespan,
 )
 
 app.add_middleware(

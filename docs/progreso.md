@@ -1,6 +1,6 @@
 # Progreso — Soluciones Dentales
 
-> Última actualización: 2026-04-09
+> Última actualización: 2026-04-21
 
 ---
 
@@ -165,6 +165,234 @@ Próximo paso: Deploy a producción + testeo end-to-end
 ### HTTPS backend (opcional, después del launch inicial)
 - Opción A: Certbot + Nginx como reverse proxy
 - Opción B: Cloudflare como CDN (recomendado)
+
+---
+
+## Pendientes adicionales — gaps detectados (2026-04-21)
+
+### 🔴 Críticos antes de producción
+
+- [x] **Encriptación de datos sensibles (PDPA Argentina) — implementado 2026-04-22**
+  - ✅ `cryptography==42.0.5` agregado a requirements
+  - ✅ Fernet (Opción B) en `backend/app/core/encryption.py`
+  - ✅ Encriptados: `pacientes.telefono/email`, `paciente_otps.codigo`, `turnos.notas`, `usuarios.email`
+  - ✅ Hashes determinísticos `_hash` para búsqueda sin desencriptar
+  - ✅ Migración 012 aditiva (no rompe data existente)
+  - ✅ Backfill automático en startup vía `RUN_ENCRYPTION_BACKFILL=true`
+  - ✅ `ENCRYPTION_KEY` y `HASH_SALT` en `backend/.env`
+  - ⚠️ **Pendiente en VPS:** ejecutar migración 012 + reiniciar backend con env vars
+
+- [ ] **Historial Clínico (M6)**
+  - Tablas `historial_clinico` y `tratamientos` existen pero sin uso
+  - Crear `backend/app/routers/historial.py` con CRUD
+  - Crear endpoints `GET/POST/PATCH /admin/historial/{paciente_id}`
+  - Crear endpoints `GET/POST/PATCH /admin/tratamientos`
+  - Implementar página `frontend/app/admin/historial/` (carpeta vacía actualmente)
+  - Vista por paciente: alergias, medicación, antecedentes, tratamientos
+  - Solo accesible para roles `admin` y `odontologo`
+
+### 🟡 Importantes — cumplir spec original
+
+- [ ] **Chat IA con streaming/Realtime**
+  - Regla crítica #5 de AGENTS.md no cumplida
+  - ChatWidget actual usa POST bloqueante → UX pobre con respuestas largas
+  - Migrar a Gemini streaming (Server-Sent Events) o Supabase Realtime
+  - Mostrar tokens en vivo en lugar de typing indicator estático
+
+- [ ] **Métricas avanzadas (M10 sección 9)**
+  - Conversión por etapa: visitante → chat → presupuesto → turno → asistencia
+  - Abandono en chat (mensajes enviados sin respuesta)
+  - Efectividad del seguimiento automático (alarmas resueltas / generadas)
+  - Crear página `/admin/metricas` con gráficos
+
+- [ ] **Recordatorios automáticos 24h antes (M5)**
+  - Verificar que `seguimiento.py` no solo crea alarma sino que arma link WhatsApp listo
+  - Idealmente: cron diario que dispare alarmas + admin con un click envía WA
+
+### 🟢 Fase 3 — post-launch
+
+- [ ] **Diagnóstico digital IA (M2)**
+  - Paciente sube foto de la zona afectada
+  - Gemini Vision analiza y da pre-diagnóstico orientativo
+  - Adjunta a la sesión del agente
+
+- [ ] **Tests backend**
+  - `pytest` está en requirements pero `backend/tests/` no existe
+  - Crear tests para flujos críticos: crear turno, OTP, encriptación, RLS
+
+---
+
+## Telemedicina (nuevo módulo — M11)
+
+> Solicitado: 2026-04-21 · Decisiones de scope: 2026-04-21
+
+**Decisiones tomadas:**
+- ✅ **Plataforma de video:** Jitsi `meet.jit.si` hosted con lobby activado
+- ✅ **Pago:** previo al turno, vía QR (transferencia/Mercado Pago QR estático) + paciente sube comprobante manual
+- ✅ **Alcance:** primera consulta virtual con pago obligatorio + consultas de seguimiento virtuales con costo menor
+- ✅ **Chat asincrónico:** paciente ↔ odontólogo entre consultas
+- ✅ **Recetas:** PDF simple con datos del odontólogo (sin firma electrónica certificada)
+- ✅ **Historial:** mantener registro de todas las consultas virtuales
+- ✅ **Precio:** configurable por odontólogo (tabla aparte `precios_telemedicina`)
+- ✅ **File share durante consulta:** función nativa de Jitsi (drag & drop en el chat de la sala)
+- ✅ **Notificaciones:** sala de espera (Jitsi lobby) + notificaciones para virtuales y presenciales, tanto a paciente como a odontólogo → ver módulo M12 (transversal)
+
+**Backlog técnico:**
+
+### Migración SQL (012_telemedicina.sql)
+- [ ] `turnos.modalidad` ENUM('presencial','virtual') DEFAULT 'presencial'
+- [ ] `turnos.es_primera_consulta` BOOLEAN DEFAULT FALSE
+- [ ] `turnos.precio` DECIMAL(10,2)
+- [ ] `turnos.estado_pago` ENUM('no_aplica','pendiente','comprobante_subido','verificado','rechazado')
+- [ ] `turnos.comprobante_url` TEXT
+- [ ] `turnos.jitsi_room` TEXT
+- [ ] `turnos.jitsi_password` TEXT (lobby + password)
+- [ ] `turnos.fecha_pago_verificado` TIMESTAMP
+- [ ] Tabla `recetas` (id, turno_id, paciente_id, odontologo_id, contenido, pdf_url, created_at)
+- [ ] Tabla `chat_paciente_odontologo` (id, paciente_id, odontologo_id, mensaje, archivo_url, autor, leido, created_at)
+- [ ] Tabla `precios_telemedicina` (id, odontologo_id FK usuarios, precio_primera_consulta DECIMAL, precio_seguimiento DECIMAL, qr_pago_url TEXT, datos_transferencia TEXT, activo BOOLEAN)
+
+### Backend
+- [ ] `routers/telemedicina.py` — endpoints turnos virtuales
+- [ ] `POST /turnos/virtual` — crear con `estado_pago='pendiente'`
+- [ ] `POST /turnos/{id}/comprobante` — upload a Supabase Storage
+- [ ] `PATCH /admin/turnos/{id}/verificar-pago` — aprobar/rechazar, dispara generación Jitsi room
+- [ ] `GET /turnos/{id}/sala` — devuelve URL Jitsi solo si pago verificado
+- [ ] `routers/recetas.py` — `POST /admin/recetas` + `GET /paciente/recetas`
+- [ ] `routers/chat.py` — `POST /chat/mensaje` + `GET /chat/conversaciones`
+- [ ] `services/jitsi.py` — generar room name único (UUID hash)
+- [ ] `services/pdf_recetas.py` — generar PDF (reportlab o weasyprint)
+- [ ] Bucket Supabase Storage `comprobantes` (privado, signed URLs)
+- [ ] Bucket Supabase Storage `recetas` (privado, signed URLs)
+
+### Frontend
+- [ ] `/turnos/virtual` — flow completo: tratamiento → slot → datos → QR pago → upload comprobante → confirmación
+- [ ] `/mis-turnos` — agregar botón "Entrar a sala" para virtuales con pago verificado
+- [ ] Componente `<JitsiSala>` con iframe + jitsi-meet API
+- [ ] `/mis-recetas` — paciente descarga PDFs
+- [ ] `/mi-chat` — chat async paciente ↔ odontólogo
+- [ ] `/admin/pagos` — verificar comprobantes pendientes (aprobar/rechazar)
+- [ ] `/admin/recetas` — crear/listar recetas con form pre-poblado
+- [ ] `/admin/chat` — bandeja de mensajes con badge de no leídos
+- [ ] `/admin/configuracion` — agregar sección telemedicina (precios + QR)
+
+### Flujos críticos
+```
+Primera consulta virtual:
+paciente → /turnos/virtual → elige slot virtual → completa datos
+  → POST /turnos/virtual (precio + estado_pago='pendiente')
+  → muestra QR de pago + datos de transferencia
+  → paciente paga + sube comprobante
+  → POST /turnos/{id}/comprobante (estado_pago='comprobante_subido')
+  → admin verifica en /admin/pagos
+  → PATCH /admin/turnos/{id}/verificar-pago (genera jitsi_room, estado_pago='verificado')
+  → email/WA al paciente con link a /mis-turnos
+  → en horario, paciente entra a sala Jitsi
+  → al finalizar, odontólogo crea receta en /admin/recetas
+  → paciente descarga en /mis-recetas
+```
+
+---
+
+## Notificaciones (nuevo módulo transversal — M12)
+
+> Solicitado: 2026-04-21 · Cubre virtuales y presenciales
+
+**Decisiones tomadas:**
+- ✅ Notificación a **paciente y odontólogo** para turnos virtuales y presenciales
+- ✅ Lobby de Jitsi para virtuales (paciente espera → notif al odontólogo)
+
+### Migración SQL (013_notificaciones.sql)
+- [ ] Tabla `notificaciones` (id, usuario_id nullable, paciente_id nullable, tipo, titulo, mensaje, link, leida BOOLEAN, created_at)
+- [ ] Tipos: `recordatorio_24h`, `paciente_llego_lobby`, `paciente_llego_recepcion`, `medico_listo`, `nuevo_chat`, `pago_verificado`, `comprobante_recibido`, `receta_disponible`
+
+### Backend
+- [ ] `routers/notificaciones.py` — CRUD básico
+- [ ] `GET /notificaciones/mias` — para staff (filtrado por usuario_id) y paciente (filtrado por JWT)
+- [ ] `PATCH /notificaciones/{id}/leida`
+- [ ] `services/notificaciones.py` — helper `crear_notificacion(...)` reusable
+- [ ] Hook en `POST /turnos/{id}/comprobante` → notif a admin
+- [ ] Hook en `PATCH /admin/turnos/{id}/verificar-pago` → notif a paciente
+- [ ] Hook en `POST /chat/mensaje` → notif al destinatario
+- [ ] Hook en check-in lobby Jitsi → notif al odontólogo (necesita endpoint `POST /turnos/{id}/check-in`)
+- [ ] Cron diario: notif `recordatorio_24h` para todos los turnos del día siguiente
+
+### Frontend
+- [ ] Componente `<NotifBell>` en navbar admin y en `/mis-turnos` (badge con contador)
+- [ ] Dropdown con últimas 10 notif + link "Ver todas"
+- [ ] Página `/admin/notificaciones` y `/mis-notificaciones`
+- [ ] Supabase Realtime subscribe a tabla `notificaciones` filtrada por usuario_id/paciente_id
+- [ ] Toast in-app cuando llega notif nueva con sonido opcional
+
+### Recordatorio presencial — flujo "paciente llegó"
+- [ ] Botón en `/admin/agenda` "Marcar llegada" en cada turno presencial
+- [ ] `POST /admin/turnos/{id}/check-in` → crea notif al odontólogo asignado
+
+---
+
+## Multi-país compliance (nuevo módulo — M13)
+
+> Solicitado: 2026-04-22 · Permite operar en AR, BO, US con reglas distintas
+
+**Decisiones tomadas:**
+- ✅ Países iniciales: Argentina, Bolivia, EE.UU.
+- ✅ Tabla `paises` con configuración de compliance por país
+- ✅ Tabla `consultorios` multi-tenant con FK a país
+- ✅ Onboarding wizard con upload de docs requeridos por país
+- ✅ Audit log universal (siempre activo, obligatorio en US)
+- ✅ Modelo IA configurable por país (Gemini para AR/BO, Claude vía AWS Bedrock con BAA para US)
+
+### Migración SQL (014_compliance_multipais.sql)
+- [ ] Tabla `paises` (codigo PK, nombre, idioma, moneda, timezone, ley_referencia, autoridad, nivel_seguridad, requiere_baa, requiere_audit_log, requiere_consentimiento_explicito, retencion_datos_dias, requiere_firma_receta, notif_brecha_horas, modelo_ia_default)
+- [ ] Tabla `consultorios` (id, nombre, pais_codigo FK, odontologo_titular_id, estado_compliance, fecha_verificacion)
+- [ ] Tabla `documentos_requeridos_pais` (id, pais_codigo FK, tipo_documento, nombre_display, descripcion, obligatorio, link_tramite, vencimiento_meses)
+- [ ] Tabla `documentos_consultorio` (id, consultorio_id FK, tipo_documento, archivo_url, fecha_subida, estado, fecha_vencimiento, observaciones, revisado_por, revisado_at)
+- [ ] Tabla `audit_log` (id, consultorio_id FK, usuario_id, paciente_id, accion, recurso_tipo, recurso_id, ip_address, user_agent, created_at)
+- [ ] Tabla `consentimientos` (id, paciente_id, consultorio_id, tipo, version_texto, firmado_at, ip_address)
+- [ ] Agregar `consultorio_id` FK a tablas existentes: `pacientes`, `turnos`, `usuarios`, `casos_galeria`, `alarmas`
+- [ ] Bucket Supabase Storage `documentos_compliance` (privado, signed URLs)
+
+### Backend
+- [ ] `routers/compliance.py` — onboarding consultorio + upload docs
+- [ ] `POST /consultorios/onboarding` — crea consultorio en estado 'onboarding'
+- [ ] `GET /consultorios/{id}/checklist` — devuelve docs requeridos según país
+- [ ] `POST /consultorios/{id}/documentos` — upload doc
+- [ ] `routers/superadmin.py` — endpoints internos del SaaS
+- [ ] `GET /superadmin/consultorios?estado=pendiente_revision`
+- [ ] `PATCH /superadmin/documentos/{id}` — aprobar/rechazar
+- [ ] `services/compliance.py` — verificar completitud, calcular siguiente acción
+- [ ] `services/audit.py` — helper `log_action(...)` reusable
+- [ ] Middleware FastAPI: si país requiere audit log → log automático
+- [ ] Middleware: si país requiere consentimiento → bloquear si paciente no firmó
+
+### Frontend
+- [ ] `/onboarding` — wizard de 5 pasos con upload
+- [ ] Componente `<DocumentoUpload>` con preview y estado
+- [ ] `/admin/configuracion/compliance` — ver estado y subir docs faltantes/vencidos
+- [ ] `/superadmin/consultorios` — panel del SaaS para revisar pendientes
+- [ ] Selector de país en signup con docs dinámicos
+
+### Seeds iniciales
+- [ ] AR: matricula_colegio, habilitacion_municipal, inscripcion_afip_cuit, inscripcion_aaip, politica_privacidad
+- [ ] BO: nit, matricula_cdb, autorizacion_sedes, licencia_municipal, registro_sanitario, certificado_bioseguridad
+- [ ] US: state_dental_license, npi, business_registration, malpractice_insurance, hipaa_risk_assessment, baa_supabase, baa_vercel, privacy_notice, breach_procedure
+
+### Reglas por país (seed `paises`)
+| Campo | AR | BO | US |
+|---|---|---|---|
+| nivel_seguridad | critico | medio | critico |
+| requiere_baa | false | false | true |
+| requiere_audit_log | false | false | true |
+| requiere_consentimiento_explicito | true | true | true |
+| retencion_datos_dias | 1825 (5 años) | 1825 | 2190 (6 años HIPAA) |
+| requiere_firma_receta | true | false | varía por estado |
+| notif_brecha_horas | NULL | NULL | 72 |
+| modelo_ia_default | gemini-2.0-flash | gemini-2.0-flash | claude-sonnet-4-6 |
+
+**Decisiones pendientes:**
+- ¿Quién es el "superadmin" del SaaS que revisa docs? (vos directamente, o un rol específico)
+- ¿El paciente cambia de consultorio o cada paciente pertenece a uno solo?
+- Para US, ¿usamos Anthropic vía AWS Bedrock con BAA, o evaluamos Azure OpenAI?
 
 ---
 

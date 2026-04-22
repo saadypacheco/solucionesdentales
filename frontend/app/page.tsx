@@ -120,6 +120,18 @@ export default function Home() {
 
       {/* ══ HERO ═════════════════════════════════════════════ */}
       <section className="gradient-hero noise relative overflow-hidden pt-36 pb-32 px-4">
+        {/* Foto de fondo — reemplazar por /hero-smile.jpg cuando subas la propia */}
+        <div
+          className="absolute inset-0 pointer-events-none bg-cover bg-center opacity-40"
+          style={{
+            backgroundImage: "url('https://images.unsplash.com/photo-1606811971618-4486d14f3f99?w=1920&q=80&auto=format&fit=crop')",
+          }}
+          aria-hidden="true"
+        />
+        {/* Overlay para contraste del texto: oscuro a la izquierda → transparente a la derecha */}
+        <div className="absolute inset-0 pointer-events-none bg-gradient-to-r from-[#020d12] via-[#020d12]/85 to-[#020d12]/30" aria-hidden="true" />
+        <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-[#020d12] via-transparent to-transparent" aria-hidden="true" />
+
         {/* Orbs */}
         <div className="absolute top-10 right-1/4 w-[500px] h-[500px] bg-teal-500/8 rounded-full blur-[120px] pointer-events-none" />
         <div className="absolute bottom-0 left-0 w-80 h-80 bg-teal-400/6 rounded-full blur-[80px] pointer-events-none" />

@@ -5,6 +5,10 @@ import uuid
 from app.db.client import get_supabase_client
 from app.routers.auth import require_admin
 from app.services.seguimiento import ejecutar_seguimiento
+from app.core.paciente_helpers import (
+    hidratar_lista_pacientes,
+    hidratar_lista_turnos,
+)
 from supabase import Client
 
 router = APIRouter(prefix="/admin", tags=["admin"], redirect_slashes=False)
@@ -16,7 +20,8 @@ def get_db() -> Client:
 
 @router.get("/pacientes")
 async def listar_pacientes(db: Client = Depends(get_db), _: None = Depends(require_admin)):
-    return db.table("pacientes").select("*").order("created_at", desc=True).execute().data or []
+    res = db.table("pacientes").select("*").order("created_at", desc=True).execute()
+    return hidratar_lista_pacientes(res.data or [])
 
 
 @router.patch("/pacientes/{paciente_id}/estado")
@@ -42,11 +47,14 @@ async def listar_turnos(
     _: None = Depends(require_admin),
 ):
     """Lista turnos. Si se pasa fecha (YYYY-MM-DD), filtra ese día."""
-    query = db.table("turnos").select("*, pacientes(nombre, telefono)")
+    query = db.table("turnos").select(
+        "*, pacientes(id, nombre, telefono, telefono_enc, telefono_hash, email, email_enc, email_hash)"
+    )
     if fecha:
         query = query.gte("fecha_hora", f"{fecha}T00:00:00") \
                      .lte("fecha_hora", f"{fecha}T23:59:59")
-    return query.order("fecha_hora").execute().data or []
+    res = query.order("fecha_hora").execute()
+    return hidratar_lista_turnos(res.data or [])
 
 
 @router.patch("/turnos/{turno_id}")

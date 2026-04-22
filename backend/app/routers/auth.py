@@ -7,6 +7,14 @@ import os
 import jwt as pyjwt
 from datetime import datetime, timedelta, timezone
 from app.db.client import get_supabase_client
+from app.core.encryption import (
+    decrypt,
+    encrypt,
+    hash_for_search,
+    normalize_email,
+    normalize_phone,
+)
+from app.core.paciente_helpers import hidratar_paciente, hidratar_lista_pacientes
 from supabase import Client
 
 router = APIRouter(prefix="/auth", tags=["auth"], redirect_slashes=False)
@@ -97,9 +105,11 @@ async def register(req: RegisterRequest, db: Client = Depends(get_db),
             "password": req.password,
             "email_confirm": True,
         })
+        email_norm = normalize_email(req.email)
         data = {
             "id": auth_res.user.id,
-            "email": req.email,
+            "email": email_norm,        # plano para compat con Supabase Auth (login)
+            "email_enc": encrypt(email_norm),
             "nombre": req.nombre,
             "rol": req.rol,
         }
@@ -159,38 +169,52 @@ def require_paciente(
     return _verificar_token_paciente(credentials.credentials)
 
 
+def _buscar_paciente_por_telefono(db: Client, tel_norm: str):
+    """Busca paciente por hash (encriptado) con fallback a plano."""
+    tel_hash = hash_for_search(tel_norm)
+    res = db.table("pacientes").select(
+        "id, nombre, telefono, telefono_enc, telefono_hash, email, email_enc, email_hash, estado, score"
+    ).eq("telefono_hash", tel_hash).execute()
+    if res.data:
+        return res.data[0]
+    res = db.table("pacientes").select(
+        "id, nombre, telefono, telefono_enc, telefono_hash, email, email_enc, email_hash, estado, score"
+    ).eq("telefono", tel_norm).execute()
+    return res.data[0] if res.data else None
+
+
 @router.post("/otp/enviar")
 async def otp_enviar(req: OTPEnviarRequest, db: Client = Depends(get_db)):
     """
     Genera un código OTP de 4 dígitos para el teléfono dado.
-    Devuelve un link de WhatsApp con el código pre-armado para que el
-    admin (o el propio sistema) lo envíe.
-    Como no tenemos API de WhatsApp, el código se muestra en pantalla
-    y también se puede enviar por WA manualmente.
+    Busca paciente por hash determinístico (sin desencriptar toda la tabla).
     """
-    telefono = req.telefono.strip()
+    tel_norm = normalize_phone(req.telefono)
+    if not tel_norm:
+        raise HTTPException(status_code=400, detail="Teléfono inválido")
 
-    # Verificar que el paciente existe
-    res = db.table("pacientes").select("id, nombre").eq("telefono", telefono).execute()
-    if not res.data:
+    paciente = _buscar_paciente_por_telefono(db, tel_norm)
+    if not paciente:
         raise HTTPException(
             status_code=404,
             detail="No encontramos ningún turno registrado con ese teléfono."
         )
 
-    paciente = res.data[0]
+    tel_hash = hash_for_search(tel_norm)
 
-    # Invalidar OTPs anteriores del mismo teléfono
+    # Invalidar OTPs anteriores del mismo teléfono (busco por hash y por plano)
     db.table("paciente_otps").update({"usado": True}) \
-        .eq("telefono", telefono).eq("usado", False).execute()
+        .eq("telefono_hash", tel_hash).eq("usado", False).execute()
+    db.table("paciente_otps").update({"usado": True}) \
+        .eq("telefono", tel_norm).eq("usado", False).execute()
 
     # Generar código de 4 dígitos
     codigo = str(random.randint(1000, 9999))
     expires_at = (datetime.now(timezone.utc) + timedelta(minutes=OTP_EXPIRY_MINUTES)).isoformat()
 
     db.table("paciente_otps").insert({
-        "telefono": telefono,
-        "codigo": codigo,
+        "telefono_hash": tel_hash,
+        "codigo_enc": encrypt(codigo),
         "expires_at": expires_at,
     }).execute()
 
@@ -210,36 +234,49 @@ async def otp_enviar(req: OTPEnviarRequest, db: Client = Depends(get_db)):
 @router.post("/otp/verificar")
 async def otp_verificar(req: OTPVerificarRequest, db: Client = Depends(get_db)):
     """Verifica el código OTP y devuelve un JWT de paciente."""
-    telefono = req.telefono.strip()
+    tel_norm = normalize_phone(req.telefono)
+    if not tel_norm:
+        raise HTTPException(status_code=400, detail="Teléfono inválido")
+
+    tel_hash = hash_for_search(tel_norm)
     ahora = datetime.now(timezone.utc).isoformat()
 
-    otp = db.table("paciente_otps").select("*") \
-        .eq("telefono", telefono) \
-        .eq("codigo", req.codigo) \
+    # Buscar OTPs válidos por hash; comparar código desencriptando uno por uno.
+    # Nota: esto desencripta solo los OTPs activos del teléfono (≤ 10 min, ≤ unos pocos),
+    # no toda la tabla. Performance OK incluso con miles de pacientes.
+    otps = db.table("paciente_otps").select("*") \
+        .or_(f"telefono_hash.eq.{tel_hash},telefono.eq.{tel_norm}") \
         .eq("usado", False) \
         .gte("expires_at", ahora) \
         .order("created_at", desc=True) \
-        .limit(1) \
+        .limit(5) \
         .execute()
 
-    if not otp.data:
+    otp_match = None
+    for o in (otps.data or []):
+        # Código puede estar encriptado o en plano (transición)
+        codigo_real = decrypt(o.get("codigo_enc")) if o.get("codigo_enc") else o.get("codigo")
+        if codigo_real == req.codigo:
+            otp_match = o
+            break
+
+    if not otp_match:
         raise HTTPException(status_code=400, detail="Código incorrecto o expirado")
 
     # Marcar como usado
-    db.table("paciente_otps").update({"usado": True}).eq("id", otp.data[0]["id"]).execute()
+    db.table("paciente_otps").update({"usado": True}).eq("id", otp_match["id"]).execute()
 
-    # Obtener paciente
-    paciente = db.table("pacientes").select("id, nombre, telefono, estado, score") \
-        .eq("telefono", telefono).single().execute()
-
-    if not paciente.data:
+    # Obtener paciente (búsqueda por hash con fallback)
+    paciente = _buscar_paciente_por_telefono(db, tel_norm)
+    if not paciente:
         raise HTTPException(status_code=404, detail="Paciente no encontrado")
 
-    token = _generar_token_paciente(paciente.data["id"], telefono)
+    paciente_hidratado = hidratar_paciente(paciente)
+    token = _generar_token_paciente(paciente["id"], tel_norm)
 
     return {
         "access_token": token,
-        "paciente": paciente.data,
+        "paciente": paciente_hidratado,
     }
 
 
@@ -251,6 +288,7 @@ async def mis_turnos(
     db: Client = Depends(get_db),
 ):
     """Turnos del paciente autenticado (token OTP)."""
+    from app.core.paciente_helpers import hidratar_lista_turnos
     paciente_id = int(payload["sub"])
 
     turnos = db.table("turnos").select("*") \
@@ -259,7 +297,7 @@ async def mis_turnos(
         .order("fecha_hora", desc=True) \
         .execute()
 
-    return turnos.data or []
+    return hidratar_lista_turnos(turnos.data or [])
 
 
 @router.patch("/mis-turnos/{turno_id}/cancelar")
@@ -315,10 +353,12 @@ async def update_usuario(
     if req.especialidades is not None:
         update_data["especialidades"] = req.especialidades
     if req.email:
-        update_data["email"] = req.email
+        email_norm = normalize_email(req.email)
+        update_data["email"] = email_norm        # plano para Supabase Auth
+        update_data["email_enc"] = encrypt(email_norm)
         # También actualizar el email en auth si cambió
         try:
-            db.auth.admin.update_user_by_id(usuario_id, {"email": req.email})
+            db.auth.admin.update_user_by_id(usuario_id, {"email": email_norm})
         except Exception as e:
             raise HTTPException(status_code=400, detail=f"Error updating auth email: {str(e)}")
 

@@ -4,6 +4,13 @@ from typing import Optional
 from datetime import datetime, date, timedelta
 from zoneinfo import ZoneInfo
 from app.db.client import get_supabase_client
+from app.core.encryption import (
+    encrypt,
+    hash_for_search,
+    normalize_email,
+    normalize_phone,
+)
+from app.core.paciente_helpers import hidratar_turno
 from supabase import Client
 
 router = APIRouter(prefix="/turnos", tags=["turnos"], redirect_slashes=False)
@@ -205,14 +212,28 @@ async def solicitar_turno(req: SolicitarTurnoRequest, db: Client = Depends(get_d
         if len(doctores) == 1:
             doctor_id = doctores[0]["id"]
 
-    # Buscar o crear paciente (por teléfono si está disponible, sino por email)
-    paciente_res = None
-    if req.telefono:
-        paciente_res = db.table("pacientes").select("id, score").eq("telefono", req.telefono).execute()
-    elif req.email:
-        paciente_res = db.table("pacientes").select("id, score").eq("email", req.email).execute()
+    # Normalización + hash para búsqueda determinística
+    tel_norm = normalize_phone(req.telefono)
+    email_norm = normalize_email(req.email)
+    tel_hash = hash_for_search(tel_norm) if tel_norm else None
+    email_hash = hash_for_search(email_norm) if email_norm else None
 
-    if paciente_res.data:
+    # Buscar paciente: primero por hash (registros encriptados), fallback a plano
+    paciente_res = None
+    if tel_hash:
+        paciente_res = db.table("pacientes").select("id, score") \
+            .eq("telefono_hash", tel_hash).execute()
+        if not paciente_res.data and tel_norm:
+            paciente_res = db.table("pacientes").select("id, score") \
+                .eq("telefono", tel_norm).execute()
+    elif email_hash:
+        paciente_res = db.table("pacientes").select("id, score") \
+            .eq("email_hash", email_hash).execute()
+        if not paciente_res.data and email_norm:
+            paciente_res = db.table("pacientes").select("id, score") \
+                .eq("email", email_norm).execute()
+
+    if paciente_res and paciente_res.data:
         paciente_id = paciente_res.data[0]["id"]
         score_actual = paciente_res.data[0].get("score", 0)
         update_data = {
@@ -221,8 +242,10 @@ async def solicitar_turno(req: SolicitarTurnoRequest, db: Client = Depends(get_d
             "nombre": req.nombre,
             "updated_at": datetime.now(tz=AR_TZ).isoformat(),
         }
-        if req.email:
-            update_data["email"] = req.email
+        if email_norm:
+            update_data["email_enc"] = encrypt(email_norm)
+            update_data["email_hash"] = email_hash
+            update_data["email"] = None  # purgar plano si existía
         db.table("pacientes").update(update_data).eq("id", paciente_id).execute()
     else:
         nuevo_data = {
@@ -230,20 +253,23 @@ async def solicitar_turno(req: SolicitarTurnoRequest, db: Client = Depends(get_d
             "estado": "turno_agendado",
             "score": 30,
         }
-        if req.telefono:
-            nuevo_data["telefono"] = req.telefono
-        if req.email:
-            nuevo_data["email"] = req.email
+        if tel_norm:
+            nuevo_data["telefono_enc"] = encrypt(tel_norm)
+            nuevo_data["telefono_hash"] = tel_hash
+            # telefono plano se mantiene NULL — ver migración 012
+        if email_norm:
+            nuevo_data["email_enc"] = encrypt(email_norm)
+            nuevo_data["email_hash"] = email_hash
         nuevo = db.table("pacientes").insert(nuevo_data).execute()
         paciente_id = nuevo.data[0]["id"]
 
-    # Insertar turno
+    # Insertar turno (notas encriptadas)
     turno_data = {
         "paciente_id": paciente_id,
         "fecha_hora": req.fecha_hora.isoformat(),
         "duracion_minutos": duracion,
         "tipo_tratamiento": req.tipo_tratamiento,
-        "notas": req.notas,
+        "notas_enc": encrypt(req.notas) if req.notas else None,
         "estado": "solicitado",
     }
     if doctor_id:
@@ -272,7 +298,9 @@ async def solicitar_turno(req: SolicitarTurnoRequest, db: Client = Depends(get_d
 
 @router.get("/{turno_id}")
 async def get_turno(turno_id: int, db: Client = Depends(get_db)):
-    res = db.table("turnos").select("*, pacientes(nombre, telefono)").eq("id", turno_id).single().execute()
+    res = db.table("turnos").select(
+        "*, pacientes(id, nombre, telefono, telefono_enc, telefono_hash, email, email_enc, email_hash)"
+    ).eq("id", turno_id).single().execute()
     if not res.data:
         raise HTTPException(status_code=404, detail="Turno no encontrado")
-    return res.data
+    return hidratar_turno(res.data)
