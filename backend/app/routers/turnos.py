@@ -11,6 +11,7 @@ from app.core.encryption import (
     normalize_phone,
 )
 from app.core.paciente_helpers import hidratar_turno
+from app.core.tenant import resolve_consultorio_publico
 from supabase import Client
 
 router = APIRouter(prefix="/turnos", tags=["turnos"], redirect_slashes=False)
@@ -51,15 +52,16 @@ def generar_slots(fecha: date, duracion_minutos: int) -> list[str]:
     return slots
 
 
-def get_doctores_para_tratamiento(tratamiento: str, db: Client) -> list[dict]:
+def get_doctores_para_tratamiento(tratamiento: str, db: Client, consultorio_id: int) -> list[dict]:
     """
-    Devuelve odontólogos (y admins) que atienden un tratamiento.
+    Devuelve odontólogos (y admins) que atienden un tratamiento, del consultorio dado.
     - especialidades vacío ({}) → atiende todos los tratamientos
     - especialidades con valores → solo atiende esos tratamientos
     """
     res = db.table("usuarios") \
         .select("id, nombre, especialidades") \
         .in_("rol", ["odontologo", "admin"]) \
+        .eq("consultorio_id", consultorio_id) \
         .execute()
 
     doctores = []
@@ -72,10 +74,10 @@ def get_doctores_para_tratamiento(tratamiento: str, db: Client) -> list[dict]:
     return doctores
 
 
-def slots_ocupados_por_doctor(fecha: date, db: Client, usuario_id: str | None = None) -> set[str]:
+def slots_ocupados_por_doctor(fecha: date, db: Client, consultorio_id: int, usuario_id: str | None = None) -> set[str]:
     """
-    Devuelve los horarios bloqueados para una fecha.
-    Si usuario_id es None, devuelve todos los turnos (para clínica con 1 solo doctor).
+    Devuelve los horarios bloqueados para una fecha en un consultorio dado.
+    Si usuario_id es None, devuelve todos los turnos del consultorio.
     Si usuario_id está, filtra por ese doctor.
     """
     fecha_inicio = datetime(fecha.year, fecha.month, fecha.day, 0, 0, tzinfo=AR_TZ).isoformat()
@@ -83,6 +85,7 @@ def slots_ocupados_por_doctor(fecha: date, db: Client, usuario_id: str | None = 
 
     query = db.table("turnos") \
         .select("fecha_hora, duracion_minutos") \
+        .eq("consultorio_id", consultorio_id) \
         .gte("fecha_hora", fecha_inicio) \
         .lte("fecha_hora", fecha_fin) \
         .not_.in_("estado", ["cancelado"])
@@ -111,6 +114,7 @@ def slots_ocupados_por_doctor(fecha: date, db: Client, usuario_id: str | None = 
 @router.get("/doctores")
 async def get_doctores(
     tratamiento: str = "consulta",
+    consultorio_id: int = Depends(resolve_consultorio_publico),
     db: Client = Depends(get_db),
 ):
     """
@@ -118,7 +122,7 @@ async def get_doctores(
     - Si hay 1 → el frontend lo asigna automáticamente (sin selector)
     - Si hay varios → el frontend muestra selector de doctor
     """
-    doctores = get_doctores_para_tratamiento(tratamiento, db)
+    doctores = get_doctores_para_tratamiento(tratamiento, db, consultorio_id)
     return {
         "tratamiento": tratamiento,
         "total": len(doctores),
@@ -131,6 +135,7 @@ async def turnos_disponibles(
     fecha: str,
     tratamiento: str = "consulta",
     usuario_id: Optional[str] = None,
+    consultorio_id: int = Depends(resolve_consultorio_publico),
     db: Client = Depends(get_db),
 ):
     """
@@ -158,12 +163,12 @@ async def turnos_disponibles(
     # Resolver el doctor a usar para filtrar slots ocupados
     doctor_id_filtro = usuario_id
     if not doctor_id_filtro:
-        doctores = get_doctores_para_tratamiento(tratamiento, db)
+        doctores = get_doctores_para_tratamiento(tratamiento, db, consultorio_id)
         if len(doctores) == 1:
             doctor_id_filtro = doctores[0]["id"]
         # Si hay 0 o múltiples doctores sin usuario_id, no filtramos por doctor
 
-    ocupados = slots_ocupados_por_doctor(fecha_date, db, doctor_id_filtro)
+    ocupados = slots_ocupados_por_doctor(fecha_date, db, consultorio_id, doctor_id_filtro)
 
     if fecha_date == hoy:
         ahora = datetime.now(tz=AR_TZ)
@@ -196,7 +201,11 @@ class SolicitarTurnoRequest(BaseModel):
 
 
 @router.post("")
-async def solicitar_turno(req: SolicitarTurnoRequest, db: Client = Depends(get_db)):
+async def solicitar_turno(
+    req: SolicitarTurnoRequest,
+    consultorio_id: int = Depends(resolve_consultorio_publico),
+    db: Client = Depends(get_db),
+):
     """Solicita un turno — crea el paciente si no existe."""
 
     # Validar que al menos telefono o email esté presente
@@ -205,10 +214,10 @@ async def solicitar_turno(req: SolicitarTurnoRequest, db: Client = Depends(get_d
 
     duracion = DURACION_POR_TRATAMIENTO.get(req.tipo_tratamiento, 30)
 
-    # Resolver doctor
+    # Resolver doctor (filtrado por consultorio)
     doctor_id = req.usuario_id
     if not doctor_id:
-        doctores = get_doctores_para_tratamiento(req.tipo_tratamiento, db)
+        doctores = get_doctores_para_tratamiento(req.tipo_tratamiento, db, consultorio_id)
         if len(doctores) == 1:
             doctor_id = doctores[0]["id"]
 
@@ -218,19 +227,23 @@ async def solicitar_turno(req: SolicitarTurnoRequest, db: Client = Depends(get_d
     tel_hash = hash_for_search(tel_norm) if tel_norm else None
     email_hash = hash_for_search(email_norm) if email_norm else None
 
-    # Buscar paciente: primero por hash (registros encriptados), fallback a plano
+    # Buscar paciente DENTRO del mismo consultorio (multi-tenant)
     paciente_res = None
     if tel_hash:
         paciente_res = db.table("pacientes").select("id, score") \
+            .eq("consultorio_id", consultorio_id) \
             .eq("telefono_hash", tel_hash).execute()
         if not paciente_res.data and tel_norm:
             paciente_res = db.table("pacientes").select("id, score") \
+                .eq("consultorio_id", consultorio_id) \
                 .eq("telefono", tel_norm).execute()
     elif email_hash:
         paciente_res = db.table("pacientes").select("id, score") \
+            .eq("consultorio_id", consultorio_id) \
             .eq("email_hash", email_hash).execute()
         if not paciente_res.data and email_norm:
             paciente_res = db.table("pacientes").select("id, score") \
+                .eq("consultorio_id", consultorio_id) \
                 .eq("email", email_norm).execute()
 
     if paciente_res and paciente_res.data:
@@ -252,11 +265,11 @@ async def solicitar_turno(req: SolicitarTurnoRequest, db: Client = Depends(get_d
             "nombre": req.nombre,
             "estado": "turno_agendado",
             "score": 30,
+            "consultorio_id": consultorio_id,
         }
         if tel_norm:
             nuevo_data["telefono_enc"] = encrypt(tel_norm)
             nuevo_data["telefono_hash"] = tel_hash
-            # telefono plano se mantiene NULL — ver migración 012
         if email_norm:
             nuevo_data["email_enc"] = encrypt(email_norm)
             nuevo_data["email_hash"] = email_hash
@@ -271,6 +284,7 @@ async def solicitar_turno(req: SolicitarTurnoRequest, db: Client = Depends(get_d
         "tipo_tratamiento": req.tipo_tratamiento,
         "notas_enc": encrypt(req.notas) if req.notas else None,
         "estado": "solicitado",
+        "consultorio_id": consultorio_id,
     }
     if doctor_id:
         turno_data["usuario_id"] = doctor_id
@@ -278,13 +292,14 @@ async def solicitar_turno(req: SolicitarTurnoRequest, db: Client = Depends(get_d
     turno_res = db.table("turnos").insert(turno_data).execute()
     turno_id = turno_res.data[0]["id"]
 
-    # Alarma para admin
+    # Alarma para admin del consultorio
     db.table("alarmas").insert({
         "tipo": "nuevo_turno",
         "paciente_id": paciente_id,
         "titulo": f"Nuevo turno solicitado — {req.nombre}",
         "descripcion": f"{req.tipo_tratamiento} el {req.fecha_hora.strftime('%d/%m/%Y %H:%M')}",
         "prioridad": "alta",
+        "consultorio_id": consultorio_id,
     }).execute()
 
     return {

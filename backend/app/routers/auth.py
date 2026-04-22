@@ -32,24 +32,76 @@ def get_db() -> Client:
 
 # ── Staff auth ────────────────────────────────────────────────────────────────
 
-def require_admin(
-    credentials: HTTPAuthorizationCredentials = Depends(security),
-    db: Client = Depends(get_db),
-):
-    token = credentials.credentials
+ROLES_STAFF = ("admin", "odontologo", "recepcionista", "superadmin")
+ROLES_SUPERADMIN = ("superadmin",)
+
+
+def _decode_jwt_sub(token: str) -> str:
+    """Extrae el sub del JWT sin verificar firma. Para Supabase Auth tokens."""
     try:
-        # Decode the JWT token without verification to get the user ID
         payload = pyjwt.decode(token, options={"verify_signature": False})
         user_id = payload.get("sub")
         if not user_id:
             raise HTTPException(status_code=401, detail="Token inválido")
+        return user_id
     except Exception:
         raise HTTPException(status_code=401, detail="Token inválido")
 
-    # Verify the user exists and has admin role
-    profile = db.table("usuarios").select("rol").eq("id", user_id).single().execute()
-    if not profile.data or profile.data.get("rol") not in ("admin", "odontologo", "recepcionista"):
+
+def require_admin(
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+    db: Client = Depends(get_db),
+):
+    """Requiere staff de cualquier rol (admin, odontologo, recepcionista, superadmin)."""
+    user_id = _decode_jwt_sub(credentials.credentials)
+    profile = db.table("usuarios").select("rol, activo").eq("id", user_id).single().execute()
+    if not profile.data or profile.data.get("rol") not in ROLES_STAFF:
         raise HTTPException(status_code=403, detail="Acceso restringido a staff")
+    if not profile.data.get("activo", True):
+        raise HTTPException(status_code=403, detail="Usuario desactivado")
+
+
+def require_staff_context(
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+    db: Client = Depends(get_db),
+) -> dict:
+    """
+    Como require_admin pero devuelve el contexto del staff:
+    {usuario_id, rol, consultorio_id, es_superadmin}.
+    Útil para routers que necesitan filtrar por consultorio_id.
+    """
+    user_id = _decode_jwt_sub(credentials.credentials)
+    profile = (
+        db.table("usuarios")
+        .select("id, rol, activo, consultorio_id")
+        .eq("id", user_id)
+        .single()
+        .execute()
+    )
+    if not profile.data or profile.data.get("rol") not in ROLES_STAFF:
+        raise HTTPException(status_code=403, detail="Acceso restringido a staff")
+    if not profile.data.get("activo", True):
+        raise HTTPException(status_code=403, detail="Usuario desactivado")
+
+    return {
+        "usuario_id": user_id,
+        "rol": profile.data["rol"],
+        "consultorio_id": profile.data.get("consultorio_id") or 1,
+        "es_superadmin": profile.data["rol"] == "superadmin",
+    }
+
+
+def require_superadmin(
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+    db: Client = Depends(get_db),
+):
+    """Solo superadmin del SaaS (rol que opera sobre todos los consultorios)."""
+    user_id = _decode_jwt_sub(credentials.credentials)
+    profile = db.table("usuarios").select("rol, activo").eq("id", user_id).single().execute()
+    if not profile.data or profile.data.get("rol") not in ROLES_SUPERADMIN:
+        raise HTTPException(status_code=403, detail="Acceso restringido a superadmin")
+    if not profile.data.get("activo", True):
+        raise HTTPException(status_code=403, detail="Usuario desactivado")
 
 
 class LoginRequest(BaseModel):
@@ -63,6 +115,7 @@ class RegisterRequest(BaseModel):
     nombre: str
     rol: str = "recepcionista"
     especialidades: Optional[list[str]] = None
+    consultorio_id: Optional[int] = None  # Si None, hereda del admin que crea
 
 
 class UpdateUsuarioRequest(BaseModel):
@@ -86,9 +139,27 @@ async def login(req: LoginRequest, db: Client = Depends(get_db)):
         if not profile.data or not profile.data.get("activo", True):
             raise HTTPException(status_code=403, detail="Usuario desactivado")
 
+        # Traer info del consultorio + país (nuevo en M13)
+        consultorio_info = None
+        consultorio_id = profile.data.get("consultorio_id") or 1
+        try:
+            cons = (
+                db.table("consultorios")
+                .select("id, nombre, pais_codigo, idioma_override, timezone_override, paises(codigo, nombre, idioma_default, moneda, timezone_default)")
+                .eq("id", consultorio_id)
+                .single()
+                .execute()
+            )
+            if cons.data:
+                consultorio_info = cons.data
+        except Exception:
+            # Si la tabla aún no existe (migraciones no aplicadas), no rompemos el login
+            pass
+
         return {
             "access_token": res.session.access_token,
             "user": profile.data,
+            "consultorio": consultorio_info,
         }
     except HTTPException:
         raise
@@ -97,8 +168,21 @@ async def login(req: LoginRequest, db: Client = Depends(get_db)):
 
 
 @router.post("/register")
-async def register(req: RegisterRequest, db: Client = Depends(get_db),
-                   _: None = Depends(require_admin)):
+async def register(
+    req: RegisterRequest,
+    ctx: dict = Depends(require_staff_context),
+    db: Client = Depends(get_db),
+):
+    """
+    Crea un usuario staff. Hereda consultorio_id del admin que lo crea
+    (excepto si es superadmin y especifica otro).
+    """
+    # Solo superadmin puede crear superadmins o forzar consultorio distinto
+    if req.rol == "superadmin" and not ctx["es_superadmin"]:
+        raise HTTPException(status_code=403, detail="Solo superadmin puede crear superadmins")
+
+    consultorio_id = req.consultorio_id if (ctx["es_superadmin"] and req.consultorio_id) else ctx["consultorio_id"]
+
     try:
         auth_res = db.auth.admin.create_user({
             "email": req.email,
@@ -108,15 +192,16 @@ async def register(req: RegisterRequest, db: Client = Depends(get_db),
         email_norm = normalize_email(req.email)
         data = {
             "id": auth_res.user.id,
-            "email": email_norm,        # plano para compat con Supabase Auth (login)
+            "email": email_norm,
             "email_enc": encrypt(email_norm),
             "nombre": req.nombre,
             "rol": req.rol,
+            "consultorio_id": consultorio_id,
         }
         if req.especialidades:
             data["especialidades"] = req.especialidades
         db.table("usuarios").insert(data).execute()
-        return {"ok": True}
+        return {"ok": True, "consultorio_id": consultorio_id}
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 

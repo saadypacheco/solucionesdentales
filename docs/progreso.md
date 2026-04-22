@@ -338,7 +338,7 @@ paciente → /turnos/virtual → elige slot virtual → completa datos
 
 - ✅ **Fase 1 (2026-04-22):** i18n completo con next-intl (es/en/pt-BR), 100% cobertura, detección automática
 - ✅ **Fase 2 (2026-04-22):** Schema multi-país + consultorio default — migraciones 013 y 014
-- 🔄 **Fase 3:** Backend multi-tenant (middleware FastAPI, routers adaptados, onboarding endpoints)
+- ✅ **Fase 3 (2026-04-22):** Backend multi-tenant — todos los routers filtran por consultorio_id, audit log activo, endpoints onboarding y superadmin listos
 - ⏸️ **Fase 4:** Frontend onboarding wizard + panel superadmin
 - ⏸️ **Fase 5:** Lock down (consultorio_id NOT NULL) + selector consultorio + idioma derivado del país
 
@@ -359,18 +359,16 @@ paciente → /turnos/virtual → elige slot virtual → completa datos
 - [x] Consultorio default id=1 creado para preservar datos existentes
 - [ ] **Pendiente manual**: crear bucket Supabase Storage `documentos_compliance` (privado, signed URLs) — no se puede crear desde SQL
 
-### Backend
-- [ ] `routers/compliance.py` — onboarding consultorio + upload docs
-- [ ] `POST /consultorios/onboarding` — crea consultorio en estado 'onboarding'
-- [ ] `GET /consultorios/{id}/checklist` — devuelve docs requeridos según país
-- [ ] `POST /consultorios/{id}/documentos` — upload doc
-- [ ] `routers/superadmin.py` — endpoints internos del SaaS
-- [ ] `GET /superadmin/consultorios?estado=pendiente_revision`
-- [ ] `PATCH /superadmin/documentos/{id}` — aprobar/rechazar
-- [ ] `services/compliance.py` — verificar completitud, calcular siguiente acción
-- [ ] `services/audit.py` — helper `log_action(...)` reusable
-- [ ] Middleware FastAPI: si país requiere audit log → log automático
-- [ ] Middleware: si país requiere consentimiento → bloquear si paciente no firmó
+### Backend — DONE Fase 3
+- [x] `core/tenant.py` — resuelve consultorio_id para staff/paciente/público
+- [x] `services/audit.py` — helper `log_action(...)` reusable, fail-safe
+- [x] `services/compliance.py` — checklist + recálculo de estado del consultorio
+- [x] `routers/consultorios.py` — `GET /consultorios/paises`, `GET /consultorios/mi-consultorio`, `GET /consultorios/mi-consultorio/checklist`, `POST /consultorios/onboarding`, `POST /consultorios/mi-consultorio/documentos`
+- [x] `routers/superadmin.py` — `GET /superadmin/consultorios`, `GET /superadmin/consultorios/{id}`, `GET /superadmin/consultorios/{id}/documentos`, `PATCH /superadmin/documentos/{id}`, `PATCH /superadmin/consultorios/{id}/suspender`, `PATCH /superadmin/consultorios/{id}/reactivar`, `GET /superadmin/audit-log`
+- [x] `auth.py`: agregado rol `superadmin`, helpers `require_staff_context` + `require_superadmin`, login devuelve consultorio + país, register hereda consultorio_id
+- [x] Routers existentes (`admin`, `turnos`, `casos`, `pacientes`, `agente`, `alarmas`) filtran por `consultorio_id` (excepto superadmin)
+- [x] Audit log automático en endpoints sensibles (cambios de estado, uploads, aprobaciones)
+- [ ] **Pendiente Fase 5**: middleware bloquea si país requiere consentimiento y paciente no firmó
 
 ### Frontend
 - [ ] `/onboarding` — wizard de 5 pasos con upload

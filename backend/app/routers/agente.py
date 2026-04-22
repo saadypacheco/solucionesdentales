@@ -1,8 +1,9 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from typing import Optional
 from app.db.client import get_supabase_client
 from app.services.agente import get_respuesta
+from app.core.tenant import resolve_consultorio_publico
 
 router = APIRouter(prefix="/agente", tags=["agente"], redirect_slashes=False)
 
@@ -16,17 +17,27 @@ class MensajeRequest(BaseModel):
 
 
 @router.post("/mensaje")
-async def recibir_mensaje(req: MensajeRequest):
+async def recibir_mensaje(
+    req: MensajeRequest,
+    consultorio_id: int = Depends(resolve_consultorio_publico),
+):
     db = get_supabase_client()
 
-    # Obtener o crear sesión
-    sesion = db.table("sesiones_agente").select("id").eq("session_id", req.session_id).execute()
+    # Obtener o crear sesión (filtrada por consultorio)
+    sesion = (
+        db.table("sesiones_agente")
+        .select("id")
+        .eq("session_id", req.session_id)
+        .eq("consultorio_id", consultorio_id)
+        .execute()
+    )
     if sesion.data:
         sesion_id = sesion.data[0]["id"]
     else:
         nueva = db.table("sesiones_agente").insert({
             "session_id": req.session_id,
             "paciente_id": req.paciente_id,
+            "consultorio_id": consultorio_id,
         }).execute()
         sesion_id = nueva.data[0]["id"]
 
@@ -52,7 +63,7 @@ async def recibir_mensaje(req: MensajeRequest):
     if not historial or historial[-1]["contenido"] != req.mensaje:
         historial.append({"rol": "user", "contenido": req.mensaje})
 
-    # Llamar al agente
+    # Llamar al agente (TODO Fase 3+: pasar config_ia del consultorio)
     respuesta = get_respuesta(historial)
 
     # Guardar respuesta del bot
