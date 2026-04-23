@@ -327,6 +327,7 @@
     "inputPlaceholder": "Escreva sua dúvida...",
     "openAria": "Abrir chat",
     "errorMessage": "No momento não consigo responder. Entre em contato pelo WhatsApp para uma resposta imediata.",
+    "attachPhoto": "Enviar foto (orientação IA)",
     "quickReplies": {
       "book": "Quero agendar uma consulta",
       "prices": "Preços e tratamentos",
@@ -350,6 +351,31 @@
       "required": "Você deve aceitar a política de privacidade para continuar"
     }
   },
+  "radiografias": {
+    "title": "Radiografias",
+    "subtitle": "Imagens médicas associadas ao histórico clínico (panorâmica, periapical, etc.)",
+    "upload": "Enviar radiografia",
+    "uploadSubmit": "Enviar",
+    "uploading": "Enviando...",
+    "empty": "Sem radiografias registradas.",
+    "errorUpload": "Erro ao enviar a radiografia",
+    "confirmDelete": "Excluir esta radiografia? (marcada como inativa, não removida do storage)",
+    "fields": {
+      "tipo": "Tipo",
+      "fechaToma": "Data da tomada",
+      "archivo": "Arquivo",
+      "notas": "Notas",
+      "notasPlaceholder": "Observações clínicas, região, dente..."
+    },
+    "tipos": {
+      "panoramica": "Panorâmica",
+      "periapical": "Periapical",
+      "bitewing": "Interproximal (bitewing)",
+      "lateral": "Lateral",
+      "cefalometrica": "Cefalométrica",
+      "otra": "Outra"
+    }
+  },
   "perfilPaciente": {
     "title": "Perfil do paciente",
     "loading": "Carregando perfil...",
@@ -357,6 +383,7 @@
     "tabs": {
       "info": "Info",
       "historial": "Histórico clínico",
+      "radiografias": "Radiografias",
       "tratamientos": "Tratamentos",
       "turnos": "Consultas",
       "recetas": "Receitas"
@@ -704,7 +731,9 @@
       "whatsappMessage": "Olá {nombre}! Confirmamos sua consulta de {tratamiento} para {hora}.",
       "markArrival": "Marcar chegada",
       "arrivalSending": "Notificando...",
-      "arrivalNotified": "Médico notificado"
+      "arrivalNotified": "Médico notificado",
+      "viewWeek": "Semana",
+      "viewMonth": "Mês"
     },
     "pacientes": {
       "title": "Pacientes",

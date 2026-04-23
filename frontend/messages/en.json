@@ -327,6 +327,7 @@
     "inputPlaceholder": "Type your question...",
     "openAria": "Open chat",
     "errorMessage": "I can't respond right now. Contact us via WhatsApp for an immediate answer.",
+    "attachPhoto": "Send a photo (AI guidance)",
     "quickReplies": {
       "book": "I want to book an appointment",
       "prices": "Prices and treatments",
@@ -350,6 +351,31 @@
       "required": "You must accept the privacy policy to continue"
     }
   },
+  "radiografias": {
+    "title": "X-rays & imaging",
+    "subtitle": "Medical images linked to the clinical history (panoramic, periapical, etc.)",
+    "upload": "Upload x-ray",
+    "uploadSubmit": "Upload",
+    "uploading": "Uploading...",
+    "empty": "No x-rays on file.",
+    "errorUpload": "Upload failed",
+    "confirmDelete": "Delete this x-ray? (marked inactive, not removed from storage)",
+    "fields": {
+      "tipo": "Type",
+      "fechaToma": "Taken on",
+      "archivo": "File",
+      "notas": "Notes",
+      "notasPlaceholder": "Clinical notes, region, tooth..."
+    },
+    "tipos": {
+      "panoramica": "Panoramic",
+      "periapical": "Periapical",
+      "bitewing": "Bitewing",
+      "lateral": "Lateral",
+      "cefalometrica": "Cephalometric",
+      "otra": "Other"
+    }
+  },
   "perfilPaciente": {
     "title": "Patient profile",
     "loading": "Loading profile...",
@@ -357,6 +383,7 @@
     "tabs": {
       "info": "Info",
       "historial": "Clinical history",
+      "radiografias": "X-rays",
       "tratamientos": "Treatments",
       "turnos": "Appointments",
       "recetas": "Prescriptions"
@@ -704,7 +731,9 @@
       "whatsappMessage": "Hi {nombre}! We confirm your {tratamiento} appointment for {hora}.",
       "markArrival": "Mark arrival",
       "arrivalSending": "Notifying...",
-      "arrivalNotified": "Doctor notified"
+      "arrivalNotified": "Doctor notified",
+      "viewWeek": "Week",
+      "viewMonth": "Month"
     },
     "pacientes": {
       "title": "Patients",
