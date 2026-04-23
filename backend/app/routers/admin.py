@@ -91,6 +91,74 @@ async def listar_turnos(
     return hidratar_lista_turnos(res.data or [])
 
 
+@router.post("/turnos/{turno_id}/check-in")
+async def check_in_recepcion(
+    turno_id: int,
+    request: Request,
+    ctx: dict = Depends(require_staff_context),
+    db: Client = Depends(get_db),
+):
+    """Marca que el paciente llegó a recepción para un turno presencial.
+    Notifica al odontólogo asignado. Idempotente: skip si ya hubo un check-in
+    notificado en los últimos 5 min.
+    """
+    from datetime import datetime, timedelta, timezone
+    from app.services.notificaciones import notificar
+
+    # Trae el turno y valida tenancy
+    turno_q = db.table("turnos").select(
+        "id, consultorio_id, usuario_id, modalidad, fecha_hora, tipo_tratamiento, "
+        "pacientes(id, nombre)"
+    ).eq("id", turno_id).single().execute()
+    if not turno_q.data:
+        raise HTTPException(status_code=404, detail="Turno no encontrado")
+
+    turno = turno_q.data
+    if not ctx["es_superadmin"] and turno.get("consultorio_id") != ctx["consultorio_id"]:
+        raise HTTPException(status_code=404, detail="Turno no encontrado")
+
+    odontologo_id = turno.get("usuario_id")
+    if not odontologo_id:
+        raise HTTPException(status_code=400, detail="El turno no tiene odontólogo asignado")
+
+    # Idempotencia: ya se notificó en los últimos 5 min?
+    desde = (datetime.now(timezone.utc) - timedelta(minutes=5)).isoformat()
+    existing = (
+        db.table("notificaciones")
+        .select("id", count="exact")
+        .eq("usuario_id", odontologo_id)
+        .eq("tipo", "paciente_llego_recepcion")
+        .contains("metadata", {"turno_id": turno_id})
+        .gte("created_at", desde)
+        .execute()
+    )
+    if (existing.count or 0) > 0:
+        return {"ok": True, "notificado": False, "motivo": "ya notificado en los últimos 5 min"}
+
+    paciente_nombre = (turno.get("pacientes") or {}).get("nombre") or "Paciente"
+    notificar(
+        consultorio_id=turno["consultorio_id"],
+        usuario_id=odontologo_id,
+        tipo="paciente_llego_recepcion",
+        titulo="Paciente en recepción",
+        mensaje=f"{paciente_nombre} acaba de llegar para su turno de {turno['tipo_tratamiento']}.",
+        link="/admin/agenda",
+        metadata={"turno_id": turno_id, "modalidad": turno.get("modalidad", "presencial")},
+        prioridad="alta",
+    )
+
+    log_action(
+        consultorio_id=turno["consultorio_id"],
+        usuario_id=ctx["usuario_id"],
+        accion="check_in_recepcion",
+        recurso_tipo="turno",
+        recurso_id=turno_id,
+        request=request,
+    )
+
+    return {"ok": True, "notificado": True}
+
+
 @router.patch("/turnos/{turno_id}")
 async def actualizar_turno(
     turno_id: int,

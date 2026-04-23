@@ -56,12 +56,38 @@ export async function listarMensajesStaff(token: string, pacienteId: number): Pr
   return apiFetch(`/chat/admin/${pacienteId}`, token)
 }
 
-export async function enviarMensajeStaff(token: string, pacienteId: number, mensaje: string): Promise<MensajeChat> {
+export interface UploadResult {
+  archivo_url: string
+  filename: string
+  size: number
+}
+
+export async function enviarMensajeStaff(
+  token: string,
+  pacienteId: number,
+  mensaje: string,
+  archivoUrl?: string,
+): Promise<MensajeChat> {
   return apiFetch('/chat/admin', token, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ paciente_id: pacienteId, mensaje }),
+    body: JSON.stringify({ paciente_id: pacienteId, mensaje, archivo_url: archivoUrl }),
   })
+}
+
+export async function uploadArchivoStaff(token: string, archivo: File): Promise<UploadResult> {
+  const fd = new FormData()
+  fd.append('archivo', archivo)
+  const res = await fetch(`${API_URL}/chat/admin/upload`, {
+    method: 'POST',
+    headers: authHeaders(token),
+    body: fd,
+  })
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}))
+    throw new Error((err as { detail?: string }).detail ?? 'Error al subir archivo')
+  }
+  return res.json()
 }
 
 /* ─── Paciente OTP ─── */
@@ -73,10 +99,30 @@ export async function listarMensajesPaciente(token: string, odontologoId: string
   return apiFetch(`/chat/paciente/${odontologoId}`, token)
 }
 
-export async function enviarMensajePaciente(token: string, odontologoId: string, mensaje: string): Promise<MensajeChat> {
+export async function enviarMensajePaciente(
+  token: string,
+  odontologoId: string,
+  mensaje: string,
+  archivoUrl?: string,
+): Promise<MensajeChat> {
   return apiFetch('/chat/paciente', token, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ odontologo_id: odontologoId, mensaje }),
+    body: JSON.stringify({ odontologo_id: odontologoId, mensaje, archivo_url: archivoUrl }),
   })
+}
+
+export async function uploadArchivoPaciente(token: string, archivo: File): Promise<UploadResult> {
+  const fd = new FormData()
+  fd.append('archivo', archivo)
+  const res = await fetch(`${API_URL}/chat/paciente/upload`, {
+    method: 'POST',
+    headers: authHeaders(token),
+    body: fd,
+  })
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}))
+    throw new Error((err as { detail?: string }).detail ?? 'Error al subir archivo')
+  }
+  return res.json()
 }
