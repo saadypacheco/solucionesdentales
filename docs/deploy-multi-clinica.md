@@ -6,6 +6,56 @@
 
 ---
 
+## 📌 TL;DR — para evaluación rápida
+
+Si solo tenés 2 minutos, leé esto.
+
+### Los 3 modelos en 1 línea cada uno
+
+- **A · Single-tenant** → 1 VPS + 1 Supabase **por cada cliente**. Aislamiento total. Caro pero seguro.
+- **B · Multi-tenant** → 1 VPS + 1 Supabase **compartido entre todos los clientes**, separados por `consultorio_id`. Barato y escalable.
+- **C · Híbrido** → backend compartido + **frontend distinto para cada cliente con su dominio**. Lo mejor de ambos.
+
+### Comparación rápida (con 10 clientes)
+
+| | A · Single | B · Multi | C · Híbrido |
+|---|---|---|---|
+| **Aislamiento de datos** | Total (DB separada) | Lógico (consultorio_id) | Lógico |
+| **Branding/dominio propio** | ✅ | ❌ (mismo dominio) | ✅ |
+| **Onboarding cliente nuevo** | 2-4 horas | **10-15 min** | 30-60 min |
+| **Costo total/mes (10 clientes)** | USD 60-400 | **USD 48** | USD 48 |
+| **Costo por cliente** | USD 6-40 | USD 5 | USD 5 |
+| **Apto HIPAA / EE.UU.** | ✅ | ⚠️ | ⚠️ |
+
+### ¿Cuál usar y cuándo?
+
+| Situación | Modelo recomendado |
+|---|---|
+| Cliente premium con datos sensibles / paranoia | **A** |
+| Modelo SaaS estándar, vendés a muchos chicos-medianos | **B** |
+| Cliente quiere SU dominio (`clinica-acme.com`) | **C** |
+| Cliente en EE.UU. (HIPAA) | **A obligatorio** (+ BAA con vendors) |
+| Estás arrancando y solo tenés 1 cliente | **A** (lo que ya tenés en `solucionodont.shop`) |
+
+### Plan de evolución recomendado (sintético)
+
+1. **Hoy** → Modelo A para Soluciones Dentales (ya funciona)
+2. **Cliente 2-5** → migrás a Modelo B en infra nueva o agregás al actual
+3. **Cliente con branding propio** → C (backend compartido + frontend en Vercel con su dominio)
+4. **Cliente EE.UU.** → A obligatorio + BAAs
+
+### El sistema actual ya soporta los 3 modelos
+
+✅ Multi-tenant en código (M13 Fases 1-5a completas)
+✅ Onboarding wizard en `/superadmin` (Modelo B/C)
+✅ `NEXT_PUBLIC_CONSULTORIO_ID` por deploy de frontend (Modelo C)
+✅ Audit log universal
+✅ i18n es/en/pt-BR
+
+⏳ Falta: BAA Bedrock para US, RLS multi-tenant en Supabase (Fase 5b)
+
+---
+
 ## Índice
 
 1. [Decidir el modelo de deploy](#1-decidir-el-modelo-de-deploy)
@@ -628,3 +678,85 @@ Lo que **todavía falta implementar** y que tus clientes probablemente pidan:
 | Backend AWS Bedrock para US | Pendiente | Solo si vendés US |
 
 Ver [docs/progreso.md](progreso.md) para el detalle completo del backlog.
+
+---
+
+## 🗺️ Recomendación de evolución (plan de acción)
+
+Esta es mi sugerencia de cómo crecer el negocio paso a paso. Cada paso aprovecha la inversión del anterior.
+
+### Etapa 0 · HOY (1 cliente)
+**Modelo A** funcionando en `solucionodont.shop`. Soluciones Dentales = consultorio_id `1`. No tocar nada.
+
+### Etapa 1 · Primer cliente externo (consultorios 2 y 3)
+
+**Recomendación: Modelo B** sobre la infra existente.
+
+**Por qué:** ya tenés VPS + Supabase. Agregar consultorio nuevo cuesta 10-15 min vía wizard. Ahorrás VPS y Supabase de USD 35/mes por cada cliente que sumás.
+
+**Pasos:**
+1. Login como superadmin → `/superadmin` → "+ Nuevo consultorio"
+2. Crear admin del cliente
+3. Pasar credenciales
+4. Cliente sube docs compliance, vos aprobás
+
+**Limitación:** todos comparten el dominio `solucionodont.shop`. Si los clientes no necesitan dominio propio, está OK.
+
+### Etapa 2 · Cliente quiere SU dominio (a partir del 4to o 5to cliente)
+
+**Recomendación: Modelo C** para ese cliente puntual, los anteriores siguen en B.
+
+**Por qué:** algunos clientes pagan más por marca propia. Vos solo agregás 1 frontend en Vercel (gratis hasta cierto tráfico).
+
+**Pasos:**
+1. Crear consultorio en `/superadmin` (igual que B)
+2. Importar repo en Vercel, root directory `frontend`
+3. Setear env `NEXT_PUBLIC_CONSULTORIO_ID=<id>` + dominio
+4. Apuntar DNS
+
+### Etapa 3 · Tope de la infra compartida (~10-15 clientes activos)
+
+Cuando el VPS de 4 GB empieza a quedar chico:
+
+**Opciones:**
+- **3.A** Upgrade a VPS de 8 GB (~USD 25/mes) → soporta hasta ~30 clientes
+- **3.B** Splittear en 2 VPS por geografía (uno para AR/BO, otro para US)
+- **3.C** Migrar Supabase a tier Pro (USD 25/mes) si fue lo que se saturó
+
+### Etapa 4 · Vender en EE.UU.
+
+**Recomendación: Modelo A** para cada cliente US (HIPAA).
+
+**Por qué:** HIPAA exige BAAs y auditoría estricta. Más simple cumplir con DB separada por cliente.
+
+**Trabajo previo (1 vez):**
+1. Firmar BAA con Anthropic (vía AWS Bedrock o Vertex AI)
+2. Implementar adapter en `services/agente.py` para usar Claude vía Bedrock cuando `pais.modelo_ia_default = claude-sonnet-4-6`
+3. Firmar BAA con Vercel + Supabase (planes específicos)
+4. Agregar audit log forzoso (ya tenés `services/audit.py`)
+
+**Por cliente US:**
+- Repetir el setup de Modelo A
+- Cobrar USD 200-500/mes (premium HIPAA)
+
+### Etapa 5 · Producto maduro (50+ clientes)
+
+A esta altura conviene:
+- **Sumar features que faltan**: M11 Telemedicina, M12 Notificaciones, M6 Historia clínica
+- **Equipo**: contratar 1 dev backend + 1 ops part-time
+- **Soporte**: chat o email del cliente con SLA
+- **Métricas**: dashboard de salud del SaaS (latencia, errors, MRR)
+
+---
+
+## ✅ Checklist mental antes de vender
+
+Cuando aparezca un prospecto interesado, chequeá:
+
+- [ ] ¿Es AR/BO? → Modelo B (más barato, ya implementado)
+- [ ] ¿Es US? → Modelo A + BAAs (más trabajo, cobrá más)
+- [ ] ¿Quiere su dominio? → Modelo C (sumá USD 5-10/mes al precio)
+- [ ] ¿Necesita telemedicina? → Avisar que está en roadmap (M11)
+- [ ] ¿Tiene pacientes existentes? → Importación manual o vía CSV (no implementado)
+- [ ] ¿Quién mantiene el VPS? → Si es vos, sumar 1-2 hs/mes al pricing
+- [ ] ¿Cobrás setup inicial o solo recurrente? → Recomiendo USD 200-500 setup + USD 50-200/mes
