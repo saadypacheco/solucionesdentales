@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useTranslations, useLocale } from 'next-intl'
 import { useAuthStore } from '@/store/authStore'
 import { useRouter } from 'next/navigation'
-import { getTurnosAdmin, patchTurnoEstado, type TurnoAdmin } from '@/lib/api/admin'
+import { getTurnosAdmin, patchTurnoEstado, checkInRecepcion, type TurnoAdmin } from '@/lib/api/admin'
 
 function semanaDesde(base: Date): Date[] {
   const dias: Date[] = []
@@ -50,6 +50,8 @@ function TarjetaTurno({ turno, token, onChange, formatHora }: {
   const t = useTranslations('admin.agenda')
   const tEstados = useTranslations('estadosTurno')
   const [cambiando, setCambiando] = useState(false)
+  const [llegando, setLlegando] = useState(false)
+  const [llegadaOk, setLlegadaOk] = useState(false)
 
   async function cambiarEstado(estado: string) {
     setCambiando(true)
@@ -60,6 +62,22 @@ function TarjetaTurno({ turno, token, onChange, formatHora }: {
       setCambiando(false)
     }
   }
+
+  async function marcarLlegada() {
+    setLlegando(true)
+    try {
+      await checkInRecepcion(token, turno.id)
+      setLlegadaOk(true)
+      setTimeout(() => setLlegadaOk(false), 4000)
+    } catch {
+      // silencio: la notif puede fallar y el flujo de turno sigue
+    } finally {
+      setLlegando(false)
+    }
+  }
+
+  const esPresencial = !turno.modalidad || turno.modalidad === 'presencial'
+  const puedeMarcarLlegada = esPresencial && (turno.estado === 'confirmado' || turno.estado === 'solicitado')
 
   const waLink = `https://wa.me/${turno.pacientes?.telefono?.replace(/\D/g, '')}?text=${encodeURIComponent(
     t('whatsappMessage', {
@@ -95,6 +113,20 @@ function TarjetaTurno({ turno, token, onChange, formatHora }: {
       >
         {ESTADOS.map((e) => <option key={e} value={e}>{tEstados(e)}</option>)}
       </select>
+
+      {puedeMarcarLlegada && (
+        <button
+          onClick={marcarLlegada}
+          disabled={llegando}
+          className={`mt-1.5 w-full text-xs font-bold py-1.5 rounded-lg transition-colors disabled:opacity-50 ${
+            llegadaOk
+              ? 'bg-green-500/20 text-green-300 border border-green-500/30'
+              : 'bg-teal-500/15 text-teal-400 border border-teal-500/30 hover:bg-teal-500/25'
+          }`}
+        >
+          {llegadaOk ? `✓ ${t('arrivalNotified')}` : llegando ? t('arrivalSending') : `🚪 ${t('markArrival')}`}
+        </button>
+      )}
 
       {turno.notas && (
         <p className="text-slate-500 text-xs mt-1.5 truncate" title={turno.notas}>📝 {turno.notas}</p>

@@ -113,6 +113,10 @@ export async function patchTurnoEstado(token: string, turnoId: number, estado: s
   return apiFetch(`/admin/turnos/${turnoId}?estado=${estado}`, token, { method: 'PATCH' })
 }
 
+export async function checkInRecepcion(token: string, turnoId: number): Promise<{ ok: boolean; notificado: boolean; motivo?: string }> {
+  return apiFetch(`/admin/turnos/${turnoId}/check-in`, token, { method: 'POST' })
+}
+
 /* ─── Pacientes admin ─── */
 export async function getPacientesAdmin(token: string): Promise<Paciente[]> {
   return apiFetch('/admin/pacientes', token)
@@ -244,6 +248,8 @@ export interface TurnoAdmin {
   estado: string
   notas: string | null
   duracion_minutos: number
+  modalidad?: 'presencial' | 'virtual'
+  usuario_id?: string | null
   pacientes: { id?: number; nombre: string; telefono: string } | null
 }
 
