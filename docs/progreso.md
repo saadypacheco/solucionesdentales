@@ -122,6 +122,29 @@ Próximo módulo: M12 Notificaciones (campana in-app + Realtime)
 - ✅ `/mis-turnos`: links rápidos a "Mis recetas" y "Mi chat"
 - ⏸️ Pendiente: lobby Jitsi notificación al odontólogo (Realtime)
 
+### M6 Historia clínica + tratamientos
+
+- ✅ Router `historial.py`:
+  - `GET /historial/admin/{paciente_id}` (solo admin/odontologo)
+  - `PATCH /historial/admin/{paciente_id}` upsert con audit log
+  - `GET /historial/paciente` (con JWT OTP, read-only)
+- ✅ Router `tratamientos.py`:
+  - `GET /tratamientos/admin?paciente_id=X` (con JOIN paciente y odontólogo)
+  - `POST /tratamientos/admin` (crear, audit log)
+  - `PATCH /tratamientos/admin/{id}` (actualizar)
+  - `DELETE /tratamientos/admin/{id}` (hard delete)
+  - `GET /tratamientos/paciente` (sin notas internas)
+- ✅ Recepcionista NO accede a historial clínico (solo admin/odontologo)
+- ✅ Frontend `/admin/pacientes/[id]` con tabs:
+  - Info (datos básicos)
+  - Historial clínico (alergias / medicación / antecedentes — editable inline)
+  - Tratamientos (CRUD completo + cambio de estado inline)
+  - Turnos (listado pasados/futuros)
+  - Recetas (las creadas para este paciente)
+- ✅ Click en nombre de paciente desde `/admin/pacientes` → perfil completo
+- ✅ Frontend `/mi-historial` paciente: ve historial + tratamientos (sin notas internas del odontólogo)
+- ✅ `/mis-turnos`: links rápidos a Recetas / Historial / Chat
+
 ### Migraciones aplicadas en Supabase
 
 ```

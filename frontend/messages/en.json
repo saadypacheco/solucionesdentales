@@ -350,6 +350,94 @@
       "required": "You must accept the privacy policy to continue"
     }
   },
+  "perfilPaciente": {
+    "title": "Patient profile",
+    "loading": "Loading profile...",
+    "back": "← Back to patients",
+    "tabs": {
+      "info": "Info",
+      "historial": "Clinical history",
+      "tratamientos": "Treatments",
+      "turnos": "Appointments",
+      "recetas": "Prescriptions"
+    },
+    "info": {
+      "telefono": "Phone",
+      "email": "Email",
+      "estado": "CRM state",
+      "score": "Score",
+      "registrado": "Registered",
+      "consultorio": "Office"
+    }
+  },
+  "historial": {
+    "title": "Clinical history",
+    "subtitle": "Accessible only to dentists and admins",
+    "loading": "Loading history...",
+    "noAccess": "You do not have permission to view clinical history (only dentist/admin)",
+    "alergias": "Allergies",
+    "alergiasPlaceholder": "Penicillin, latex, pollen...",
+    "alergiasHint": "Comma separated",
+    "medicacion": "Current medication",
+    "medicacionPlaceholder": "Aspirin 100mg/day, Losartan 50mg/day...",
+    "medicacionHint": "Comma separated",
+    "antecedentes": "Relevant medical background",
+    "antecedentesPlaceholder": "Type 2 diabetes, hypertension, pregnancy, previous surgeries, etc.",
+    "vacio": "No information recorded",
+    "edit": "Edit",
+    "save": "Save",
+    "saving": "Saving...",
+    "saved": "Saved",
+    "cancel": "Cancel",
+    "errorSave": "Error saving",
+    "paciente": {
+      "title": "My clinical history",
+      "subtitle": "Medical data your dentist recorded",
+      "noData": "Your dentist hasn't recorded any data yet.",
+      "verAdmin": "Only your dentist can modify it. If you need to correct something, mention it during consultation or via chat.",
+      "back": "Back"
+    }
+  },
+  "tratamientos": {
+    "title": "Treatments",
+    "subtitle": "Patient's treatment plan",
+    "loading": "Loading...",
+    "noTratamientos": "No treatments recorded",
+    "nuevo": "+ New treatment",
+    "estados": {
+      "planificado": "Planned",
+      "en_curso": "In progress",
+      "completado": "Completed"
+    },
+    "form": {
+      "title": "New treatment",
+      "descripcion": "Description",
+      "descripcionPlaceholder": "Upper molar endodontics, root canal + crown...",
+      "fecha": "Planned date",
+      "estado": "Status",
+      "costo": "Cost (optional)",
+      "costoPlaceholder": "0.00",
+      "notas": "Internal notes (not visible to patient)",
+      "notasPlaceholder": "Local anesthesia 2%, patient allergic to penicillin...",
+      "submit": "Create",
+      "submitting": "Creating...",
+      "errorCreate": "Error creating treatment"
+    },
+    "card": {
+      "porOdontologo": "By {nombre}",
+      "fecha": "Date: {fecha}",
+      "costo": "Cost: {moneda} {costo}",
+      "edit": "Edit",
+      "delete": "Delete",
+      "confirmDelete": "Delete this treatment?"
+    },
+    "paciente": {
+      "title": "My treatments",
+      "subtitle": "Treatment plan from your dentists",
+      "noTratamientos": "You have no treatments recorded yet.",
+      "back": "Back"
+    }
+  },
   "recetas": {
     "title": "Prescriptions",
     "subtitle": "Digital prescriptions for patients",

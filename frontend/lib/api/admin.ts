@@ -188,12 +188,13 @@ export interface ConsultorioInfo {
 
 export interface TurnoAdmin {
   id: number
+  paciente_id: number
   fecha_hora: string
   tipo_tratamiento: string
   estado: string
   notas: string | null
   duracion_minutos: number
-  pacientes: { nombre: string; telefono: string } | null
+  pacientes: { id?: number; nombre: string; telefono: string } | null
 }
 
 export interface Paciente {

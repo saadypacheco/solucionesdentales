@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useMemo } from 'react'
+import Link from 'next/link'
 import { useTranslations, useLocale } from 'next-intl'
 import { useAuthStore } from '@/store/authStore'
 import { useRouter } from 'next/navigation'
@@ -148,7 +149,9 @@ export default function AdminPacientesPage() {
                   {filtrados.map((p) => (
                     <tr key={p.id} className="hover:bg-white/[.02] transition-colors">
                       <td className="px-4 py-3">
-                        <p className="text-white font-medium">{p.nombre ?? '—'}</p>
+                        <Link href={`/admin/pacientes/${p.id}`} className="text-white font-medium hover:text-teal-400 transition-colors">
+                          {p.nombre ?? '—'}
+                        </Link>
                         {p.email && <p className="text-slate-500 text-xs">{p.email}</p>}
                       </td>
                       <td className="px-4 py-3">
@@ -191,7 +194,7 @@ export default function AdminPacientesPage() {
 
           <div className="md:hidden space-y-3">
             {filtrados.map((p) => (
-              <div key={p.id} className="bg-[--bg-card] border border-white/5 rounded-xl p-4">
+              <Link href={`/admin/pacientes/${p.id}`} key={p.id} className="block bg-[--bg-card] border border-white/5 rounded-xl p-4 hover:border-teal-500/30 transition-colors">
                 <div className="flex items-start justify-between mb-2">
                   <div>
                     <p className="text-white font-bold">{p.nombre ?? '—'}</p>
@@ -207,12 +210,13 @@ export default function AdminPacientesPage() {
                   <a
                     href={`https://wa.me/${p.telefono?.replace(/\D/g, '')}`}
                     target="_blank"
+                    onClick={(e) => e.stopPropagation()}
                     className="text-green-400 text-xs font-bold hover:text-green-300 transition-colors"
                   >
                     {t('whatsapp')} →
                   </a>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         </>

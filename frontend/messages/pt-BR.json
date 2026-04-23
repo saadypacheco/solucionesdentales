@@ -350,6 +350,94 @@
       "required": "Você deve aceitar a política de privacidade para continuar"
     }
   },
+  "perfilPaciente": {
+    "title": "Perfil do paciente",
+    "loading": "Carregando perfil...",
+    "back": "← Voltar a pacientes",
+    "tabs": {
+      "info": "Info",
+      "historial": "Histórico clínico",
+      "tratamientos": "Tratamentos",
+      "turnos": "Consultas",
+      "recetas": "Receitas"
+    },
+    "info": {
+      "telefono": "Telefone",
+      "email": "Email",
+      "estado": "Estado CRM",
+      "score": "Score",
+      "registrado": "Registrado",
+      "consultorio": "Consultório"
+    }
+  },
+  "historial": {
+    "title": "Histórico clínico",
+    "subtitle": "Acessível apenas para dentistas e administradores",
+    "loading": "Carregando histórico...",
+    "noAccess": "Você não tem permissão para ver histórico clínico (apenas dentista/admin)",
+    "alergias": "Alergias",
+    "alergiasPlaceholder": "Penicilina, látex, pólen...",
+    "alergiasHint": "Separar com vírgula",
+    "medicacion": "Medicação atual",
+    "medicacionPlaceholder": "Aspirina 100mg/dia, Losartana 50mg/dia...",
+    "medicacionHint": "Separar com vírgula",
+    "antecedentes": "Antecedentes médicos relevantes",
+    "antecedentesPlaceholder": "Diabetes tipo 2, hipertensão, gravidez, cirurgias anteriores, etc.",
+    "vacio": "Sem informação registrada",
+    "edit": "Editar",
+    "save": "Salvar",
+    "saving": "Salvando...",
+    "saved": "Salvo",
+    "cancel": "Cancelar",
+    "errorSave": "Erro ao salvar",
+    "paciente": {
+      "title": "Meu histórico clínico",
+      "subtitle": "Dados médicos que seu dentista registrou",
+      "noData": "Seu dentista ainda não registrou informações.",
+      "verAdmin": "Apenas seu dentista pode modificá-lo. Se precisa corrigir algo, comente na consulta ou pelo chat.",
+      "back": "Voltar"
+    }
+  },
+  "tratamientos": {
+    "title": "Tratamentos",
+    "subtitle": "Plano terapêutico do paciente",
+    "loading": "Carregando...",
+    "noTratamientos": "Sem tratamentos cadastrados",
+    "nuevo": "+ Novo tratamento",
+    "estados": {
+      "planificado": "Planejado",
+      "en_curso": "Em andamento",
+      "completado": "Concluído"
+    },
+    "form": {
+      "title": "Novo tratamento",
+      "descripcion": "Descrição",
+      "descripcionPlaceholder": "Endodontia molar superior, canal + coroa...",
+      "fecha": "Data planejada",
+      "estado": "Estado",
+      "costo": "Custo (opcional)",
+      "costoPlaceholder": "0.00",
+      "notas": "Notas internas (paciente não vê)",
+      "notasPlaceholder": "Anestesia local 2%, paciente alérgico a penicilina...",
+      "submit": "Criar",
+      "submitting": "Criando...",
+      "errorCreate": "Erro ao criar tratamento"
+    },
+    "card": {
+      "porOdontologo": "Por {nombre}",
+      "fecha": "Data: {fecha}",
+      "costo": "Custo: {moneda} {costo}",
+      "edit": "Editar",
+      "delete": "Excluir",
+      "confirmDelete": "Excluir este tratamento?"
+    },
+    "paciente": {
+      "title": "Meus tratamentos",
+      "subtitle": "Plano terapêutico dos seus dentistas",
+      "noTratamientos": "Você ainda não tem tratamentos cadastrados.",
+      "back": "Voltar"
+    }
+  },
   "recetas": {
     "title": "Receitas",
     "subtitle": "Indicações digitais para pacientes",

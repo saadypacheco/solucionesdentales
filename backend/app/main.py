@@ -4,7 +4,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routers import auth, turnos, pacientes, agente, casos, admin, alarmas, consultorios, superadmin, notificaciones, telemedicina, recetas, chat
+from app.routers import auth, turnos, pacientes, agente, casos, admin, alarmas, consultorios, superadmin, notificaciones, telemedicina, recetas, chat, historial, tratamientos
 
 log = logging.getLogger(__name__)
 
@@ -55,6 +55,8 @@ app.include_router(notificaciones.router)
 app.include_router(telemedicina.router)
 app.include_router(recetas.router)
 app.include_router(chat.router)
+app.include_router(historial.router)
+app.include_router(tratamientos.router)
 
 
 @app.get("/health")
