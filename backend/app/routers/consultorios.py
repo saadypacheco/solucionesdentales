@@ -103,8 +103,82 @@ Para ejercer tus derechos o consultas: {email_contacto}
 
 La AAIP, como autoridad de aplicación, recibe denuncias en aaip.gob.ar.
 """,
-        "en": "Privacy Policy template (English) — translation pending. Use the Spanish version as reference.",
-        "pt-BR": "Política de Privacidade (português) — tradução pendente. Use a versão em espanhol como referência.",
+        "en": """
+**Privacy Policy — {nombre_consultorio}**
+
+In compliance with **Argentina's National Law 25.326** on Personal Data Protection and AAIP Provision 11/2006, we inform you:
+
+**1. Data controller**
+{nombre_consultorio}, located at {direccion}, is responsible for the personal database registered with the AAIP (Argentina's Data Protection Agency).
+
+**2. Data we collect**
+- Name, phone and email to identify and contact you.
+- Clinical data (allergies, medical history, treatments) when you provide it during a visit.
+- Messages exchanged with our virtual assistant.
+- Your appointment data.
+
+**3. Purpose**
+- Providing the dental service you requested.
+- Scheduling and reminding you about your appointments.
+- Maintaining your clinical history.
+- Sending offers and clinic news (you can opt out at any time).
+
+**4. Security**
+Your data is encrypted at rest (AES-128 with HMAC-SHA256) and the connection uses HTTPS. Only authorized clinic staff can access your clinical history.
+
+**5. Your rights (ARCO)**
+You may request at any time:
+- **Access**: view all data we hold about you. Available at `/my-appointments` → "Download my data".
+- **Rectification**: correct inaccurate data.
+- **Cancellation**: have your data erased. Available at `/my-appointments` → "Delete my account".
+- **Objection**: that we stop processing your data for certain purposes (e.g. marketing).
+
+**6. Retention**
+We keep your data for **5 years** from your last appointment, as required by Argentine regulations.
+
+**7. Contact**
+To exercise your rights or for inquiries: {email_contacto}
+
+The AAIP, as the regulatory authority, receives complaints at aaip.gob.ar.
+""",
+        "pt-BR": """
+**Política de Privacidade — {nombre_consultorio}**
+
+Em cumprimento à **Lei Nacional 25.326** de Proteção de Dados Pessoais da Argentina e à Disposição 11/2006 da AAIP, informamos:
+
+**1. Responsável pelo tratamento**
+{nombre_consultorio}, com domicílio em {direccion}, é responsável pelo banco de dados pessoais registrado na AAIP (autoridade argentina).
+
+**2. Dados que coletamos**
+- Nome, telefone e e-mail para identificá-lo(a) e entrar em contato.
+- Dados clínicos (alergias, antecedentes, tratamentos) quando informados durante uma consulta.
+- Mensagens trocadas com o assistente virtual.
+- Dados das suas consultas.
+
+**3. Finalidade**
+- Prestar o serviço odontológico solicitado.
+- Coordenar e lembrar suas consultas.
+- Manter sua história clínica.
+- Enviar ofertas e novidades da clínica (você pode se opor a qualquer momento).
+
+**4. Segurança**
+Seus dados são criptografados em repouso (AES-128 com HMAC-SHA256) e a conexão é via HTTPS. Apenas a equipe autorizada da clínica pode acessar sua história clínica.
+
+**5. Seus direitos (ARCO)**
+Você pode solicitar a qualquer momento:
+- **Acesso**: ver todos os dados que temos sobre você. Disponível em `/mis-turnos` → "Baixar meus dados".
+- **Retificação**: corrigir dados incorretos.
+- **Cancelamento**: que apaguemos seus dados. Disponível em `/mis-turnos` → "Excluir minha conta".
+- **Oposição**: que paremos de processá-los para certas finalidades (marketing).
+
+**6. Conservação**
+Conservamos seus dados por **5 anos** desde sua última consulta, conforme a legislação argentina.
+
+**7. Contato**
+Para exercer seus direitos ou tirar dúvidas: {email_contacto}
+
+A AAIP, como autoridade aplicadora, recebe denúncias em aaip.gob.ar.
+""",
     },
     "BO": {
         "es": """
@@ -139,8 +213,70 @@ Datos encriptados en reposo y conexión por HTTPS. Solo personal autorizado acce
 **7. Contacto**
 {email_contacto}
 """,
-        "en": "Privacy Policy template (English) — translation pending.",
-        "pt-BR": "Política de Privacidade (português) — tradução pendente.",
+        "en": """
+**Privacy Policy — {nombre_consultorio}**
+
+In compliance with Bolivia's Political Constitution (Articles 21 and 130) and applicable regulations, we inform you:
+
+**1. Data controller**
+{nombre_consultorio}, located at {direccion}.
+
+**2. Data we collect**
+- Name, phone and email to identify you.
+- Clinical data shared during your visit.
+- Messages with the virtual assistant.
+- Your appointments.
+
+**3. Purpose**
+- Providing dental care.
+- Scheduling appointments.
+- Maintaining clinical history.
+
+**4. Security**
+Data is encrypted at rest and the connection uses HTTPS. Only authorized staff can access your clinical history.
+
+**5. Your rights**
+- Access your data: `/my-appointments` → "Download my data".
+- Delete your account: `/my-appointments` → "Delete my account".
+
+**6. Retention**
+5 years from your last appointment.
+
+**7. Contact**
+{email_contacto}
+""",
+        "pt-BR": """
+**Política de Privacidade — {nombre_consultorio}**
+
+Em cumprimento à Constituição Política do Estado boliviano (Arts. 21 e 130) e normas vigentes na Bolívia, informamos:
+
+**1. Responsável**
+{nombre_consultorio}, com domicílio em {direccion}.
+
+**2. Dados que coletamos**
+- Nome, telefone e e-mail para identificá-lo(a).
+- Dados clínicos durante a consulta.
+- Mensagens com o assistente virtual.
+- Suas consultas.
+
+**3. Finalidade**
+- Prestar atendimento odontológico.
+- Coordenar consultas.
+- Manter história clínica.
+
+**4. Segurança**
+Dados criptografados em repouso e conexão via HTTPS. Apenas equipe autorizada acessa sua história clínica.
+
+**5. Seus direitos**
+- Acessar seus dados: `/mis-turnos` → "Baixar meus dados".
+- Excluir sua conta: `/mis-turnos` → "Excluir minha conta".
+
+**6. Conservação**
+5 anos desde sua última consulta.
+
+**7. Contato**
+{email_contacto}
+""",
     },
     "US": {
         "en": """
@@ -181,8 +317,82 @@ You may file a complaint with us or with the U.S. Department of Health and Human
 
 We will not retaliate against you for filing a complaint.
 """,
-        "es": "Privacy Policy template (Spanish) — translation pending. Use the English version as reference.",
-        "pt-BR": "Política de Privacidade (português) — tradução pendente.",
+        "es": """
+**Aviso de Prácticas de Privacidad — {nombre_consultorio}**
+
+Este aviso describe cómo puede usarse y divulgarse la información médica sobre ti y cómo puedes acceder a esta información. **Por favor revísalo con atención.**
+
+**1. Fecha de vigencia**
+Este aviso entra en vigencia el {fecha_actual}.
+
+**2. Nuestro compromiso**
+{nombre_consultorio} está obligado por HIPAA (45 CFR Partes 160 y 164) a proteger tu Información Médica Protegida (PHI).
+
+**3. Cómo usamos y divulgamos tu PHI**
+- **Tratamiento**: para brindar atención dental.
+- **Pago**: para facturar al seguro o a ti directamente.
+- **Operaciones**: para administrar la práctica.
+- **Sin tu autorización**: podemos divulgar PHI cuando lo requiera la ley.
+- **Con tu autorización**: para marketing o cualquier otro propósito no listado.
+
+**4. Tus derechos bajo HIPAA**
+- **Derecho de acceso**: descargá tu PHI en `/mis-turnos` → "Descargar mis datos".
+- **Derecho a enmendar**: solicitar correcciones a datos incorrectos.
+- **Derecho de eliminación**: solicitar anonimización en `/mis-turnos` → "Eliminar mi cuenta".
+- **Derecho a restringir**: solicitar límites sobre cómo usamos/divulgamos tu PHI.
+- **Derecho a un registro de divulgaciones**: lista de con quién compartimos tu PHI.
+
+**5. Seguridad**
+La PHI se cifra en reposo (AES-128 + HMAC-SHA256) y en tránsito (TLS 1.2+). Los logs de auditoría registran todos los accesos. Contamos con un Business Associate Agreement (BAA) con nuestros proveedores cloud.
+
+**6. Notificación de brechas**
+Si tu PHI se ve comprometida, te notificaremos dentro de **60 días** según la HIPAA Breach Notification Rule.
+
+**7. Quejas**
+Podés presentar una queja con nosotros o con el U.S. Department of Health and Human Services, Office for Civil Rights:
+- HHS OCR: 1-877-696-6775
+- {email_contacto}
+
+No tomaremos represalias contra ti por presentar una queja.
+""",
+        "pt-BR": """
+**Aviso de Práticas de Privacidade — {nombre_consultorio}**
+
+Este aviso descreve como informações médicas sobre você podem ser usadas e divulgadas, e como você pode acessá-las. **Leia com atenção.**
+
+**1. Data de vigência**
+Este aviso entra em vigor em {fecha_actual}.
+
+**2. Nosso compromisso**
+{nombre_consultorio} é obrigado pela HIPAA (45 CFR Partes 160 e 164) a proteger suas Informações de Saúde Protegidas (PHI).
+
+**3. Como usamos e divulgamos sua PHI**
+- **Tratamento**: para prestar atendimento odontológico.
+- **Pagamento**: para faturar ao seguro ou diretamente a você.
+- **Operações**: para administrar a clínica.
+- **Sem sua autorização**: podemos divulgar PHI quando exigido por lei.
+- **Com sua autorização**: para marketing ou qualquer outra finalidade não listada.
+
+**4. Seus direitos sob HIPAA**
+- **Direito de acesso**: baixe sua PHI em `/mis-turnos` → "Baixar meus dados".
+- **Direito de retificação**: solicitar correções de dados incorretos.
+- **Direito de exclusão**: solicitar anonimização em `/mis-turnos` → "Excluir minha conta".
+- **Direito de restrição**: solicitar limites sobre como usamos/divulgamos sua PHI.
+- **Direito a um relatório de divulgações**: lista de com quem compartilhamos sua PHI.
+
+**5. Segurança**
+A PHI é criptografada em repouso (AES-128 + HMAC-SHA256) e em trânsito (TLS 1.2+). Logs de auditoria registram todos os acessos. Temos Business Associate Agreement (BAA) com nossos provedores cloud.
+
+**6. Notificação de violações**
+Se sua PHI for comprometida, notificaremos você em até **60 dias**, conforme a HIPAA Breach Notification Rule.
+
+**7. Reclamações**
+Você pode apresentar uma reclamação conosco ou ao U.S. Department of Health and Human Services, Office for Civil Rights:
+- HHS OCR: 1-877-696-6775
+- {email_contacto}
+
+Não retaliaremos contra você por apresentar uma reclamação.
+""",
     },
 }
 
