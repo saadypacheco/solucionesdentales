@@ -6,7 +6,7 @@ import random
 import os
 import jwt as pyjwt
 from datetime import datetime, timedelta, timezone
-from app.db.client import get_supabase_client
+from app.db.client import get_supabase_client, safe_query
 from app.core.encryption import (
     decrypt,
     encrypt,
@@ -54,7 +54,9 @@ def require_admin(
 ):
     """Requiere staff de cualquier rol (admin, odontologo, recepcionista, superadmin)."""
     user_id = _decode_jwt_sub(credentials.credentials)
-    profile = db.table("usuarios").select("rol, activo").eq("id", user_id).single().execute()
+    profile = safe_query(
+        lambda: db.table("usuarios").select("rol, activo").eq("id", user_id).single().execute()
+    )
     if not profile.data or profile.data.get("rol") not in ROLES_STAFF:
         raise HTTPException(status_code=403, detail="Acceso restringido a staff")
     if not profile.data.get("activo", True):
@@ -71,12 +73,12 @@ def require_staff_context(
     Útil para routers que necesitan filtrar por consultorio_id.
     """
     user_id = _decode_jwt_sub(credentials.credentials)
-    profile = (
-        db.table("usuarios")
-        .select("id, rol, activo, consultorio_id")
-        .eq("id", user_id)
-        .single()
-        .execute()
+    profile = safe_query(
+        lambda: db.table("usuarios")
+            .select("id, rol, activo, consultorio_id")
+            .eq("id", user_id)
+            .single()
+            .execute()
     )
     if not profile.data or profile.data.get("rol") not in ROLES_STAFF:
         raise HTTPException(status_code=403, detail="Acceso restringido a staff")
@@ -97,7 +99,9 @@ def require_superadmin(
 ):
     """Solo superadmin del SaaS (rol que opera sobre todos los consultorios)."""
     user_id = _decode_jwt_sub(credentials.credentials)
-    profile = db.table("usuarios").select("rol, activo").eq("id", user_id).single().execute()
+    profile = safe_query(
+        lambda: db.table("usuarios").select("rol, activo").eq("id", user_id).single().execute()
+    )
     if not profile.data or profile.data.get("rol") not in ROLES_SUPERADMIN:
         raise HTTPException(status_code=403, detail="Acceso restringido a superadmin")
     if not profile.data.get("activo", True):
