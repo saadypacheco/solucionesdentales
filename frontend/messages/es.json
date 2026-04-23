@@ -632,6 +632,7 @@
   "admin": {
     "nav": {
       "dashboard": "Dashboard",
+      "metricas": "Métricas",
       "agenda": "Agenda",
       "pacientes": "Pacientes",
       "crm": "CRM",
@@ -806,6 +807,78 @@
           "inactive": "🟡 Pacientes activos sin turno hace +6 meses → alarma media",
           "incomplete": "🟡 Ortodoncia/implantes sin próximo turno → alarma media"
         }
+      },
+      "consultorio": {
+        "title": "Datos del consultorio",
+        "desc": "Información que ven tus pacientes y se usa en notificaciones, recetas y política de privacidad",
+        "errorSave": "Error guardando datos",
+        "emptyField": "Sin completar",
+        "country": "País",
+        "countryReadOnly": "(solo superadmin puede cambiarlo)",
+        "complianceState": "Estado compliance",
+        "fields": {
+          "nombre": "Nombre del consultorio",
+          "direccion": "Dirección",
+          "telefono": "Teléfono",
+          "email": "Email de contacto",
+          "waNumero": "Número de WhatsApp (con código país)",
+          "matricula": "Matrícula del titular"
+        }
+      }
+    },
+    "metricas": {
+      "title": "Métricas avanzadas",
+      "subtitle": "Conversión, asistencia y eficiencia de tu consultorio",
+      "errorLoad": "Error cargando métricas",
+      "range": {
+        "7d": "Últimos 7 días",
+        "30d": "Últimos 30 días",
+        "90d": "Últimos 90 días",
+        "180d": "Últimos 6 meses",
+        "1y": "Último año"
+      },
+      "kpi": {
+        "newPatients": "Pacientes nuevos",
+        "totalAppts": "Turnos totales",
+        "attendanceRate": "Tasa asistencia",
+        "attendanceSub": "realizados / (realizados + ausentes + cancelados)",
+        "chatConversion": "Conversión chat IA",
+        "chatConversionSub": "{n} sesiones totales"
+      },
+      "funnel": {
+        "title": "Funnel de conversión",
+        "desc": "Recorrido desde que entran al sitio hasta que asisten al turno",
+        "newPatients": "1. Pacientes nuevos",
+        "withChat": "2. Iniciaron chat",
+        "withAppt": "3. Agendaron turno",
+        "attended": "4. Asistieron"
+      },
+      "apptsPerDay": {
+        "title": "Turnos por día",
+        "desc": "Volumen de turnos creados día a día",
+        "empty": "Sin turnos en este período"
+      },
+      "byState": {
+        "title": "Turnos por estado",
+        "desc": "Distribución del estado actual de los turnos del período",
+        "empty": "Sin turnos en este período"
+      },
+      "followUp": {
+        "title": "Eficacia del seguimiento",
+        "desc": "Alarmas generadas por las reglas automáticas y cuántas se resolvieron",
+        "generated": "Generadas",
+        "resolved": "Resueltas",
+        "highPriority": "Alta prioridad",
+        "effectiveness": "Efectividad"
+      },
+      "telemed": {
+        "title": "Telemedicina",
+        "desc": "Adopción de consultas virtuales y estado de pagos",
+        "virtualCount": "Turnos virtuales",
+        "ofTotal": "del total"
+      },
+      "footer": {
+        "note": "Datos de los últimos {dias} días, agrupados por consultorio."
       }
     },
     "usuarios": {

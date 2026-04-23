@@ -4,7 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 
 /* ─── DEMO TABS ─────────────────────────────────────────── */
-type Tab = 'booking' | 'turnos' | 'dashboard'
+type Tab = 'booking' | 'turnos' | 'dashboard' | 'telemed' | 'historia'
 
 /* ─── COMPONENT ─────────────────────────────────────────── */
 export default function SoftwareLanding() {
@@ -33,7 +33,7 @@ export default function SoftwareLanding() {
             </span>
           </div>
           <div className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-400">
-            {[['#features', 'Funcionalidades'], ['#demo', 'Demo'], ['#precios', 'Precios'], ['#contacto', 'Contacto']].map(([href, label]) => (
+            {[['#features', 'Funcionalidades'], ['#demo', 'Demo'], ['#paises', 'Multi-país'], ['#precios', 'Precios'], ['#contacto', 'Contacto']].map(([href, label]) => (
               <a key={href} href={href} className="hover:text-white transition-colors">{label}</a>
             ))}
           </div>
@@ -57,7 +57,7 @@ export default function SoftwareLanding() {
           <div className="animate-slide-up">
             <div className="inline-flex items-center gap-2 bg-teal-500/10 border border-teal-500/20 rounded-full px-4 py-1.5 mb-6">
               <span className="w-2 h-2 bg-teal-400 rounded-full animate-pulse" />
-              <span className="text-teal-400 text-xs font-bold uppercase tracking-[0.2em]">Software de gestión odontológica</span>
+              <span className="text-teal-400 text-xs font-bold uppercase tracking-[0.2em]">Plataforma SaaS multi-clínica · multi-país</span>
             </div>
 
             <h1 className="text-5xl sm:text-6xl font-black text-white leading-[0.93] mb-6">
@@ -66,8 +66,9 @@ export default function SoftwareLanding() {
             </h1>
 
             <p className="text-slate-300 text-lg leading-relaxed mb-8 max-w-lg">
-              Sistema completo para consultorio dental. Tus pacientes agendan solos 24/7,
-              vos controlás todo desde el panel. Sin papel, sin llamadas perdidas, sin caos.
+              Sistema completo para consultorio dental: agenda online 24/7, panel de admin, telemedicina,
+              historia clínica digital, recetas en PDF, chat paciente-doctor y cumplimiento legal por país (AR, BO, US).
+              Todo en un solo lugar, listo en 24 horas.
             </p>
 
             <div className="flex flex-wrap gap-3 mb-10">
@@ -90,7 +91,7 @@ export default function SoftwareLanding() {
 
             {/* Trust bullets */}
             <div className="flex flex-wrap gap-4 text-sm text-slate-400">
-              {['Sin contrato anual', 'Setup en 24 horas', 'Soporte incluido'].map((item) => (
+              {['Sin contrato anual', 'Setup en 24 horas', 'Datos cifrados (AES-128)', 'Soporte incluido'].map((item) => (
                 <span key={item} className="flex items-center gap-1.5">
                   <svg className="w-4 h-4 text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
@@ -123,12 +124,12 @@ export default function SoftwareLanding() {
             <div className="absolute top-44 left-0 w-64 glass-white rounded-2xl p-4 animate-float-slow shadow-2xl">
               <div className="flex items-start gap-3">
                 <div className="w-9 h-9 bg-gradient-to-br from-teal-400 to-teal-600 rounded-xl flex items-center justify-center text-lg flex-shrink-0">
-                  🦷
+                  🔔
                 </div>
                 <div>
-                  <div className="text-slate-800 text-xs font-bold">Nuevo turno solicitado</div>
-                  <div className="text-slate-600 text-xs mt-0.5">María G. — Blanqueamiento</div>
-                  <div className="text-slate-400 text-xs mt-1">Mañana · 10:00 hs</div>
+                  <div className="text-slate-800 text-xs font-bold">Paciente en sala virtual</div>
+                  <div className="text-slate-600 text-xs mt-0.5">María G. ya entró al lobby de Jitsi</div>
+                  <div className="text-slate-400 text-xs mt-1">Hace 3 segundos · Telemedicina</div>
                 </div>
               </div>
             </div>
@@ -163,7 +164,7 @@ export default function SoftwareLanding() {
                 { n: '3 min', label: 'para agendar un turno' },
                 { n: '0', label: 'llamadas perdidas' },
                 { n: '24/7', label: 'disponible para pacientes' },
-                { n: '100%', label: 'desde el celular' },
+                { n: '3 países', label: 'AR · BO · US listos' },
               ].map(({ n, label }) => (
                 <div key={label} className="py-5 px-6 text-center" style={{ background: 'var(--bg-base)' }}>
                   <div className="text-2xl font-black text-teal-400 number-display">{n}</div>
@@ -214,49 +215,121 @@ export default function SoftwareLanding() {
                 num: '01',
                 icon: '📅',
                 titulo: 'Agenda online 24/7',
-                desc: 'Tus pacientes agendan solos desde el celular, a cualquier hora. Sin llamar, sin esperar. El turno queda confirmado al instante.',
+                desc: 'Tus pacientes agendan solos desde el celular. El sistema asigna automáticamente al doctor según el tratamiento. Confirmación al instante.',
                 tag: 'Core',
                 accent: 'from-teal-500/20 to-teal-600/5',
               },
               {
                 num: '02',
                 icon: '🖥️',
-                titulo: 'Panel de administración',
-                desc: 'Vista completa del día, la semana o el mes. Confirmá, reasigná o cancelá turnos con un clic. Historial de cada paciente disponible.',
+                titulo: 'Panel multi-rol',
+                desc: 'Roles separados: admin, odontólogo y recepcionista — cada uno ve solo lo que necesita. Dashboard, agenda semanal, CRM kanban y más.',
                 tag: 'Control total',
                 accent: 'from-sky-500/20 to-sky-600/5',
               },
               {
                 num: '03',
                 icon: '🤖',
-                titulo: 'Asistente con IA',
-                desc: 'Responde consultas frecuentes automáticamente, clasifica urgencias y deriva al canal correcto. Disponible las 24 horas.',
+                titulo: 'Asistente IA configurable',
+                desc: 'Atiende 24/7 en el chat de tu web. Responde según tus precios, tus tratamientos y tu tono — todo editable desde el panel sin tocar código.',
                 tag: 'IA incluida',
                 accent: 'from-violet-500/20 to-violet-600/5',
               },
               {
                 num: '04',
-                icon: '👥',
-                titulo: 'CRM de pacientes',
-                desc: 'Historial completo de cada paciente: tratamientos, ausencias, notas clínicas y score de fidelidad automático.',
-                tag: 'Seguimiento',
-                accent: 'from-emerald-500/20 to-emerald-600/5',
+                icon: '📹',
+                titulo: 'Telemedicina con Jitsi',
+                desc: 'Consultas virtuales con sala privada por turno (lobby + password). Cobro previo por QR o transferencia, comprobante a verificar y notificación cuando entra el paciente.',
+                tag: 'Nuevo',
+                accent: 'from-fuchsia-500/20 to-fuchsia-600/5',
               },
               {
                 num: '05',
-                icon: '🔔',
-                titulo: 'Alarmas inteligentes',
-                desc: 'Notificaciones automáticas cuando un paciente cancela, lleva meses inactivo o tiene un turno sin confirmar.',
-                tag: 'Proactivo',
+                icon: '📄',
+                titulo: 'Recetas digitales en PDF',
+                desc: 'El odontólogo crea la receta desde el panel; se genera el PDF con sus datos y queda disponible para que el paciente la descargue desde su celular.',
+                tag: 'Nuevo',
                 accent: 'from-amber-500/20 to-amber-600/5',
               },
               {
                 num: '06',
-                icon: '👨‍⚕️',
-                titulo: 'Multi-doctor',
-                desc: 'Registrá cada odontólogo con sus especialidades y horarios. El sistema asigna automáticamente el doctor correcto.',
-                tag: 'Escalable',
+                icon: '🩺',
+                titulo: 'Historia clínica',
+                desc: 'Alergias, medicación, antecedentes y tratamientos por paciente. El paciente ve la suya (sin notas internas), el odontólogo ve y edita todo.',
+                tag: 'Nuevo',
+                accent: 'from-emerald-500/20 to-emerald-600/5',
+              },
+              {
+                num: '07',
+                icon: '💬',
+                titulo: 'Chat paciente ↔ doctor',
+                desc: 'Mensajería asincrónica entre consulta y consulta. El paciente pregunta desde la web, el odontólogo responde desde el panel — con notificaciones en tiempo real.',
+                tag: 'Nuevo',
+                accent: 'from-cyan-500/20 to-cyan-600/5',
+              },
+              {
+                num: '08',
+                icon: '🔔',
+                titulo: 'Notificaciones in-app',
+                desc: 'Campana con badge en tiempo real (Supabase Realtime + sonido). Aparecen al instante: nuevo turno, comprobante, paciente en sala, mensaje nuevo.',
+                tag: 'Realtime',
                 accent: 'from-rose-500/20 to-rose-600/5',
+              },
+              {
+                num: '09',
+                icon: '⏰',
+                titulo: 'Recordatorios automáticos 24h',
+                desc: 'Cron diario que avisa al paciente que tiene turno mañana. Idempotente, no manda duplicados, soporta presencial y virtual.',
+                tag: 'Auto',
+                accent: 'from-indigo-500/20 to-indigo-600/5',
+              },
+              {
+                num: '10',
+                icon: '🌎',
+                titulo: 'Multi-idioma · multi-país',
+                desc: 'Español, inglés y portugués (BR) detectados automáticamente. Templates legales y reglas de compliance por país (AR, BO, US).',
+                tag: 'i18n',
+                accent: 'from-teal-500/20 to-teal-600/5',
+              },
+              {
+                num: '11',
+                icon: '🔐',
+                titulo: 'Datos cifrados',
+                desc: 'Teléfonos, emails y notas clínicas cifrados en base con Fernet (AES-128 + HMAC). Cumple lineamientos de la AAIP (Ley 25.326 AR).',
+                tag: 'Seguridad',
+                accent: 'from-green-500/20 to-green-600/5',
+              },
+              {
+                num: '12',
+                icon: '⚖️',
+                titulo: 'Compliance & ARCO',
+                desc: 'Política de privacidad por país, consentimiento obligatorio al agendar, descarga de datos y eliminación de cuenta — listos para auditoría.',
+                tag: 'Legal',
+                accent: 'from-yellow-500/20 to-yellow-600/5',
+              },
+              {
+                num: '13',
+                icon: '🚨',
+                titulo: 'Alarmas inteligentes',
+                desc: 'Detecta pacientes inactivos, turnos sin confirmar, leads sin seguimiento y tratamientos incompletos. Genera alertas priorizadas.',
+                tag: 'Proactivo',
+                accent: 'from-orange-500/20 to-orange-600/5',
+              },
+              {
+                num: '14',
+                icon: '🖼️',
+                titulo: 'Galería antes/después',
+                desc: 'Casos clínicos reales con slider de comparación. El admin sube y aprueba, los pacientes ven trabajos por tipo de tratamiento.',
+                tag: 'Marketing',
+                accent: 'from-pink-500/20 to-pink-600/5',
+              },
+              {
+                num: '15',
+                icon: '👥',
+                titulo: 'CRM con score',
+                desc: 'Pipeline kanban de 7 etapas. Cada paciente tiene un score de fidelidad automático según asistencia, gasto y antigüedad.',
+                tag: 'Seguimiento',
+                accent: 'from-lime-500/20 to-lime-600/5',
               },
             ].map(({ num, icon, titulo, desc, tag, accent }) => (
               <div key={num} className={`relative card-teal-hover rounded-3xl p-6 border border-white/6 bg-gradient-to-br ${accent} overflow-hidden`}>
@@ -281,11 +354,13 @@ export default function SoftwareLanding() {
           </div>
 
           {/* Tab selector */}
-          <div className="flex justify-center gap-2 mb-8">
+          <div className="flex flex-wrap justify-center gap-2 mb-8">
             {([
-              ['booking', '📲 Booking para pacientes'],
+              ['booking', '📲 Booking pacientes'],
               ['turnos', '🗓️ Panel de turnos'],
               ['dashboard', '📊 Dashboard admin'],
+              ['telemed', '📹 Telemedicina'],
+              ['historia', '🩺 Historia clínica'],
             ] as [Tab, string][]).map(([key, label]) => (
               <button
                 key={key}
@@ -314,6 +389,8 @@ export default function SoftwareLanding() {
                 {activeTab === 'booking' && 'tuclinica.com/turnos'}
                 {activeTab === 'turnos' && 'tuclinica.com/admin/dashboard'}
                 {activeTab === 'dashboard' && 'tuclinica.com/admin/dashboard'}
+                {activeTab === 'telemed' && 'tuclinica.com/admin/pagos'}
+                {activeTab === 'historia' && 'tuclinica.com/admin/pacientes/123'}
               </div>
             </div>
 
@@ -358,7 +435,7 @@ export default function SoftwareLanding() {
                   {[
                     { hora: '09:00', nombre: 'Ana Rodríguez', trat: 'Limpieza', estado: 'realizado', color: 'text-green-400 bg-green-400/10' },
                     { hora: '09:30', nombre: 'Marcos Díaz', trat: 'Blanqueamiento', estado: 'realizado', color: 'text-green-400 bg-green-400/10' },
-                    { hora: '10:30', nombre: 'Laura Gómez', trat: 'Ortodoncia', estado: 'confirmado', color: 'text-teal-400 bg-teal-400/10' },
+                    { hora: '10:30', nombre: 'Laura Gómez', trat: 'Ortodoncia · 📹 virtual', estado: 'confirmado', color: 'text-teal-400 bg-teal-400/10' },
                     { hora: '11:00', nombre: 'Pablo Torres', trat: 'Consulta', estado: 'confirmado', color: 'text-teal-400 bg-teal-400/10' },
                     { hora: '14:00', nombre: 'Sofía Martín', trat: 'Implante', estado: 'solicitado', color: 'text-yellow-400 bg-yellow-400/10' },
                     { hora: '15:30', nombre: 'Javier López', trat: 'Estética', estado: 'solicitado', color: 'text-yellow-400 bg-yellow-400/10' },
@@ -414,6 +491,149 @@ export default function SoftwareLanding() {
                 </div>
               </div>
             )}
+
+            {/* Telemedicina demo */}
+            {activeTab === 'telemed' && (
+              <div className="p-6" style={{ background: 'var(--bg-base)' }}>
+                <h3 className="text-white font-bold mb-5">Pagos pendientes de verificación</h3>
+                <div className="space-y-3">
+                  {[
+                    { paciente: 'María González', trat: 'Primera consulta virtual', monto: 'AR$ 12.000', estado: 'comprobante_subido' },
+                    { paciente: 'Diego Ramírez', trat: 'Seguimiento', monto: 'AR$ 7.500', estado: 'comprobante_subido' },
+                  ].map((p) => (
+                    <div key={p.paciente} className="glass rounded-2xl p-4 border border-amber-400/20">
+                      <div className="flex items-center justify-between mb-3">
+                        <div>
+                          <div className="text-white font-semibold">{p.paciente}</div>
+                          <div className="text-slate-400 text-xs">{p.trat} · {p.monto}</div>
+                        </div>
+                        <span className="text-xs bg-amber-400/15 text-amber-300 px-2.5 py-1 rounded-full">⏳ Por verificar</span>
+                      </div>
+                      <div className="flex gap-2">
+                        <button className="flex-1 bg-teal-500 text-white text-sm font-semibold py-2 rounded-lg">✅ Aprobar (genera sala Jitsi)</button>
+                        <button className="px-4 bg-rose-500/20 text-rose-300 text-sm font-semibold py-2 rounded-lg">Rechazar</button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-6 bg-teal-500/10 border border-teal-500/30 rounded-xl p-4 text-sm text-teal-300">
+                  💡 Al aprobar se genera automáticamente la sala virtual con lobby + password y se notifica al paciente.
+                </div>
+              </div>
+            )}
+
+            {/* Historia clínica demo */}
+            {activeTab === 'historia' && (
+              <div className="p-6" style={{ background: 'var(--bg-base)' }}>
+                <div className="flex items-center justify-between mb-5">
+                  <div>
+                    <h3 className="text-white font-bold">María González</h3>
+                    <div className="text-slate-400 text-xs">Paciente desde marzo 2024 · Score 92</div>
+                  </div>
+                  <div className="flex gap-1.5 text-xs">
+                    {['Info', 'Historial', 'Tratamientos', 'Turnos', 'Recetas'].map((tab, i) => (
+                      <span key={tab} className={`px-2.5 py-1 rounded-md font-semibold ${i === 1 ? 'bg-teal-500 text-white' : 'bg-white/5 text-slate-400'}`}>{tab}</span>
+                    ))}
+                  </div>
+                </div>
+                <div className="grid md:grid-cols-3 gap-3">
+                  <div className="glass rounded-xl p-4">
+                    <div className="text-rose-300 text-xs font-bold uppercase tracking-wider mb-2">⚠️ Alergias</div>
+                    <div className="text-white text-sm">Penicilina · Látex</div>
+                  </div>
+                  <div className="glass rounded-xl p-4">
+                    <div className="text-amber-300 text-xs font-bold uppercase tracking-wider mb-2">💊 Medicación</div>
+                    <div className="text-white text-sm">Enalapril 10mg · Aspirina 100mg</div>
+                  </div>
+                  <div className="glass rounded-xl p-4">
+                    <div className="text-teal-300 text-xs font-bold uppercase tracking-wider mb-2">📋 Antecedentes</div>
+                    <div className="text-white text-sm">Hipertensión controlada</div>
+                  </div>
+                </div>
+                <div className="mt-4 glass rounded-xl p-4 text-sm">
+                  <div className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">Tratamientos en curso</div>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-white">Ortodoncia · Brackets metálicos</span>
+                      <span className="text-xs text-teal-400">En curso · Sesión 4/12</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-white">Limpieza profunda</span>
+                      <span className="text-xs text-green-400">Completado</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* ══ MULTI-PAÍS ══════════════════════════════════════ */}
+      <section id="paises" className="py-24 px-4" style={{ background: 'var(--bg-base)' }}>
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-14">
+            <div className="text-teal-400 text-xs font-bold uppercase tracking-[0.2em] mb-3">Multi-país desde el día uno</div>
+            <h2 className="text-4xl font-black text-white mb-4">Pensado para escalar en LATAM y EE.UU.</h2>
+            <p className="text-slate-400 max-w-xl mx-auto">Cada país tiene reglas distintas — el sistema las aplica automáticamente sin que tengas que pensar en compliance.</p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-5">
+            {[
+              {
+                bandera: '🇦🇷',
+                pais: 'Argentina',
+                ley: 'Ley 25.326 (PDPA / AAIP)',
+                items: [
+                  'Plantilla de política de privacidad lista',
+                  'Consentimiento explícito al agendar',
+                  'Datos cifrados con AES-128 + HMAC',
+                  'Derecho ARCO (descarga + borrado)',
+                ],
+              },
+              {
+                bandera: '🇧🇴',
+                pais: 'Bolivia',
+                ley: 'Constitución Política del Estado',
+                items: [
+                  'Docs requeridos: NIT, matrícula CDB, SEDES',
+                  'Onboarding adaptado al país',
+                  'Idioma español por defecto',
+                  'Gemini 2.0 como modelo IA',
+                ],
+              },
+              {
+                bandera: '🇺🇸',
+                pais: 'Estados Unidos',
+                ley: 'HIPAA · State Dental Board',
+                items: [
+                  'Audit log obligatorio activado',
+                  'Retención de datos 6 años',
+                  'Notif. de brecha en 72hs',
+                  'Modelo IA: Claude vía AWS Bedrock (BAA)',
+                ],
+              },
+            ].map(({ bandera, pais, ley, items }) => (
+              <div key={pais} className="glass rounded-3xl p-6 border border-white/6">
+                <div className="text-4xl mb-3">{bandera}</div>
+                <h3 className="text-white font-bold text-xl mb-1">{pais}</h3>
+                <p className="text-teal-400 text-xs font-semibold mb-4">{ley}</p>
+                <ul className="space-y-2">
+                  {items.map((it) => (
+                    <li key={it} className="flex items-start gap-2 text-sm text-slate-300">
+                      <svg className="w-4 h-4 text-teal-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      <span>{it}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-10 text-center text-slate-500 text-sm">
+            🇧🇷 Brasil próximamente — i18n pt-BR ya implementado
           </div>
         </div>
       </section>
@@ -430,9 +650,9 @@ export default function SoftwareLanding() {
 
             <div className="grid md:grid-cols-3 gap-8">
               {[
-                { n: '01', titulo: 'Te enviamos el acceso', desc: 'En menos de 24 horas tenés tu URL, panel de admin y credenciales listas para configurar.' },
-                { n: '02', titulo: 'Configuramos juntos', desc: 'Cargamos tus doctores, especialidades, horarios de atención y servicios. Te acompañamos en cada paso.' },
-                { n: '03', titulo: 'Empezás a recibir turnos', desc: 'Compartís el link con tus pacientes y el sistema empieza a trabajar. Desde el día uno.' },
+                { n: '01', titulo: 'Te enviamos el acceso', desc: 'En menos de 24 horas tenés tu URL, panel de admin y credenciales listas. Activamos el país y los docs requeridos.' },
+                { n: '02', titulo: 'Configuramos juntos', desc: 'Cargamos tus doctores, especialidades, horarios, precios de telemedicina y tu política de privacidad personalizada.' },
+                { n: '03', titulo: 'Empezás a recibir turnos', desc: 'Compartís el link con tus pacientes y el sistema empieza a trabajar. Recordatorios, notificaciones y agenda — desde el día uno.' },
               ].map(({ n, titulo, desc }) => (
                 <div key={n} className="relative flex flex-col items-center">
                   <div className="w-20 h-20 glass rounded-full flex items-center justify-center border border-teal-500/30 mb-6 glow-card">
@@ -449,29 +669,32 @@ export default function SoftwareLanding() {
 
       {/* ══ PRECIOS ═════════════════════════════════════════ */}
       <section id="precios" className="py-24 px-4" style={{ background: 'var(--bg-base)' }}>
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-6xl mx-auto">
           <div className="text-center mb-14">
             <div className="text-teal-400 text-xs font-bold uppercase tracking-[0.2em] mb-3">Planes</div>
             <h2 className="text-4xl font-black text-white mb-4">Simple y transparente</h2>
             <p className="text-slate-400">Sin letra chica. Sin costos ocultos. Cancelá cuando quieras.</p>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-6">
+          <div className="grid md:grid-cols-3 gap-6">
             {/* Plan Básico */}
             <div className="glass rounded-3xl p-8 border border-white/6">
               <div className="text-slate-400 text-sm font-bold uppercase tracking-wider mb-2">Básico</div>
-              <div className="text-4xl font-black text-white mb-1">$49<span className="text-xl text-slate-400 font-normal">/mes</span></div>
+              <div className="text-4xl font-black text-white mb-1">US$ 49<span className="text-xl text-slate-400 font-normal">/mes</span></div>
               <div className="text-slate-400 text-sm mb-8">Para clínicas con 1 odontólogo</div>
-              <ul className="space-y-3 mb-8">
+              <ul className="space-y-3 mb-8 text-sm">
                 {[
                   'Agenda online 24/7',
-                  'Panel de administración',
-                  'Gestión de turnos y estados',
-                  'Perfil de pacientes',
+                  'Panel admin · agenda · CRM',
+                  'Asistente IA configurable',
+                  'Historia clínica + tratamientos',
+                  'Galería antes/después',
+                  'Recordatorios automáticos 24h',
+                  'Notificaciones in-app',
                   'Hasta 1 doctor',
                   'Soporte por email',
                 ].map((item) => (
-                  <li key={item} className="flex items-center gap-3 text-sm text-slate-300">
+                  <li key={item} className="flex items-center gap-3 text-slate-300">
                     <svg className="w-5 h-5 text-teal-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
@@ -484,25 +707,27 @@ export default function SoftwareLanding() {
               </a>
             </div>
 
-            {/* Plan Completo */}
+            {/* Plan Pro */}
             <div className="rounded-3xl p-8 border border-teal-500/40 relative" style={{ background: 'linear-gradient(135deg, rgba(20,184,166,.1) 0%, rgba(20,184,166,.03) 100%)' }}>
               <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-teal-500 text-white text-xs font-bold px-4 py-1.5 rounded-full">
                 Más elegido
               </div>
-              <div className="text-teal-400 text-sm font-bold uppercase tracking-wider mb-2">Completo</div>
-              <div className="text-4xl font-black text-white mb-1">$99<span className="text-xl text-slate-400 font-normal">/mes</span></div>
+              <div className="text-teal-400 text-sm font-bold uppercase tracking-wider mb-2">Pro</div>
+              <div className="text-4xl font-black text-white mb-1">US$ 99<span className="text-xl text-slate-400 font-normal">/mes</span></div>
               <div className="text-slate-400 text-sm mb-8">Para clínicas con varios profesionales</div>
-              <ul className="space-y-3 mb-8">
+              <ul className="space-y-3 mb-8 text-sm">
                 {[
                   'Todo lo del plan Básico',
-                  'Asistente IA para consultas',
+                  '📹 Telemedicina con Jitsi (sala + cobro)',
+                  '📄 Recetas digitales en PDF',
+                  '💬 Chat asincrónico paciente ↔ doctor',
+                  'Multi-doctor con especialidades',
+                  'Verificación de pagos por QR',
                   'CRM con score de fidelidad',
                   'Alarmas inteligentes',
-                  'Multi-doctor con especialidades',
-                  'Galería de casos clínicos',
                   'Soporte prioritario',
                 ].map((item) => (
-                  <li key={item} className="flex items-center gap-3 text-sm text-slate-200">
+                  <li key={item} className="flex items-center gap-3 text-slate-200">
                     <svg className="w-5 h-5 text-teal-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
@@ -511,7 +736,37 @@ export default function SoftwareLanding() {
                 ))}
               </ul>
               <a href="#contacto" className="block text-center bg-teal-500 hover:bg-teal-400 text-white font-bold py-3 rounded-xl transition-all btn-shine glow-teal-sm">
-                Empezar con Completo
+                Empezar con Pro
+              </a>
+            </div>
+
+            {/* Plan Multi */}
+            <div className="glass rounded-3xl p-8 border border-white/6">
+              <div className="text-slate-400 text-sm font-bold uppercase tracking-wider mb-2">Multi-clínica</div>
+              <div className="text-4xl font-black text-white mb-1">A medida</div>
+              <div className="text-slate-400 text-sm mb-8">Cadenas, franquicias o multi-país</div>
+              <ul className="space-y-3 mb-8 text-sm">
+                {[
+                  'Todo lo del plan Pro',
+                  '🌎 Multi-país (AR / BO / US)',
+                  'Panel superadmin del SaaS',
+                  'Audit log completo (HIPAA-ready)',
+                  'Onboarding asistido por consultorio',
+                  'Compliance por país automatizado',
+                  'Integración custom (API)',
+                  'SLA + soporte dedicado',
+                  'Branding personalizado',
+                ].map((item) => (
+                  <li key={item} className="flex items-center gap-3 text-slate-300">
+                    <svg className="w-5 h-5 text-teal-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    {item}
+                  </li>
+                ))}
+              </ul>
+              <a href="#contacto" className="block text-center border border-teal-500/40 hover:border-teal-400 text-teal-400 hover:text-white font-bold py-3 rounded-xl transition-all">
+                Hablemos
               </a>
             </div>
           </div>
@@ -614,6 +869,7 @@ export default function SoftwareLanding() {
             </div>
             <div className="flex items-center gap-6 text-sm text-slate-500">
               <Link href="/" className="hover:text-slate-300 transition-colors">Ver demo de la clínica</Link>
+              <Link href="/privacidad" className="hover:text-slate-300 transition-colors">Privacidad</Link>
               <a href="#contacto" className="hover:text-slate-300 transition-colors">Contacto</a>
             </div>
             <div className="text-slate-600 text-xs">© 2026 Soluciones Dentales</div>
