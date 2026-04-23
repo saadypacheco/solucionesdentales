@@ -330,3 +330,135 @@ async def resolver_alarma(
         request=request,
     )
     return res.data[0]
+
+
+# ── Métricas avanzadas ──────────────────────────────────────────────────────
+
+@router.get("/metricas")
+async def metricas_avanzadas(
+    dias: int = 30,
+    ctx: dict = Depends(require_staff_context),
+    db: Client = Depends(get_db),
+):
+    """Métricas del consultorio en los últimos N días.
+
+    Devuelve:
+    - funnel: pacientes → con_chat → con_turno → asistidos
+    - turnos_por_estado: counts agrupados
+    - turnos_por_dia: serie temporal
+    - chat_engagement: sesiones, mensajes, abandono
+    - seguimiento: alarmas generadas vs resueltas
+    - telemedicina: pagos por estado
+    """
+    from datetime import datetime, timedelta, timezone
+
+    dias = max(1, min(dias, 365))
+    desde = (datetime.now(timezone.utc) - timedelta(days=dias)).isoformat()
+    cid = ctx["consultorio_id"]
+    es_super = ctx["es_superadmin"]
+
+    def _scope(query):
+        return query if es_super else query.eq("consultorio_id", cid)
+
+    # ── Pacientes nuevos en el período ──
+    pacientes_q = _scope(db.table("pacientes").select("id, created_at, estado")).gte("created_at", desde).execute()
+    pacientes = pacientes_q.data or []
+    pacientes_ids = [p["id"] for p in pacientes]
+
+    # ── Sesiones de agente IA en el período ──
+    sesiones_q = _scope(db.table("sesiones_agente").select("session_id, paciente_id, created_at")).gte("created_at", desde).execute()
+    sesiones = sesiones_q.data or []
+    sesiones_con_paciente = [s for s in sesiones if s.get("paciente_id")]
+
+    # ── Turnos en el período ──
+    turnos_q = _scope(db.table("turnos").select("id, paciente_id, estado, fecha_hora, modalidad, created_at")).gte("created_at", desde).execute()
+    turnos = turnos_q.data or []
+
+    # Funnel
+    pacientes_con_chat = len({s["paciente_id"] for s in sesiones_con_paciente})
+    pacientes_con_turno = len({t["paciente_id"] for t in turnos if t.get("paciente_id")})
+    pacientes_asistidos = len({t["paciente_id"] for t in turnos if t["estado"] == "realizado" and t.get("paciente_id")})
+
+    funnel = {
+        "pacientes_nuevos": len(pacientes),
+        "con_chat": pacientes_con_chat,
+        "con_turno": pacientes_con_turno,
+        "asistidos": pacientes_asistidos,
+    }
+
+    # Turnos por estado
+    estados = {}
+    for t in turnos:
+        e = t["estado"]
+        estados[e] = estados.get(e, 0) + 1
+
+    # Turnos por día (serie temporal — agrupada por fecha de creación)
+    serie = {}
+    for t in turnos:
+        try:
+            d = (t.get("created_at") or "")[:10]
+            if d:
+                serie[d] = serie.get(d, 0) + 1
+        except Exception:
+            continue
+    turnos_por_dia = sorted(
+        [{"fecha": d, "count": c} for d, c in serie.items()],
+        key=lambda x: x["fecha"],
+    )
+
+    # Tasa de asistencia
+    realizados = estados.get("realizado", 0)
+    ausentes = estados.get("ausente", 0) + estados.get("cancelado", 0)
+    tasa_asistencia = round(realizados / max(1, realizados + ausentes) * 100, 1)
+
+    # Chat engagement: sesiones sin paciente asociado = lead que se fue
+    chat_engagement = {
+        "sesiones_total": len(sesiones),
+        "sesiones_convertidas": pacientes_con_chat,
+        "sesiones_abandonadas": len(sesiones) - pacientes_con_chat,
+        "tasa_conversion": round(pacientes_con_chat / max(1, len(sesiones)) * 100, 1),
+    }
+
+    # Seguimiento: alarmas en el período
+    alarmas_q = _scope(db.table("alarmas").select("id, resuelta, prioridad, created_at")).gte("created_at", desde).execute()
+    alarmas = alarmas_q.data or []
+    seguimiento = {
+        "alarmas_generadas": len(alarmas),
+        "alarmas_resueltas": sum(1 for a in alarmas if a.get("resuelta")),
+        "alarmas_alta_prioridad": sum(1 for a in alarmas if a.get("prioridad") == "alta"),
+        "efectividad": round(
+            sum(1 for a in alarmas if a.get("resuelta")) / max(1, len(alarmas)) * 100,
+            1,
+        ),
+    }
+
+    # Telemedicina
+    virtuales = [t for t in turnos if t.get("modalidad") == "virtual"]
+    pagos_q = _scope(db.table("turnos").select("estado_pago")).eq("modalidad", "virtual").gte("created_at", desde).execute()
+    pagos = pagos_q.data or []
+    estados_pago = {}
+    for p in pagos:
+        ep = p.get("estado_pago") or "no_aplica"
+        estados_pago[ep] = estados_pago.get(ep, 0) + 1
+
+    telemedicina = {
+        "turnos_virtuales": len(virtuales),
+        "porcentaje_virtual": round(len(virtuales) / max(1, len(turnos)) * 100, 1),
+        "pagos_por_estado": estados_pago,
+    }
+
+    return {
+        "ok": True,
+        "periodo": {"dias": dias, "desde": desde},
+        "consultorio_id": cid if not es_super else None,
+        "funnel": funnel,
+        "turnos": {
+            "total": len(turnos),
+            "por_estado": estados,
+            "por_dia": turnos_por_dia,
+            "tasa_asistencia": tasa_asistencia,
+        },
+        "chat_engagement": chat_engagement,
+        "seguimiento": seguimiento,
+        "telemedicina": telemedicina,
+    }

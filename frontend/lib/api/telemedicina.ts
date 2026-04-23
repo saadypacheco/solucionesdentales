@@ -131,6 +131,10 @@ export async function getSala(token: string, turnoId: number): Promise<SalaInfo>
   return apiFetch(`/telemedicina/turnos/${turnoId}/sala`, token)
 }
 
+export async function checkInPaciente(token: string, turnoId: number): Promise<{ ok: boolean; notificado: boolean }> {
+  return apiFetch(`/telemedicina/turnos/${turnoId}/check-in`, token, { method: 'POST' })
+}
+
 /* ─── Admin ─── */
 export async function getPagosPendientes(token: string) {
   return apiFetch('/telemedicina/admin/pagos-pendientes', token)

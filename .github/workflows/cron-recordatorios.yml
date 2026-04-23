@@ -1,0 +1,22 @@
+name: Cron · Recordatorios 24h
+
+# Cada día a las 12:00 UTC (= 09:00 AR / 08:00 BO / 07:00 EST)
+# Puede ajustarse en el cron expression abajo.
+on:
+  schedule:
+    - cron: '0 12 * * *'
+  workflow_dispatch:  # Permite disparar manualmente desde Actions UI
+
+jobs:
+  recordatorios:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Llamar endpoint /cron/recordatorios-24h
+        run: |
+          curl -fsSL -X POST \
+            -H "X-Cron-Token: ${{ secrets.CRON_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            "${{ secrets.API_URL }}/cron/recordatorios-24h" | tee resultado.json
+          echo ""
+          echo "Resultado:"
+          cat resultado.json

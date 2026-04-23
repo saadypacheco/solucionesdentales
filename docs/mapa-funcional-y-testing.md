@@ -2,7 +2,7 @@
 
 > Árbol completo de perfiles, rutas, funcionalidad y estado de implementación. Sirve para QA, demos, y para visualizar qué falta del producto.
 
-**Última actualización:** 2026-04-23 (post política de privacidad + ARCO)
+**Última actualización:** 2026-04-21 (post Pulido: Realtime notifs + Recordatorios 24h + Lobby Jitsi)
 
 ---
 
@@ -128,16 +128,27 @@ INGRESO
                 └── DELETE /auth/mi-cuenta
 ```
 
+### Lo que un paciente SÍ puede hacer (resumen actualizado)
+
+```
+✅ Agendar turno presencial (/turnos) — con consentimiento obligatorio
+✅ Agendar turno virtual (/turnos/virtual) — con QR de pago + comprobante
+✅ Ver y cancelar sus turnos (/mis-turnos) — auth por OTP
+✅ Entrar a sala virtual (/sala/[id]) — solo si pago verificado, dispara check-in al doctor
+✅ Ver su historia clínica (/mi-historial) — alergias, medicación, antecedentes, tratamientos
+✅ Descargar sus recetas digitales en PDF (/mis-recetas)
+✅ Chatear async con su odontólogo (/mi-chat) — con polling 15s
+✅ Recibir notificaciones in-app (/mis-notificaciones) — con Realtime
+✅ Descargar todos sus datos en JSON (panel ARCO)
+✅ Eliminar su cuenta (anonimiza, preserva turnos pasados)
+```
+
 ### Lo que un paciente NO puede hacer todavía
 
 ```
-❌ Ver su historial clínico (alergias, medicación, antecedentes)
-❌ Ver tratamientos en curso
-❌ Pedir consulta virtual (telemedicina)
-❌ Ver/descargar recetas digitales
-❌ Chat asincrónico con su odontólogo
-❌ Recibir notificaciones in-app
-❌ Modificar/rectificar sus datos (solo cancelación implementada)
+❌ Modificar/rectificar sus datos (sólo eliminar cuenta o cancelar turnos)
+❌ Adjuntar archivos al chat (solo texto)
+❌ Push notification móvil cuando no está en la web
 ```
 
 ---
@@ -172,9 +183,17 @@ DASHBOARD (rol: admin/odontologo/recepcionista)
 │   ├── ✅ Sort: fecha / score / nombre
 │   ├── ✅ Score visual (barra)
 │   ├── ✅ WhatsApp pre-armado
-│   ├── ❌ Ver detalle del paciente (perfil completo)
-│   ├── ❌ Editar paciente
+│   ├── ✅ Ver detalle (/admin/pacientes/[id]) — tabs Info/Historial/Tratamientos/Turnos/Recetas
+│   ├── 🟡 El nombre en la tabla aún no linkea a [id] (gap chico)
+│   ├── ❌ Editar paciente desde tabla
 │   └── ❌ Crear paciente manual
+
+├── ✅ /admin/pacientes/[id]  (NUEVO — perfil con tabs)
+│   ├── ✅ Tab Info — datos básicos, score, contacto
+│   ├── ✅ Tab Historial — alergias / medicación / antecedentes (editable inline)
+│   ├── ✅ Tab Tratamientos — CRUD + cambio de estado inline
+│   ├── ✅ Tab Turnos — pasados y futuros
+│   └── ✅ Tab Recetas — listado del paciente
 │
 ├── ✅ /admin/crm
 │   ├── ✅ Kanban 7 columnas (estados)
@@ -204,16 +223,44 @@ DASHBOARD (rol: admin/odontologo/recepcionista)
 │   ├── ✅ Botón "Ejecutar seguimiento ahora"
 │   └── ❌ Editar datos del consultorio (nombre, dirección, etc.)
 │
-└── ✅ /admin/configuracion/compliance  (NUEVO)
-    ├── ✅ Checklist por país (5 docs AR / 6 BO / 9 US)
-    ├── ✅ Estado por documento (no_subido/pendiente/aprobado/rechazado/vencido)
-    ├── ✅ Upload con drag & drop
-    ├── ✅ Fecha de vencimiento
-    ├── ✅ Ver observaciones de revisor
-    └── ✅ Reemplazar documento existente
+├── ✅ /admin/configuracion/compliance
+│   ├── ✅ Checklist por país (5 docs AR / 6 BO / 9 US)
+│   ├── ✅ Estado por documento (no_subido/pendiente/aprobado/rechazado/vencido)
+│   ├── ✅ Upload con drag & drop + fecha de vencimiento
+│   └── ✅ Reemplazar documento existente
+
+├── ✅ /admin/configuracion/telemedicina  (NUEVO M11)
+│   ├── ✅ Precios por odontólogo (primera + seguimiento)
+│   ├── ✅ Moneda + datos de transferencia + URL del QR
+│   └── ✅ Activar/desactivar telemedicina por doctor
+
+├── ✅ /admin/pagos  (NUEVO M11)
+│   ├── ✅ Listado de pagos pendientes de verificación
+│   ├── ✅ Aprobar (genera Jitsi room) o rechazar con motivo
+│   └── ✅ Notif al paciente al aprobar
+
+├── ✅ /admin/recetas  (NUEVO M11)
+│   ├── ✅ Form crear receta (paciente + contenido)
+│   ├── ✅ Genera PDF con reportlab + sube a Storage
+│   ├── ✅ Listado por paciente con link al PDF
+│   └── ✅ Archivar (soft delete activa=false)
+
+├── ✅ /admin/chat  (NUEVO M11)
+│   ├── ✅ Listado de conversaciones con badge no leídos
+│   ├── ✅ Ventana de mensajes con polling 15s
+│   └── ✅ Notif al paciente al enviar
+
+├── ✅ /admin/notificaciones  (NUEVO M12)
+│   ├── ✅ Listado completo con filtros (todas / no leídas)
+│   ├── ✅ Marcar todas como leídas
+│   └── ✅ Click → navega al link de la notif
+
+└── ✅ /admin/alarmas
+    ├── ✅ Listado de alarmas activas + prioridad
+    └── ✅ Marcar como resueltas
 ```
 
-### Sidebar (8 entradas)
+### Sidebar admin (entradas actuales)
 ```
 📊 Dashboard
 📅 Agenda
@@ -222,24 +269,25 @@ DASHBOARD (rol: admin/odontologo/recepcionista)
 👨‍⚕️ Usuarios
 🖼️ Galería
 ⚙️ Config IA
-✅ Compliance  ← NUEVO
+✅ Compliance
+📹 Telemedicina (config precios)
+💸 Pagos (verificar comprobantes)
+📄 Recetas
+💬 Chat
+🔔 Notificaciones (con NotifBell en topbar)
 ```
 
 ### Lo que un admin NO puede hacer todavía
 
 ```
 ❌ Editar info del consultorio desde UI (nombre, dirección, contacto)
-❌ Ver historia clínica completa de un paciente (M6 pendiente)
-❌ Crear receta digital (M11)
-❌ Iniciar consulta virtual con paciente (M11)
-❌ Chat asincrónico con paciente (M11)
-❌ Crear tratamiento manual a un paciente
-❌ Ver métricas avanzadas (conversión por etapa, abandono chat)
-❌ Recibir notificaciones in-app de eventos (M12)
+❌ Ver métricas avanzadas (conversión por etapa, abandono chat) — siguiente tarea
 ❌ Importar pacientes vía CSV
 ❌ Subir radiografías al historial
 ❌ Configurar disponibilidad horaria por doctor
-❌ Configurar recordatorios automáticos personalizados
+❌ Configurar recordatorios automáticos personalizados (texto del WA)
+❌ Adjuntar archivos al chat (solo texto)
+❌ Marcar "paciente llegó a recepción" para presenciales
 ```
 
 ---
@@ -419,7 +467,42 @@ PANEL SAAS
 4. Cerrar tab y volver a abrir `/` → sigue en EN (cookie `NEXT_LOCALE`)
 5. Login admin → idioma debería seguir según user (EN), no resetear
 
-### Escenario 10 · Soft-deletes funcionan
+### Escenario 10 · Telemedicina end-to-end
+
+**Perfil:** público → paciente OTP → admin → odontólogo
+**Tiempo:** 15 min
+**Pre-requisito:** al menos un odontólogo con precios configurados en `/admin/configuracion/telemedicina`
+
+1. Público: ir a `/turnos/virtual`
+2. Elegir tipo de consulta (primera/seguimiento) → odontólogo → fecha+hora → datos+consentimiento
+3. Subir comprobante de pago (cualquier imagen) → llegar a confirmación
+4. Verificar Supabase: `turnos.modalidad='virtual'`, `estado_pago='comprobante_subido'`
+5. Verificar campana del admin (NotifBell): nueva notif `comprobante_recibido`
+6. Login admin → `/admin/pagos` → aprobar el pago
+7. Verificar Supabase: `jitsi_room` y `jitsi_password` se generaron
+8. Verificar campana del paciente: notif `pago_verificado`
+9. Login paciente OTP → `/mis-turnos` → click "Entrar a sala virtual"
+10. En `/sala/[id]`: pre-room muestra fecha + password + botón "Entrar"
+11. Click "Entrar" → carga JitsiSala iframe
+12. Verificar campana del odontólogo: notif `paciente_llego_lobby`
+13. Cerrar sala → odontólogo va a `/admin/recetas` → crea receta para ese paciente
+14. Login paciente → `/mis-recetas` → debe estar el PDF descargable
+15. Paciente abre `/mi-chat` → envía mensaje al odontólogo
+16. Odontólogo recibe notif `nuevo_chat` → responde desde `/admin/chat`
+
+### Escenario 11 · Recordatorio 24h disparado por cron
+
+**Perfil:** sistema (cron job)
+**Pre-requisito:** un turno confirmado con `fecha_hora` entre 23h y 25h en el futuro
+
+1. En GitHub Actions: disparar manualmente el workflow "Cron · Recordatorios 24h"
+2. Verificar respuesta JSON: `enviadas` ≥ 1, `errores` = 0
+3. Verificar en Supabase tabla `notificaciones`: nueva fila tipo `turno_recordatorio_24h` con `metadata.turno_id`
+4. Login paciente OTP → `/mis-notificaciones` → debe estar la notif
+5. Re-disparar el workflow inmediatamente
+6. Verificar respuesta: `omitidas_duplicadas` ≥ 1 (idempotencia OK)
+
+### Escenario 12 · Soft-deletes funcionan
 
 **Perfil:** admin
 
@@ -430,39 +513,41 @@ PANEL SAAS
 
 ---
 
-## 🚧 Circuitos faltantes (gaps por prioridad)
+## 🚧 Circuitos faltantes (gaps por prioridad — actualizado 2026-04-21)
 
-### 🔴 Críticos (bloquean uso real del sistema)
+### 🔴 Críticos (bloquean vender a otra clínica con confianza total)
 
 | Gap | Impacto | Plan |
 |---|---|---|
-| Editar datos del consultorio desde UI | Admin no puede actualizar dirección/teléfono | Tarea chica (~30 min) |
-| Recordatorios 24h automáticos | Admin tiene que correr manual | Cron + endpoint (~1 hora) |
-| Templates EN/PT-BR de política privacidad | Si vendés a US/BR está incompleto | Solo traducción del template AR |
-| Detalle del paciente | Click en nombre no lleva a perfil completo | Página + endpoint (~2 horas) |
+| Editar datos del consultorio desde UI | Admin no puede actualizar dirección/teléfono sin SQL | Tarea chica (~30 min) |
+| Templates EN/PT-BR de política privacidad | Bloquea vender a US/BR con compliance real | Traducir template AR + revisar leyes locales |
+| Linkear nombre paciente → /admin/pacientes/[id] | El detalle existe pero no se navega desde la tabla | 5 min — `<Link>` |
+| Métricas avanzadas dashboard | Próxima tarea del bloque Pulido | Endpoint + página charts (~3 hrs) |
 
-### 🟡 Importantes (faltan features clave del MVP)
+### 🟡 Importantes (faltan features clave para tracción)
 
 | Gap | Módulo | Sesiones |
 |---|---|---|
-| Notificaciones in-app + Realtime | M12 | 2-3 |
-| Historia clínica (UI + endpoints) | M6 | 2-3 |
-| Telemedicina (Jitsi + recetas + chat) | M11 | 4-5 |
-| Tratamientos (carga, costos, imágenes) | M6 | 1-2 |
-| Disponibilidad horaria configurable por doctor | - | 1-2 |
+| Disponibilidad horaria configurable por doctor | M5 | 1-2 |
 | Importar pacientes vía CSV | - | 1 |
+| Streaming respuestas IA en ChatWidget | M2 | 1 |
+| Marcar "paciente llegó a recepción" + notif al doctor | M12 | 0.5 |
+| Push notif móvil (PWA + service worker) | M12 | 2 |
+| Adjuntar archivos al chat paciente↔doctor | M11 | 1 |
+| Edit-in-place de turnos (mover, cambiar doctor) | M5 | 1-2 |
 
 ### 🟢 Mejoras (calidad / nice-to-have)
 
 | Gap | Sesiones |
 |---|---|
-| Streaming respuestas IA | 1 |
-| Métricas avanzadas dashboard | 2 |
 | Drag & drop real en CRM kanban | 1 |
-| Vista mensual en agenda | 1 |
+| Vista mensual en /admin/agenda | 1 |
 | Export CSV en audit log | 0.5 |
 | Editar caso galería existente | 0.5 |
-| Diagnóstico digital IA con foto | M2 — 2-3 |
+| Diagnóstico digital IA con foto (Gemini Vision) | 2-3 |
+| Subir radiografías al historial clínico | 1-2 |
+| Tests automatizados con pytest + playwright | 3-5 |
+| Configurar plantilla de mensaje recordatorio WA | 0.5 |
 
 ### 🔵 Multi-tenant (Fase 5b pendiente)
 
@@ -485,7 +570,7 @@ PANEL SAAS
 
 ---
 
-## 📊 Estado consolidado por categoría
+## 📊 Estado consolidado por categoría (2026-04-21)
 
 | Categoría | Estado | % completo |
 |---|---|---|
@@ -494,24 +579,26 @@ PANEL SAAS
 | **Encriptación** | Fernet en pacientes/OTPs/notas/email staff | 100% |
 | **Compliance UI** | Wizard onboarding + checklist + revisión | 100% |
 | **Privacidad/ARCO** | Política + consentimiento + acceso/borrado | 90% (faltan EN/PT) |
-| **Booking público** | 5 pasos con todo | 100% |
-| **Panel admin** | Dashboard, agenda, pacientes, CRM, usuarios, galería, config | 80% (falta detalle paciente, edit consultorio) |
+| **Booking público** | Presencial 5 pasos + Virtual 5 pasos | 100% |
+| **Panel admin** | Dashboard, agenda, pacientes, CRM, usuarios, galería, config + recetas, chat, pagos, telemed, notifs | 90% (falta edit consultorio + métricas) |
 | **Panel superadmin** | Listado, detalle, admins, audit, onboarding | 90% (falta métricas SaaS) |
 | **Agente IA** | Gemini chat público funcional + config por consultorio | 70% (sin streaming, sin Vision) |
-| **Notificaciones** | Pendiente M12 | 0% |
-| **Telemedicina** | Pendiente M11 | 0% |
-| **Historia clínica** | Tablas existen, sin UI ni endpoints | 10% |
+| **Notificaciones (M12)** | In-app + Realtime + sonido + cron 24h + lobby | 95% (falta push móvil + check-in presencial) |
+| **Telemedicina (M11)** | Jitsi + pago QR + recetas PDF + chat + lobby check-in | 95% (falta adjuntos en chat) |
+| **Historia clínica (M6)** | Router + UI tabs + paciente lectura | 100% |
+| **Tratamientos (M6)** | CRUD admin + lectura paciente | 100% |
+| **Recordatorios automáticos** | Cron 24h + GH Actions | 100% |
 | **Tests automatizados** | pytest instalado pero sin tests | 0% |
 
 ---
 
 ## 🗂️ Endpoints API por categoría
 
-### Públicos (sin auth)
+### Públicos (sin auth · X-Consultorio-ID en header)
 ```
 GET  /turnos/doctores?tratamiento=X
 GET  /turnos/disponibles?fecha=...&tratamiento=...
-POST /turnos                              ← requiere consentimiento
+POST /turnos                                      ← requiere consentimiento
 GET  /turnos/{id}
 GET  /pacientes/buscar?telefono=X
 GET  /casos
@@ -520,6 +607,10 @@ GET  /consultorios/paises
 GET  /consultorios/politica-privacidad?consultorio_id=X&idioma=es
 POST /auth/otp/enviar
 POST /auth/otp/verificar
+GET  /telemedicina/odontologos-virtual
+GET  /telemedicina/precio?odontologo_id=X&es_primera_consulta=
+POST /telemedicina/turnos                         ← turno virtual + QR pago
+POST /telemedicina/turnos/{id}/comprobante        ← upload imagen
 GET  /health
 ```
 
@@ -527,11 +618,21 @@ GET  /health
 ```
 GET    /auth/mis-turnos
 PATCH  /auth/mis-turnos/{id}/cancelar
-GET    /auth/mis-datos                    ← ARCO Acceso
-DELETE /auth/mi-cuenta                    ← ARCO Olvido
+GET    /auth/mis-datos                            ← ARCO Acceso
+DELETE /auth/mi-cuenta                            ← ARCO Olvido
+GET    /telemedicina/turnos/{id}/sala             ← URL Jitsi si pago verificado
+POST   /telemedicina/turnos/{id}/check-in         ← lobby Jitsi → notif al doctor
+GET    /historial/paciente
+GET    /tratamientos/paciente
+GET    /recetas/paciente
+GET    /chat/paciente/conversaciones
+GET    /chat/paciente/{odontologo_id}
+POST   /chat/paciente
+GET    /notificaciones/paciente
+PATCH  /notificaciones/paciente/{id}/leida
 ```
 
-### Staff del consultorio (Supabase Auth)
+### Staff del consultorio (Supabase Auth · admin/odonto/recep)
 ```
 POST   /auth/login
 GET    /auth/me
@@ -556,6 +657,26 @@ GET    /alarmas
 GET    /consultorios/mi-consultorio
 GET    /consultorios/mi-consultorio/checklist
 POST   /consultorios/mi-consultorio/documentos
+GET    /historial/admin/{paciente_id}
+PATCH  /historial/admin/{paciente_id}
+GET    /tratamientos/admin?paciente_id=X
+POST   /tratamientos/admin
+PATCH  /tratamientos/admin/{id}
+DELETE /tratamientos/admin/{id}
+POST   /recetas/admin
+GET    /recetas/admin?paciente_id=X
+DELETE /recetas/admin/{id}
+GET    /chat/admin/conversaciones
+GET    /chat/admin/{paciente_id}
+POST   /chat/admin
+GET    /notificaciones/staff
+GET    /notificaciones/staff/count                ← solo count para badge
+PATCH  /notificaciones/staff/{id}/leida
+PATCH  /notificaciones/staff/marcar-todas-leidas
+GET    /telemedicina/admin/pagos-pendientes
+PATCH  /telemedicina/admin/turnos/{id}/verificar-pago
+GET    /telemedicina/admin/precios
+POST   /telemedicina/admin/precios
 ```
 
 ### Superadmin del SaaS
@@ -564,10 +685,15 @@ POST   /consultorios/onboarding
 GET    /superadmin/consultorios?estado=X&pais=Y
 GET    /superadmin/consultorios/{id}
 GET    /superadmin/consultorios/{id}/documentos
-PATCH  /superadmin/documentos/{id}        ← aprobar/rechazar
+PATCH  /superadmin/documentos/{id}                ← aprobar/rechazar
 PATCH  /superadmin/consultorios/{id}/suspender
 PATCH  /superadmin/consultorios/{id}/reactivar
 GET    /superadmin/audit-log
+```
+
+### Cron externo (X-Cron-Token)
+```
+POST   /cron/recordatorios-24h                    ← GH Actions diario 12:00 UTC
 ```
 
 ---

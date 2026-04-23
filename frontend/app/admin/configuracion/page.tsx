@@ -8,6 +8,10 @@ import {
   getConfigIA, patchConfigIA, ejecutarSeguimiento,
   type ConfigIA, type SeguimientoResultado,
 } from '@/lib/api/admin'
+import {
+  getMiConsultorio, actualizarMiConsultorio,
+  type ConsultorioFull, type MiConsultorioPatch,
+} from '@/lib/api/consultorios'
 
 function SeccionConfig({
   titulo, descripcion, clave, valor, token, onGuardado, tipo = 'textarea',
@@ -101,6 +105,141 @@ function SeccionConfig({
           {valor || <span className="text-slate-600 italic">{t('emptyValue')}</span>}
         </pre>
       )}
+    </div>
+  )
+}
+
+function PanelConsultorio({ token }: { token: string }) {
+  const t = useTranslations('admin.configuracion.consultorio')
+  const tCommon = useTranslations('common')
+  const [data, setData] = useState<ConsultorioFull | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [editando, setEditando] = useState(false)
+  const [draft, setDraft] = useState<MiConsultorioPatch>({})
+  const [guardando, setGuardando] = useState(false)
+  const [ok, setOk] = useState(false)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    getMiConsultorio(token)
+      .then((c) => { setData(c); setDraft({}) })
+      .finally(() => setLoading(false))
+  }, [token])
+
+  async function guardar() {
+    if (!data) return
+    setGuardando(true)
+    setError('')
+    try {
+      const updated = await actualizarMiConsultorio(token, draft)
+      setData(updated)
+      setDraft({})
+      setEditando(false)
+      setOk(true)
+      setTimeout(() => setOk(false), 3000)
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : t('errorSave'))
+    } finally {
+      setGuardando(false)
+    }
+  }
+
+  function setField<K extends keyof MiConsultorioPatch>(key: K, value: MiConsultorioPatch[K]) {
+    setDraft((d) => ({ ...d, [key]: value }))
+  }
+
+  function valorActual<K extends keyof MiConsultorioPatch>(key: K): string {
+    const v = draft[key] ?? (data?.[key as keyof ConsultorioFull] as string | null)
+    return v ?? ''
+  }
+
+  if (loading) return <div className="bg-[--bg-card] border border-white/5 rounded-2xl p-5 text-slate-400 text-sm">{tCommon('loading')}</div>
+
+  if (!data) return null
+
+  const campos: { key: keyof MiConsultorioPatch; label: string; type: string; placeholder?: string }[] = [
+    { key: 'nombre',             label: t('fields.nombre'),    type: 'text' },
+    { key: 'direccion',          label: t('fields.direccion'), type: 'text' },
+    { key: 'telefono',           label: t('fields.telefono'),  type: 'tel' },
+    { key: 'email',              label: t('fields.email'),     type: 'email' },
+    { key: 'wa_numero',          label: t('fields.waNumero'),  type: 'tel', placeholder: '549XXXXXXXXXX' },
+    { key: 'matricula_titular',  label: t('fields.matricula'), type: 'text' },
+  ]
+
+  return (
+    <div className="bg-[--bg-card] border border-white/5 rounded-2xl p-5">
+      <div className="flex items-start justify-between mb-4">
+        <div>
+          <h3 className="text-white font-bold">{t('title')}</h3>
+          <p className="text-slate-500 text-xs mt-0.5">{t('desc')}</p>
+        </div>
+        <div className="flex items-center gap-2 flex-shrink-0 ml-4">
+          {ok && <span className="text-green-400 text-xs font-bold">✓ {tCommon('saved')}</span>}
+          {!editando ? (
+            <button
+              onClick={() => setEditando(true)}
+              className="text-xs text-teal-400 hover:text-teal-300 border border-teal-500/30 px-3 py-1.5 rounded-lg transition-colors"
+            >
+              {tCommon('edit')}
+            </button>
+          ) : (
+            <div className="flex gap-2">
+              <button
+                onClick={() => { setDraft({}); setEditando(false); setError('') }}
+                className="text-xs text-slate-400 hover:text-slate-300 border border-white/10 px-3 py-1.5 rounded-lg transition-colors"
+              >
+                {tCommon('cancel')}
+              </button>
+              <button
+                onClick={guardar}
+                disabled={guardando || Object.keys(draft).length === 0}
+                className="text-xs text-white bg-teal-600 hover:bg-teal-500 disabled:opacity-50 px-3 py-1.5 rounded-lg transition-colors font-bold"
+              >
+                {guardando ? tCommon('saving') : tCommon('save')}
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {error && (
+        <div className="bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3 text-red-400 text-sm mb-4">
+          {error}
+        </div>
+      )}
+
+      <div className="grid sm:grid-cols-2 gap-3">
+        {campos.map(({ key, label, type, placeholder }) => (
+          <div key={key}>
+            <label className="block text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">{label}</label>
+            {editando ? (
+              <input
+                type={type}
+                value={valorActual(key)}
+                onChange={(e) => setField(key, e.target.value)}
+                placeholder={placeholder}
+                className="w-full bg-slate-900 border border-teal-500/40 text-slate-200 text-sm rounded-xl px-3 py-2 focus:outline-none focus:border-teal-400"
+              />
+            ) : (
+              <p className="text-slate-300 text-sm bg-slate-900/50 rounded-xl px-3 py-2 min-h-[2.25rem]">
+                {valorActual(key) || <span className="text-slate-600 italic">{t('emptyField')}</span>}
+              </p>
+            )}
+          </div>
+        ))}
+      </div>
+
+      <div className="mt-4 pt-4 border-t border-white/5 grid sm:grid-cols-2 gap-3 text-xs text-slate-500">
+        <div>
+          <span className="font-bold uppercase tracking-wider">{t('country')}: </span>
+          <span className="text-slate-400">{data.paises?.nombre} ({data.pais_codigo})</span>
+          <span className="text-slate-600 ml-2">— {t('countryReadOnly')}</span>
+        </div>
+        <div>
+          <span className="font-bold uppercase tracking-wider">{t('complianceState')}: </span>
+          <span className="text-slate-400">{data.estado_compliance}</span>
+        </div>
+      </div>
     </div>
   )
 }
@@ -228,6 +367,8 @@ export default function AdminConfiguracionPage() {
         <div className="text-slate-400 text-center py-20">{t('loading')}</div>
       ) : (
         <>
+          {token && <PanelConsultorio token={token} />}
+
           {token && <PanelSeguimiento token={token} />}
 
           <SeccionConfig

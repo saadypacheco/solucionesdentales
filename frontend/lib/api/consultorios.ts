@@ -138,6 +138,25 @@ export async function getMiConsultorio(token: string): Promise<ConsultorioFull> 
   return apiFetch('/consultorios/mi-consultorio', token)
 }
 
+export interface MiConsultorioPatch {
+  nombre?: string
+  direccion?: string
+  telefono?: string
+  email?: string
+  wa_numero?: string
+  matricula_titular?: string
+  idioma_override?: string
+  timezone_override?: string
+}
+
+export async function actualizarMiConsultorio(token: string, data: MiConsultorioPatch): Promise<ConsultorioFull> {
+  return apiFetch('/consultorios/mi-consultorio', token, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  })
+}
+
 export async function getMiChecklist(token: string, idioma: string = 'es'): Promise<Checklist> {
   return apiFetch(`/consultorios/mi-consultorio/checklist?idioma=${idioma}`, token)
 }

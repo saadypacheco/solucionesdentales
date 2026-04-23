@@ -162,6 +162,56 @@ export async function ejecutarSeguimiento(token: string): Promise<SeguimientoRes
   return apiFetch('/admin/seguimiento/ejecutar', token, { method: 'POST' })
 }
 
+/* ─── Métricas avanzadas ─── */
+export interface MetricasFunnel {
+  pacientes_nuevos: number
+  con_chat: number
+  con_turno: number
+  asistidos: number
+}
+
+export interface MetricasTurnos {
+  total: number
+  por_estado: Record<string, number>
+  por_dia: { fecha: string; count: number }[]
+  tasa_asistencia: number
+}
+
+export interface MetricasChatEngagement {
+  sesiones_total: number
+  sesiones_convertidas: number
+  sesiones_abandonadas: number
+  tasa_conversion: number
+}
+
+export interface MetricasSeguimiento {
+  alarmas_generadas: number
+  alarmas_resueltas: number
+  alarmas_alta_prioridad: number
+  efectividad: number
+}
+
+export interface MetricasTelemedicina {
+  turnos_virtuales: number
+  porcentaje_virtual: number
+  pagos_por_estado: Record<string, number>
+}
+
+export interface MetricasResultado {
+  ok: boolean
+  periodo: { dias: number; desde: string }
+  consultorio_id: number | null
+  funnel: MetricasFunnel
+  turnos: MetricasTurnos
+  chat_engagement: MetricasChatEngagement
+  seguimiento: MetricasSeguimiento
+  telemedicina: MetricasTelemedicina
+}
+
+export async function getMetricas(token: string, dias = 30): Promise<MetricasResultado> {
+  return apiFetch(`/admin/metricas?dias=${dias}`, token)
+}
+
 /* ─── Types ─── */
 export interface StaffUser {
   id: string

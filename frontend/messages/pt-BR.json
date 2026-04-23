@@ -632,6 +632,7 @@
   "admin": {
     "nav": {
       "dashboard": "Painel",
+      "metricas": "Métricas",
       "agenda": "Agenda",
       "pacientes": "Pacientes",
       "crm": "CRM",
@@ -806,6 +807,78 @@
           "inactive": "🟡 Pacientes ativos sem consulta há +6 meses → alerta médio",
           "incomplete": "🟡 Ortodontia/implantes sem próxima consulta → alerta médio"
         }
+      },
+      "consultorio": {
+        "title": "Dados da clínica",
+        "desc": "Informações que seus pacientes veem, usadas em notificações, receitas e política de privacidade",
+        "errorSave": "Erro ao salvar dados",
+        "emptyField": "Não preenchido",
+        "country": "País",
+        "countryReadOnly": "(apenas superadmin pode alterar)",
+        "complianceState": "Estado compliance",
+        "fields": {
+          "nombre": "Nome da clínica",
+          "direccion": "Endereço",
+          "telefono": "Telefone",
+          "email": "E-mail de contato",
+          "waNumero": "Número do WhatsApp (com código do país)",
+          "matricula": "Matrícula do titular"
+        }
+      }
+    },
+    "metricas": {
+      "title": "Métricas avançadas",
+      "subtitle": "Conversão, comparecimento e eficiência da sua clínica",
+      "errorLoad": "Erro ao carregar métricas",
+      "range": {
+        "7d": "Últimos 7 dias",
+        "30d": "Últimos 30 dias",
+        "90d": "Últimos 90 dias",
+        "180d": "Últimos 6 meses",
+        "1y": "Último ano"
+      },
+      "kpi": {
+        "newPatients": "Pacientes novos",
+        "totalAppts": "Consultas totais",
+        "attendanceRate": "Taxa de comparecimento",
+        "attendanceSub": "realizadas / (realizadas + faltas + canceladas)",
+        "chatConversion": "Conversão do chat IA",
+        "chatConversionSub": "{n} sessões no total"
+      },
+      "funnel": {
+        "title": "Funil de conversão",
+        "desc": "Caminho desde que entram no site até comparecerem à consulta",
+        "newPatients": "1. Pacientes novos",
+        "withChat": "2. Iniciaram chat",
+        "withAppt": "3. Agendaram consulta",
+        "attended": "4. Compareceram"
+      },
+      "apptsPerDay": {
+        "title": "Consultas por dia",
+        "desc": "Volume de consultas criadas dia a dia",
+        "empty": "Sem consultas neste período"
+      },
+      "byState": {
+        "title": "Consultas por estado",
+        "desc": "Distribuição do estado atual das consultas do período",
+        "empty": "Sem consultas neste período"
+      },
+      "followUp": {
+        "title": "Eficácia do acompanhamento",
+        "desc": "Alertas gerados pelas regras automáticas e quantos foram resolvidos",
+        "generated": "Gerados",
+        "resolved": "Resolvidos",
+        "highPriority": "Alta prioridade",
+        "effectiveness": "Eficácia"
+      },
+      "telemed": {
+        "title": "Telemedicina",
+        "desc": "Adoção das consultas virtuais e estado dos pagamentos",
+        "virtualCount": "Consultas virtuais",
+        "ofTotal": "do total"
+      },
+      "footer": {
+        "note": "Dados dos últimos {dias} dias, agrupados por clínica."
       }
     },
     "usuarios": {
