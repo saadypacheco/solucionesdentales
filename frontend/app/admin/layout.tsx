@@ -17,6 +17,7 @@ function Sidebar({ open, onClose }: { open: boolean; onClose: () => void }) {
 
   const NAV = [
     { href: '/admin/dashboard',                label: tNav('dashboard'),  icono: '📊' },
+    { href: '/admin/metricas',                 label: tNav('metricas'),   icono: '📈' },
     { href: '/admin/agenda',                   label: tNav('agenda'),     icono: '📅' },
     { href: '/admin/pacientes',                label: tNav('pacientes'),  icono: '👥' },
     { href: '/admin/crm',                      label: tNav('crm'),        icono: '🎯' },

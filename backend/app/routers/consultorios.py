@@ -38,6 +38,20 @@ class OnboardingRequest(BaseModel):
     timezone_override: Optional[str] = None
 
 
+class MiConsultorioPatch(BaseModel):
+    """Datos editables por el admin del propio consultorio.
+    No incluye `pais_codigo`, `estado_compliance` ni `identificacion_fiscal` —
+    cambios ahí los hace solo superadmin."""
+    nombre: Optional[str] = None
+    direccion: Optional[str] = None
+    telefono: Optional[str] = None
+    email: Optional[EmailStr] = None
+    wa_numero: Optional[str] = None
+    matricula_titular: Optional[str] = None
+    idioma_override: Optional[str] = None
+    timezone_override: Optional[str] = None
+
+
 # ── Endpoints públicos / paciente / staff ────────────────────────────────────
 
 @router.get("/paises")
@@ -224,6 +238,45 @@ async def mi_consultorio(ctx: dict = Depends(require_staff_context), db: Client 
     if not res.data:
         raise HTTPException(status_code=404, detail="Consultorio no encontrado")
     return res.data
+
+
+@router.patch("/mi-consultorio")
+async def actualizar_mi_consultorio(
+    req: MiConsultorioPatch,
+    request: Request,
+    ctx: dict = Depends(require_staff_context),
+    db: Client = Depends(get_db),
+):
+    """Permite al admin editar los datos básicos del consultorio (nombre, dirección, contacto, etc.).
+    Restricciones: solo admin (no recepcionista ni odontólogo). Cambios de país o
+    identificación fiscal son solo de superadmin."""
+    if ctx["rol"] != "admin" and not ctx["es_superadmin"]:
+        raise HTTPException(status_code=403, detail="Solo el admin puede editar el consultorio")
+
+    cambios = req.model_dump(exclude_none=True)
+    if not cambios:
+        raise HTTPException(status_code=400, detail="Sin cambios para aplicar")
+
+    res = (
+        db.table("consultorios")
+        .update(cambios)
+        .eq("id", ctx["consultorio_id"])
+        .execute()
+    )
+    if not res.data:
+        raise HTTPException(status_code=404, detail="Consultorio no encontrado")
+
+    log_action(
+        consultorio_id=ctx["consultorio_id"],
+        accion="update_consultorio",
+        usuario_id=ctx["usuario_id"],
+        recurso_tipo="consultorio",
+        recurso_id=ctx["consultorio_id"],
+        request=request,
+        metadata={"campos_modificados": list(cambios.keys())},
+    )
+
+    return res.data[0]
 
 
 @router.get("/mi-consultorio/checklist")
