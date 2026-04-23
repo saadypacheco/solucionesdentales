@@ -350,6 +350,59 @@
       "required": "You must accept the privacy policy to continue"
     }
   },
+  "recetas": {
+    "title": "Prescriptions",
+    "subtitle": "Digital prescriptions for patients",
+    "noRecetas": "No prescriptions yet",
+    "loading": "Loading prescriptions...",
+    "nueva": "+ New prescription",
+    "form": {
+      "title": "New prescription",
+      "selectPaciente": "Select patient",
+      "contenido": "Prescription content",
+      "contenidoPlaceholder": "Ex:\nAmoxicillin 500mg — 1 every 8h for 7 days\nIbuprofen 400mg if pain\n\nGeneral instructions: ...",
+      "submit": "Create prescription",
+      "submitting": "Creating...",
+      "errorCreate": "Error creating prescription"
+    },
+    "card": {
+      "fecha": "Created on {fecha}",
+      "verPdf": "📄 View PDF",
+      "archivar": "Archive",
+      "confirmArchivar": "Archive this prescription?",
+      "porOdontologo": "By {nombre}"
+    },
+    "paciente": {
+      "title": "My prescriptions",
+      "subtitle": "Instructions from your dentists",
+      "noRecetas": "No prescriptions yet. They appear here when your dentist creates one."
+    }
+  },
+  "chat": {
+    "title": "Messages",
+    "subtitle": "Chat with patients / dentists",
+    "loading": "Loading...",
+    "noConvos": "No conversations",
+    "selectConvo": "Select a conversation",
+    "noMessages": "No messages — start the conversation.",
+    "inputPlaceholder": "Type a message...",
+    "send": "Send",
+    "sending": "Sending...",
+    "errorSend": "Error sending",
+    "ago": {
+      "now": "now",
+      "minutes": "{n}m",
+      "hours": "{n}h",
+      "days": "{n}d"
+    },
+    "paciente": {
+      "title": "My chat",
+      "subtitle": "Talk with your dentist",
+      "noOdontologos": "You haven't booked any appointment yet.",
+      "bookFirst": "Book first appointment"
+    },
+    "noLeidos": "{n, plural, =0 {} one {# new} other {# new}}"
+  },
   "telemedicina": {
     "modoVirtual": "Virtual consultation",
     "modoPresencial": "In-person consultation",
@@ -498,7 +551,10 @@
       "galeria": "Gallery",
       "configIA": "AI Config",
       "compliance": "Compliance",
-      "pagos": "Payments"
+      "pagos": "Payments",
+      "recetas": "Prescriptions",
+      "chat": "Chat",
+      "telemed": "Telemedicine"
     },
     "layout": {
       "title": "Dental Solutions",

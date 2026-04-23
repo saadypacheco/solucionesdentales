@@ -97,9 +97,30 @@ Próximo módulo: M12 Notificaciones (campana in-app + Realtime)
 - ✅ Botón "Entrar a sala virtual" en `/mis-turnos` cuando `estado_pago='verificado'`
 - ✅ Sidebar admin: entrada "💸 Pagos"
 - ✅ Banner descubrimiento en `/turnos`: "📹 ¿Preferís consulta virtual?"
-- ⏸️ Pendiente Fase B: recetas PDF + chat asincrónico paciente↔odontólogo
-- ⏸️ Pendiente: UI admin para configurar precios telemedicina (hoy se setea por SQL)
-- ⏸️ Pendiente: lobby Jitsi notificación al odontólogo cuando paciente entra
+- ⏸️ Pendiente: lobby Jitsi notificación al odontólogo cuando paciente entra (Realtime)
+
+### M11 Telemedicina Fase B — recetas PDF + chat + UI precios
+
+- ✅ `services/pdf_recetas.py`: generación PDF con reportlab (header, contenido, footer con datos del odontólogo)
+- ✅ Router `recetas.py`:
+  - `POST /recetas/admin` — crea receta, genera PDF, sube a Storage, notifica al paciente
+  - `GET /recetas/admin?paciente_id=X` — listar
+  - `GET /recetas/paciente` — paciente ve sus recetas (JWT OTP)
+  - `DELETE /recetas/admin/{id}` — soft delete (activa=false)
+- ✅ Router `chat.py`: chat asincrónico paciente ↔ odontólogo
+  - `GET /chat/admin/conversaciones` y `GET /chat/admin/{paciente_id}` (con auto mark-as-read)
+  - `POST /chat/admin` — enviar (notifica al paciente)
+  - `GET /chat/paciente/conversaciones` y `GET /chat/paciente/{odontologo_id}`
+  - `POST /chat/paciente` — enviar (notifica al odontólogo)
+- ✅ `requirements.txt`: agregado `reportlab==4.2.5`
+- ✅ Frontend `/admin/recetas` con form crear + listado + ver PDF + archivar
+- ✅ Frontend `/mis-recetas` (paciente) con descarga de PDF
+- ✅ Frontend `/admin/chat` con lista de conversaciones + ventana mensajes + polling 15s
+- ✅ Frontend `/mi-chat` (paciente) con UI mobile-first + polling
+- ✅ Frontend `/admin/configuracion/telemedicina`: UI de precios por odontólogo (primera + seguimiento + moneda + QR + datos transferencia)
+- ✅ Sidebar admin: 3 entradas nuevas (📄 Recetas, 💬 Chat, 📹 Telemedicina)
+- ✅ `/mis-turnos`: links rápidos a "Mis recetas" y "Mi chat"
+- ⏸️ Pendiente: lobby Jitsi notificación al odontólogo (Realtime)
 
 ### Migraciones aplicadas en Supabase
 

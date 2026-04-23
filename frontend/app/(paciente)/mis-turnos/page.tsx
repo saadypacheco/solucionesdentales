@@ -478,6 +478,21 @@ function MisTurnosLista({ token, nombre, onLogout }: {
           >
             + {t('bookAnother')}
           </Link>
+
+          <div className="mt-3 grid grid-cols-2 gap-3">
+            <Link
+              href="/mis-recetas"
+              className="bg-white border border-slate-200 hover:border-teal-300 text-slate-700 text-sm font-bold py-3 rounded-xl text-center transition-colors"
+            >
+              📄 Mis recetas
+            </Link>
+            <Link
+              href="/mi-chat"
+              className="bg-white border border-slate-200 hover:border-teal-300 text-slate-700 text-sm font-bold py-3 rounded-xl text-center transition-colors"
+            >
+              💬 Mi chat
+            </Link>
+          </div>
         </>
       )}
 

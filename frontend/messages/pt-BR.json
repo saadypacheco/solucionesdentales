@@ -350,6 +350,59 @@
       "required": "Você deve aceitar a política de privacidade para continuar"
     }
   },
+  "recetas": {
+    "title": "Receitas",
+    "subtitle": "Indicações digitais para pacientes",
+    "noRecetas": "Sem receitas ainda",
+    "loading": "Carregando receitas...",
+    "nueva": "+ Nova receita",
+    "form": {
+      "title": "Nova receita",
+      "selectPaciente": "Selecionar paciente",
+      "contenido": "Conteúdo da receita",
+      "contenidoPlaceholder": "Ex:\nAmoxicilina 500mg — 1 a cada 8hs por 7 dias\nIbuprofeno 400mg se dor",
+      "submit": "Criar receita",
+      "submitting": "Criando...",
+      "errorCreate": "Erro ao criar receita"
+    },
+    "card": {
+      "fecha": "Criada em {fecha}",
+      "verPdf": "📄 Ver PDF",
+      "archivar": "Arquivar",
+      "confirmArchivar": "Arquivar esta receita?",
+      "porOdontologo": "Por {nombre}"
+    },
+    "paciente": {
+      "title": "Minhas receitas",
+      "subtitle": "Indicações dos seus dentistas",
+      "noRecetas": "Você ainda não tem receitas. Aparecerão aqui quando seu dentista criar uma."
+    }
+  },
+  "chat": {
+    "title": "Mensagens",
+    "subtitle": "Chat com pacientes / dentistas",
+    "loading": "Carregando...",
+    "noConvos": "Sem conversas",
+    "selectConvo": "Selecione uma conversa",
+    "noMessages": "Sem mensagens — comece a conversa.",
+    "inputPlaceholder": "Escreva uma mensagem...",
+    "send": "Enviar",
+    "sending": "Enviando...",
+    "errorSend": "Erro ao enviar",
+    "ago": {
+      "now": "agora",
+      "minutes": "{n}m",
+      "hours": "{n}h",
+      "days": "{n}d"
+    },
+    "paciente": {
+      "title": "Meu chat",
+      "subtitle": "Fale com seu dentista",
+      "noOdontologos": "Você ainda não agendou nenhuma consulta.",
+      "bookFirst": "Agendar primeira consulta"
+    },
+    "noLeidos": "{n, plural, =0 {} one {# nova} other {# novas}}"
+  },
   "telemedicina": {
     "modoVirtual": "Consulta virtual",
     "modoPresencial": "Consulta presencial",
@@ -498,7 +551,10 @@
       "galeria": "Galeria",
       "configIA": "Config IA",
       "compliance": "Compliance",
-      "pagos": "Pagamentos"
+      "pagos": "Pagamentos",
+      "recetas": "Receitas",
+      "chat": "Chat",
+      "telemed": "Telemedicina"
     },
     "layout": {
       "title": "Soluções Dentárias",

@@ -350,6 +350,59 @@
       "required": "Debés aceptar la política de privacidad para continuar"
     }
   },
+  "recetas": {
+    "title": "Recetas",
+    "subtitle": "Indicaciones digitales para pacientes",
+    "noRecetas": "Sin recetas todavía",
+    "loading": "Cargando recetas...",
+    "nueva": "+ Nueva receta",
+    "form": {
+      "title": "Nueva receta",
+      "selectPaciente": "Seleccionar paciente",
+      "contenido": "Contenido de la receta",
+      "contenidoPlaceholder": "Ej:\nAmoxicilina 500mg — 1 cada 8hs por 7 días\nIbuprofeno 400mg si dolor\n\nIndicaciones generales: ...",
+      "submit": "Crear receta",
+      "submitting": "Creando...",
+      "errorCreate": "Error al crear receta"
+    },
+    "card": {
+      "fecha": "Creada el {fecha}",
+      "verPdf": "📄 Ver PDF",
+      "archivar": "Archivar",
+      "confirmArchivar": "¿Archivar esta receta?",
+      "porOdontologo": "Por {nombre}"
+    },
+    "paciente": {
+      "title": "Mis recetas",
+      "subtitle": "Indicaciones de tus odontólogos",
+      "noRecetas": "Aún no tenés recetas. Te aparecen acá cuando tu odontólogo cree alguna."
+    }
+  },
+  "chat": {
+    "title": "Mensajes",
+    "subtitle": "Chat con pacientes / odontólogos",
+    "loading": "Cargando...",
+    "noConvos": "Sin conversaciones",
+    "selectConvo": "Seleccioná una conversación",
+    "noMessages": "Sin mensajes — empezá vos.",
+    "inputPlaceholder": "Escribí un mensaje...",
+    "send": "Enviar",
+    "sending": "Enviando...",
+    "errorSend": "Error al enviar",
+    "ago": {
+      "now": "ahora",
+      "minutes": "{n}m",
+      "hours": "{n}h",
+      "days": "{n}d"
+    },
+    "paciente": {
+      "title": "Mi chat",
+      "subtitle": "Hablá con tu odontólogo",
+      "noOdontologos": "Aún no agendaste turno con ningún odontólogo.",
+      "bookFirst": "Agendar primer turno"
+    },
+    "noLeidos": "{n, plural, =0 {} one {# nuevo} other {# nuevos}}"
+  },
   "telemedicina": {
     "modoVirtual": "Consulta virtual",
     "modoPresencial": "Consulta presencial",
@@ -498,7 +551,10 @@
       "galeria": "Galería",
       "configIA": "Config IA",
       "compliance": "Compliance",
-      "pagos": "Pagos"
+      "pagos": "Pagos",
+      "recetas": "Recetas",
+      "chat": "Chat",
+      "telemed": "Telemedicina"
     },
     "layout": {
       "title": "Soluciones Dentales",

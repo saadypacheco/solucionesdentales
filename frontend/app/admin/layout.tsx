@@ -25,6 +25,9 @@ function Sidebar({ open, onClose }: { open: boolean; onClose: () => void }) {
     { href: '/admin/configuracion',            label: tNav('configIA'),   icono: '⚙️' },
     { href: '/admin/configuracion/compliance', label: tNav('compliance'), icono: '✅' },
     { href: '/admin/pagos',                    label: tNav('pagos'),      icono: '💸' },
+    { href: '/admin/recetas',                  label: tNav('recetas'),    icono: '📄' },
+    { href: '/admin/chat',                     label: tNav('chat'),       icono: '💬' },
+    { href: '/admin/configuracion/telemedicina', label: tNav('telemed'),  icono: '📹' },
   ]
 
   function handleLogout() {
