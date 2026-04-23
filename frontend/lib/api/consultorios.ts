@@ -157,6 +157,35 @@ export async function actualizarMiConsultorio(token: string, data: MiConsultorio
   })
 }
 
+/* ─── Dominios del consultorio ─── */
+export interface DominioConsultorio {
+  id: number
+  consultorio_id: number
+  hostname: string
+  es_default: boolean
+  notas: string | null
+  created_at: string
+}
+
+export async function listarMisDominios(token: string): Promise<DominioConsultorio[]> {
+  return apiFetch('/consultorios/mi-consultorio/dominios', token)
+}
+
+export async function agregarDominio(
+  token: string,
+  data: { hostname: string; es_default?: boolean; notas?: string },
+): Promise<DominioConsultorio> {
+  return apiFetch('/consultorios/mi-consultorio/dominios', token, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  })
+}
+
+export async function quitarDominio(token: string, dominioId: number): Promise<void> {
+  await apiFetch(`/consultorios/mi-consultorio/dominios/${dominioId}`, token, { method: 'DELETE' })
+}
+
 export async function getMiChecklist(token: string, idioma: string = 'es'): Promise<Checklist> {
   return apiFetch(`/consultorios/mi-consultorio/checklist?idioma=${idioma}`, token)
 }

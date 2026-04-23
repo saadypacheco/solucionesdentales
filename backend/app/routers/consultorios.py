@@ -11,9 +11,10 @@ from pydantic import BaseModel, EmailStr
 from supabase import Client
 
 from app.db.client import get_supabase_client
-from app.routers.auth import require_staff_context
+from app.routers.auth import require_staff_context, require_superadmin
 from app.services.audit import log_action
 from app.services.compliance import obtener_checklist, recalcular_estado_compliance
+from app.core.tenant import normalizar_hostname, resolver_consultorio_por_hostname
 
 router = APIRouter(prefix="/consultorios", tags=["consultorios"], redirect_slashes=False)
 
@@ -59,6 +60,146 @@ async def listar_paises(db: Client = Depends(get_db)):
     """Catálogo público de países soportados (para wizard onboarding)."""
     res = db.table("paises").select("codigo, nombre, idioma_default, moneda").eq("activo", True).order("nombre").execute()
     return res.data or []
+
+
+# ── Resolución pública por hostname ─────────────────────────────────────────
+
+@router.get("/resolver-hostname")
+async def resolver_hostname(host: str, db: Client = Depends(get_db)):
+    """Resuelve hostname → consultorio_id + datos básicos para que el frontend
+    cachée el tenant sin tener que hardcodear NEXT_PUBLIC_CONSULTORIO_ID.
+
+    Endpoint público — el browser lo llama con su window.location.host al
+    arrancar la app. Si el host no matchea, devuelve el consultorio default
+    (preserva el comportamiento del cliente único actual)."""
+    cid = resolver_consultorio_por_hostname(host)
+    fallback = cid is None
+    if cid is None:
+        from app.core.tenant import DEFAULT_CONSULTORIO_ID
+        cid = DEFAULT_CONSULTORIO_ID
+
+    cons = (
+        db.table("consultorios")
+        .select("id, nombre, pais_codigo, idioma_override, paises(idioma_default, moneda, timezone_default)")
+        .eq("id", cid)
+        .single()
+        .execute()
+    )
+    if not cons.data:
+        raise HTTPException(status_code=404, detail="Consultorio no encontrado")
+
+    paises = cons.data.get("paises") or {}
+    idioma = cons.data.get("idioma_override") or paises.get("idioma_default") or "es"
+    return {
+        "consultorio_id": cid,
+        "nombre": cons.data.get("nombre"),
+        "pais_codigo": cons.data.get("pais_codigo"),
+        "idioma": idioma,
+        "moneda": paises.get("moneda"),
+        "timezone": paises.get("timezone_default"),
+        "hostname_resuelto": normalizar_hostname(host),
+        "fallback_aplicado": fallback,
+    }
+
+
+# ── Gestión de dominios (admin del propio consultorio + superadmin) ─────────
+
+class DominioCreate(BaseModel):
+    hostname: str
+    es_default: bool = False
+    notas: Optional[str] = None
+
+
+@router.get("/mi-consultorio/dominios")
+async def listar_mis_dominios(
+    ctx: dict = Depends(require_staff_context),
+    db: Client = Depends(get_db),
+):
+    """Lista los dominios mapeados al consultorio del staff."""
+    res = (
+        db.table("dominios_consultorio")
+        .select("*")
+        .eq("consultorio_id", ctx["consultorio_id"])
+        .order("es_default", desc=True)
+        .order("created_at")
+        .execute()
+    )
+    return res.data or []
+
+
+@router.post("/mi-consultorio/dominios")
+async def agregar_dominio(
+    req: DominioCreate,
+    request: Request,
+    ctx: dict = Depends(require_staff_context),
+    db: Client = Depends(get_db),
+):
+    """Agrega un hostname al consultorio. Solo admin del consultorio o superadmin."""
+    if ctx["rol"] != "admin" and not ctx["es_superadmin"]:
+        raise HTTPException(status_code=403, detail="Solo admin puede gestionar dominios")
+
+    hostname = normalizar_hostname(req.hostname)
+    if not hostname:
+        raise HTTPException(status_code=400, detail="hostname inválido")
+
+    # Si se marca como default, desmarcar el actual
+    if req.es_default:
+        db.table("dominios_consultorio") \
+          .update({"es_default": False}) \
+          .eq("consultorio_id", ctx["consultorio_id"]) \
+          .execute()
+
+    try:
+        res = db.table("dominios_consultorio").insert({
+            "consultorio_id": ctx["consultorio_id"],
+            "hostname": hostname,
+            "es_default": req.es_default,
+            "notas": req.notas,
+        }).execute()
+    except Exception as e:
+        # Manejo del UNIQUE: hostname ya está mapeado a otro consultorio
+        raise HTTPException(status_code=409, detail=f"hostname ya en uso: {e}")
+
+    log_action(
+        consultorio_id=ctx["consultorio_id"],
+        usuario_id=ctx["usuario_id"],
+        accion="add_dominio",
+        recurso_tipo="dominio_consultorio",
+        recurso_id=res.data[0]["id"] if res.data else None,
+        request=request,
+        metadata={"hostname": hostname, "es_default": req.es_default},
+    )
+    return res.data[0] if res.data else {}
+
+
+@router.delete("/mi-consultorio/dominios/{dominio_id}")
+async def quitar_dominio(
+    dominio_id: int,
+    request: Request,
+    ctx: dict = Depends(require_staff_context),
+    db: Client = Depends(get_db),
+):
+    """Elimina un hostname del consultorio. Solo admin / superadmin."""
+    if ctx["rol"] != "admin" and not ctx["es_superadmin"]:
+        raise HTTPException(status_code=403, detail="Solo admin puede gestionar dominios")
+
+    check = db.table("dominios_consultorio").select("consultorio_id, hostname").eq("id", dominio_id).single().execute()
+    if not check.data:
+        raise HTTPException(status_code=404, detail="Dominio no encontrado")
+    if not ctx["es_superadmin"] and check.data["consultorio_id"] != ctx["consultorio_id"]:
+        raise HTTPException(status_code=403, detail="Dominio de otro consultorio")
+
+    db.table("dominios_consultorio").delete().eq("id", dominio_id).execute()
+    log_action(
+        consultorio_id=check.data["consultorio_id"],
+        usuario_id=ctx["usuario_id"],
+        accion="delete_dominio",
+        recurso_tipo="dominio_consultorio",
+        recurso_id=dominio_id,
+        request=request,
+        metadata={"hostname": check.data["hostname"]},
+    )
+    return {"ok": True}
 
 
 # ── Política de privacidad por país (texto template) ────────────────────────

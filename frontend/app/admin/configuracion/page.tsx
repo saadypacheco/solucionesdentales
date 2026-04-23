@@ -10,7 +10,8 @@ import {
 } from '@/lib/api/admin'
 import {
   getMiConsultorio, actualizarMiConsultorio,
-  type ConsultorioFull, type MiConsultorioPatch,
+  listarMisDominios, agregarDominio, quitarDominio,
+  type ConsultorioFull, type MiConsultorioPatch, type DominioConsultorio,
 } from '@/lib/api/consultorios'
 
 function SeccionConfig({
@@ -244,6 +245,122 @@ function PanelConsultorio({ token }: { token: string }) {
   )
 }
 
+function PanelDominios({ token }: { token: string }) {
+  const t = useTranslations('admin.configuracion.dominios')
+  const tCommon = useTranslations('common')
+  const [items, setItems] = useState<DominioConsultorio[]>([])
+  const [loading, setLoading] = useState(true)
+  const [hostname, setHostname] = useState('')
+  const [esDefault, setEsDefault] = useState(false)
+  const [agregando, setAgregando] = useState(false)
+  const [error, setError] = useState('')
+
+  async function cargar() {
+    try { setItems(await listarMisDominios(token)) } catch { /* */ }
+    setLoading(false)
+  }
+
+  useEffect(() => { cargar() }, [token])  // eslint-disable-line react-hooks/exhaustive-deps
+
+  async function agregar(e: React.FormEvent) {
+    e.preventDefault()
+    if (!hostname.trim()) return
+    setAgregando(true)
+    setError('')
+    try {
+      await agregarDominio(token, { hostname: hostname.trim(), es_default: esDefault })
+      setHostname(''); setEsDefault(false)
+      await cargar()
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : t('errorAdd'))
+    } finally {
+      setAgregando(false)
+    }
+  }
+
+  async function quitar(id: number, hn: string) {
+    if (!confirm(t('confirmDelete', { hostname: hn }))) return
+    try {
+      await quitarDominio(token, id)
+      setItems((prev) => prev.filter((x) => x.id !== id))
+    } catch { /* */ }
+  }
+
+  return (
+    <div className="bg-[--bg-card] border border-white/5 rounded-2xl p-5">
+      <div className="mb-4">
+        <h3 className="text-white font-bold">{t('title')}</h3>
+        <p className="text-slate-500 text-xs mt-0.5">{t('desc')}</p>
+      </div>
+
+      <form onSubmit={agregar} className="flex flex-col sm:flex-row gap-2 mb-4">
+        <input
+          type="text"
+          value={hostname}
+          onChange={(e) => setHostname(e.target.value)}
+          placeholder={t('placeholder')}
+          disabled={agregando}
+          className="flex-1 bg-slate-900 border border-white/10 text-slate-200 text-sm rounded-xl px-3 py-2 focus:outline-none focus:border-teal-500 placeholder:text-slate-600"
+        />
+        <label className="flex items-center gap-2 text-xs text-slate-400 px-2">
+          <input
+            type="checkbox"
+            checked={esDefault}
+            onChange={(e) => setEsDefault(e.target.checked)}
+            className="accent-teal-500"
+          />
+          {t('asDefault')}
+        </label>
+        <button
+          type="submit"
+          disabled={!hostname.trim() || agregando}
+          className="bg-teal-600 hover:bg-teal-500 disabled:opacity-50 text-white text-sm font-bold px-4 py-2 rounded-xl"
+        >
+          {agregando ? t('adding') : t('add')}
+        </button>
+      </form>
+
+      {error && (
+        <div className="bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-2 text-red-400 text-xs mb-3">
+          {error}
+        </div>
+      )}
+
+      {loading ? (
+        <p className="text-slate-500 text-sm py-4 text-center">{tCommon('loading')}</p>
+      ) : items.length === 0 ? (
+        <p className="text-slate-500 text-sm py-4 text-center">{t('empty')}</p>
+      ) : (
+        <ul className="divide-y divide-white/5">
+          {items.map((d) => (
+            <li key={d.id} className="flex items-center justify-between py-2.5 text-sm">
+              <div className="flex items-center gap-2">
+                <span className="font-mono text-slate-200">{d.hostname}</span>
+                {d.es_default && (
+                  <span className="text-[10px] font-bold bg-teal-500/15 text-teal-400 px-2 py-0.5 rounded-full">
+                    {t('defaultBadge')}
+                  </span>
+                )}
+                {d.notas && <span className="text-slate-500 text-xs">— {d.notas}</span>}
+              </div>
+              <button
+                onClick={() => quitar(d.id, d.hostname)}
+                className="text-rose-400 hover:text-rose-300 text-xs"
+              >
+                {tCommon('delete')}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      <p className="text-slate-600 text-xs mt-4 leading-relaxed">
+        💡 {t('hint')}
+      </p>
+    </div>
+  )
+}
+
 function PanelSeguimiento({ token }: { token: string }) {
   const t = useTranslations('admin.configuracion.follow')
   const [ejecutando, setEjecutando] = useState(false)
@@ -368,6 +485,8 @@ export default function AdminConfiguracionPage() {
       ) : (
         <>
           {token && <PanelConsultorio token={token} />}
+
+          {token && <PanelDominios token={token} />}
 
           {token && <PanelSeguimiento token={token} />}
 
