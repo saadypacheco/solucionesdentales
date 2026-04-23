@@ -6,6 +6,7 @@ import { useTranslations, useLocale } from 'next-intl'
 import { useAuthStore } from '@/store/authStore'
 import { useRouter } from 'next/navigation'
 import { getPacientesAdmin, importarPacientesCSV, type Paciente, type ImportCSVResult } from '@/lib/api/admin'
+import { whatsappAnchorProps } from '@/lib/whatsapp'
 
 const estadoColor: Record<string, string> = {
   nuevo:           'bg-blue-500/15 text-blue-400',
@@ -200,8 +201,7 @@ export default function AdminPacientesPage() {
                       </td>
                       <td className="px-4 py-3">
                         <a
-                          href={`https://wa.me/${p.telefono?.replace(/\D/g, '')}`}
-                          target="_blank"
+                          {...whatsappAnchorProps(p.telefono)}
                           className="text-slate-300 hover:text-green-400 transition-colors font-mono text-xs"
                         >
                           {p.telefono}
@@ -218,8 +218,7 @@ export default function AdminPacientesPage() {
                       <td className="px-4 py-3 text-slate-500 text-xs">{formatFecha(p.created_at)}</td>
                       <td className="px-4 py-3">
                         <a
-                          href={`https://wa.me/${p.telefono?.replace(/\D/g, '')}`}
-                          target="_blank"
+                          {...whatsappAnchorProps(p.telefono)}
                           className="text-green-400 hover:text-green-300 transition-colors"
                           title={t('whatsAppContact')}
                         >
@@ -252,8 +251,7 @@ export default function AdminPacientesPage() {
                 <div className="flex items-center justify-between mt-2">
                   <span className="text-slate-600 text-xs">{formatFecha(p.created_at)}</span>
                   <a
-                    href={`https://wa.me/${p.telefono?.replace(/\D/g, '')}`}
-                    target="_blank"
+                    {...whatsappAnchorProps(p.telefono)}
                     onClick={(e) => e.stopPropagation()}
                     className="text-green-400 text-xs font-bold hover:text-green-300 transition-colors"
                   >

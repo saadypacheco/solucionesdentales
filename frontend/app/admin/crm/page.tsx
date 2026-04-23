@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl'
 import { useAuthStore } from '@/store/authStore'
 import { useRouter } from 'next/navigation'
 import { getPacientesAdmin, patchPacienteEstado, type Paciente } from '@/lib/api/admin'
+import { whatsappAnchorProps } from '@/lib/whatsapp'
 
 const COLUMNAS_ICON: Record<string, string> = {
   nuevo: '🆕',
@@ -58,8 +59,7 @@ function TarjetaPaciente({
 
       <div className="flex gap-1.5">
         <a
-          href={`https://wa.me/${paciente.telefono?.replace(/\D/g, '')}`}
-          target="_blank"
+          {...whatsappAnchorProps(paciente.telefono)}
           className="flex-1 bg-green-500/10 text-green-400 hover:bg-green-500/20 rounded-lg py-1.5 text-xs font-bold text-center transition-colors"
         >
           WhatsApp

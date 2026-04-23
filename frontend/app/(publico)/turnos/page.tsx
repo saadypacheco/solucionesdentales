@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useTranslations, useLocale } from 'next-intl'
 import { getDoctores, getSlots, solicitarTurno, type Doctor, type TurnoResponse } from '@/lib/api/turnos'
 import LanguageSwitcher from '@/components/LanguageSwitcher'
+import { whatsappAnchorProps } from '@/lib/whatsapp'
 
 /* ─── CONFIG ─── */
 const TRATAMIENTOS_ICONOS: Record<string, string> = {
@@ -636,10 +637,10 @@ export default function TurnosPage() {
               </div>
 
               <a
-                href={`https://wa.me/${process.env.NEXT_PUBLIC_WA_NUMBER ?? '5491100000000'}?text=${encodeURIComponent(
-                  `${nombre} - ${tratamientoLabel} - ${formatFechaDisplay(diaSeleccionado)} ${horaSeleccionada}`
-                )}`}
-                target="_blank"
+                {...whatsappAnchorProps(
+                  process.env.NEXT_PUBLIC_WA_NUMBER ?? '5491100000000',
+                  `${nombre} - ${tratamientoLabel} - ${formatFechaDisplay(diaSeleccionado)} ${horaSeleccionada}`,
+                )}
                 className="block max-w-xs mx-auto bg-green-500 text-white py-3.5 rounded-full font-bold hover:bg-green-600 transition-colors shadow-lg shadow-green-200 mb-3"
               >
                 {t('paso5.ctaWhatsApp')}

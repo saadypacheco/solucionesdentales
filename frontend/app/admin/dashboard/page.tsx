@@ -8,6 +8,7 @@ import {
   getTurnosAdmin, getPacientesAdmin, getAlarmas, patchTurnoEstado, resolverAlarma,
   type TurnoAdmin, type Paciente, type Alarma,
 } from '@/lib/api/admin'
+import { whatsappAnchorProps } from '@/lib/whatsapp'
 
 function fechaHoy(): string {
   return new Date().toISOString().split('T')[0]
@@ -198,8 +199,14 @@ export default function AdminDashboard() {
                   </select>
                   {tt.pacientes?.telefono && (
                     <a
-                      href={`https://wa.me/549${tt.pacientes.telefono.replace(/\D/g, '')}?text=${encodeURIComponent(t('whatsappMessage', { nombre: tt.pacientes.nombre ?? '', tratamiento: tt.tipo_tratamiento, hora: formatHora(tt.fecha_hora) }))}`}
-                      target="_blank"
+                      {...whatsappAnchorProps(
+                        tt.pacientes.telefono,
+                        t('whatsappMessage', {
+                          nombre: tt.pacientes.nombre ?? '',
+                          tratamiento: tt.tipo_tratamiento,
+                          hora: formatHora(tt.fecha_hora),
+                        }),
+                      )}
                       className="text-green-500 hover:text-green-400 transition-colors flex-shrink-0"
                       title="WhatsApp"
                     >

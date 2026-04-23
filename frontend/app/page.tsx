@@ -3,6 +3,9 @@
 import Link from 'next/link'
 import { useTranslations } from 'next-intl'
 import LanguageSwitcher from '@/components/LanguageSwitcher'
+import { whatsappAnchorProps } from '@/lib/whatsapp'
+
+const WA_NUMERO_HOME = process.env.NEXT_PUBLIC_WA_NUMBER ?? '5491100000000'
 
 const SERVICIOS_KEYS = ['estetica', 'implantes', 'ortodoncia', 'urgencias'] as const
 const PASOS_KEYS = ['s1', 's2', 's3'] as const
@@ -118,8 +121,7 @@ export default function Home() {
                   {t('hero.ctaPrimary')} →
                 </Link>
                 <a
-                  href="https://wa.me/5491100000000"
-                  target="_blank"
+                  {...whatsappAnchorProps(WA_NUMERO_HOME)}
                   className="border border-white/40 text-white font-semibold px-6 py-3.5 rounded-full hover:bg-white/10 hover:border-white/70 transition-all text-sm flex items-center gap-2 backdrop-blur-sm"
                 >
                   <span>💬</span> {t('hero.ctaEmergency')}
@@ -445,8 +447,7 @@ export default function Home() {
                 {t('footer.tagline')}
               </p>
               <a
-                href="https://wa.me/5491100000000"
-                target="_blank"
+                {...whatsappAnchorProps(WA_NUMERO_HOME)}
                 className="inline-flex items-center gap-2 mt-6 bg-green-600 hover:bg-green-500 text-white text-sm font-semibold px-4 py-2.5 rounded-full transition-colors"
               >
                 <span>💬</span> {t('footer.ctaWa')}
