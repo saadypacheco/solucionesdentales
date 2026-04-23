@@ -1,9 +1,9 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from typing import Optional
 from app.db.client import get_supabase_client
-from app.services.agente import get_respuesta, stream_respuesta
+from app.services.agente import get_respuesta, stream_respuesta, analizar_imagen
 from app.core.tenant import resolve_consultorio_publico
 
 router = APIRouter(prefix="/agente", tags=["agente"], redirect_slashes=False)
@@ -149,3 +149,68 @@ async def recibir_mensaje_stream(
         media_type="text/plain; charset=utf-8",
         headers={"X-Sesion-Id": str(sesion_id), "Cache-Control": "no-cache, no-transform"},
     )
+
+
+_VISION_ALLOWED_MIMES = {"image/jpeg", "image/jpg", "image/png", "image/webp", "image/heic"}
+_VISION_MAX_BYTES = 8 * 1024 * 1024  # 8 MB
+
+
+@router.post("/diagnostico-foto")
+async def diagnostico_foto(
+    session_id: str = Form(...),
+    mensaje: str = Form(""),
+    paciente_id: Optional[int] = Form(default=None),
+    imagen: UploadFile = File(...),
+    consultorio_id: int = Depends(resolve_consultorio_publico),
+):
+    """Analiza una imagen dental con Gemini Vision y devuelve orientación.
+
+    No es un diagnóstico definitivo — el system prompt refuerza que siempre
+    se recomienda consulta presencial. Persiste el turno conversacional
+    (mensaje del usuario + respuesta del bot) en mensajes_agente para mantener
+    el historial continuo.
+    """
+    mime = imagen.content_type or ""
+    if mime not in _VISION_ALLOWED_MIMES:
+        raise HTTPException(status_code=400, detail=f"Tipo no soportado: {mime}. Usá JPG, PNG, WebP o HEIC")
+
+    contenido = await imagen.read()
+    if len(contenido) > _VISION_MAX_BYTES:
+        raise HTTPException(status_code=413, detail="Imagen demasiado grande (máx 8 MB)")
+
+    respuesta = analizar_imagen(contenido, mime, mensaje)
+
+    # Persistir igual que /mensaje
+    db = get_supabase_client()
+    sesion = (
+        db.table("sesiones_agente")
+        .select("id")
+        .eq("session_id", session_id)
+        .eq("consultorio_id", consultorio_id)
+        .execute()
+    )
+    if sesion.data:
+        sesion_id = sesion.data[0]["id"]
+    else:
+        nueva = db.table("sesiones_agente").insert({
+            "session_id": session_id,
+            "paciente_id": paciente_id,
+            "consultorio_id": consultorio_id,
+        }).execute()
+        sesion_id = nueva.data[0]["id"]
+
+    texto_usuario = f"📸 [imagen adjunta]{' · ' + mensaje if mensaje else ''}"
+    db.table("mensajes_agente").insert({
+        "sesion_id": sesion_id,
+        "rol": "user",
+        "contenido": texto_usuario,
+        "es_bot": False,
+    }).execute()
+    db.table("mensajes_agente").insert({
+        "sesion_id": sesion_id,
+        "rol": "model",
+        "contenido": respuesta,
+        "es_bot": True,
+    }).execute()
+
+    return {"respuesta": respuesta, "sesion_id": sesion_id}

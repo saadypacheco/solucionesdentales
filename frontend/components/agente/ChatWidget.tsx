@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useTranslations } from 'next-intl'
 import { v4 as uuidv4 } from 'uuid'
-import { enviarMensajeStream } from '@/lib/api/agente'
+import { enviarMensajeStream, analizarFoto } from '@/lib/api/agente'
 import { useIdentidad } from '@/store/identidadStore'
 
 type Mensaje = { id: string; texto: string; esBot: boolean }
@@ -23,6 +23,7 @@ export default function ChatWidget() {
   const bottomRef = useRef<HTMLDivElement>(null)
 
   const sessionIdRef = useRef(sessionId || uuidv4())
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -42,6 +43,32 @@ export default function ChatWidget() {
       return prev
     })
   }, [t])
+
+  async function enviarFoto(file: File) {
+    if (escribiendo) return
+    const msgUsuario: Mensaje = {
+      id: Date.now().toString(),
+      texto: `📸 ${file.name}`,
+      esBot: false,
+    }
+    const botId = (Date.now() + 1).toString()
+    setMensajes((prev) => [...prev, msgUsuario, { id: botId, texto: '', esBot: true }])
+    setEscribiendo(true)
+    try {
+      const res = await analizarFoto(file, {
+        session_id: sessionIdRef.current,
+        mensaje: input.trim() || undefined,
+        paciente_id: pacienteId ?? null,
+      })
+      setMensajes((prev) => prev.map((m) => m.id === botId ? { ...m, texto: res.respuesta } : m))
+      setInput('')
+    } catch {
+      setMensajes((prev) => prev.map((m) => m.id === botId ? { ...m, texto: t('errorMessage') } : m))
+    } finally {
+      setEscribiendo(false)
+      if (fileInputRef.current) fileInputRef.current.value = ''
+    }
+  }
 
   async function enviar(texto: string) {
     if (!texto.trim() || escribiendo) return
@@ -162,8 +189,28 @@ export default function ChatWidget() {
 
           <form
             onSubmit={(e) => { e.preventDefault(); enviar(input) }}
-            className="px-3 py-3 bg-white border-t border-slate-100 flex gap-2"
+            className="px-3 py-3 bg-white border-t border-slate-100 flex gap-2 items-center"
           >
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              capture="environment"
+              onChange={(e) => {
+                const file = e.target.files?.[0]
+                if (file) enviarFoto(file)
+              }}
+              className="hidden"
+            />
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={escribiendo}
+              title={t('attachPhoto')}
+              className="w-9 h-9 flex-shrink-0 bg-slate-100 hover:bg-teal-50 border border-slate-200 hover:border-teal-300 text-slate-500 hover:text-teal-600 rounded-full flex items-center justify-center transition-colors disabled:opacity-40"
+            >
+              📸
+            </button>
             <input
               type="text"
               value={input}
