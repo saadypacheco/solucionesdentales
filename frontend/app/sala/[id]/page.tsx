@@ -4,7 +4,7 @@ import { useState, useEffect, use } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslations, useLocale } from 'next-intl'
 import { usePacienteStore } from '@/store/pacienteStore'
-import { getSala, type SalaInfo } from '@/lib/api/telemedicina'
+import { getSala, checkInPaciente, type SalaInfo } from '@/lib/api/telemedicina'
 import JitsiSala from '@/components/JitsiSala'
 
 function localeForDateFormat(locale: string): string {
@@ -73,7 +73,12 @@ export default function SalaPage({ params }: { params: Promise<{ id: string }> }
             </p>
           )}
           <button
-            onClick={() => setEnSala(true)}
+            onClick={async () => {
+              setEnSala(true)
+              if (token) {
+                try { await checkInPaciente(token, parseInt(id)) } catch { /* silencio: solo es una notif */ }
+              }
+            }}
             className="w-full bg-teal-600 hover:bg-teal-500 text-white py-3.5 rounded-full font-bold"
           >
             {t('joinButton')}

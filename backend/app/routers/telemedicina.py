@@ -288,6 +288,63 @@ async def subir_comprobante(
     return {"ok": True, "estado_pago": "comprobante_subido"}
 
 
+@router.post("/turnos/{turno_id}/check-in")
+async def check_in_paciente(
+    turno_id: int,
+    payload: dict = Depends(require_paciente),
+    db: Client = Depends(get_db),
+):
+    """
+    Paciente entró al lobby Jitsi → notificar al odontólogo asignado.
+    Idempotente: si ya hubo check-in en los últimos 5 min, no duplica notif.
+    """
+    paciente_id = int(payload["sub"])
+    turno = (
+        db.table("turnos")
+        .select("id, paciente_id, consultorio_id, usuario_id, modalidad, fecha_hora, pacientes(nombre)")
+        .eq("id", turno_id)
+        .eq("paciente_id", paciente_id)
+        .single()
+        .execute()
+    )
+    if not turno.data:
+        raise HTTPException(status_code=404, detail="Turno no encontrado")
+    if turno.data["modalidad"] != "virtual":
+        raise HTTPException(status_code=400, detail="No es turno virtual")
+
+    odontologo_id = turno.data.get("usuario_id")
+    if not odontologo_id:
+        return {"ok": True, "notificado": False}
+
+    # Idempotencia: chequear notif reciente del mismo turno
+    from datetime import datetime, timedelta, timezone
+    desde = (datetime.now(timezone.utc) - timedelta(minutes=5)).isoformat()
+    existing = (
+        db.table("notificaciones")
+        .select("id", count="exact")
+        .eq("usuario_id", odontologo_id)
+        .eq("tipo", "paciente_llego_lobby")
+        .gte("created_at", desde)
+        .contains("metadata", {"turno_id": turno_id})
+        .execute()
+    )
+    if (existing.count or 0) > 0:
+        return {"ok": True, "notificado": False, "duplicado": True}
+
+    nombre_paciente = (turno.data.get("pacientes") or {}).get("nombre") or "Paciente"
+    notificar(
+        consultorio_id=turno.data["consultorio_id"],
+        usuario_id=odontologo_id,
+        tipo="paciente_llego_lobby",
+        titulo="Paciente en sala virtual",
+        mensaje=f"{nombre_paciente} entró a la sala de tu consulta virtual.",
+        link=f"/admin/agenda",
+        metadata={"turno_id": turno_id, "paciente_id": paciente_id},
+        prioridad="alta",
+    )
+    return {"ok": True, "notificado": True}
+
+
 @router.get("/turnos/{turno_id}/sala")
 async def obtener_sala(
     turno_id: int,

@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useTranslations, useLocale } from 'next-intl'
 import { useAuthStore } from '@/store/authStore'
+import { createClient } from '@/lib/supabase/client'
 import {
   countNoLeidasStaff,
   listarNotifsStaff,
@@ -12,7 +13,24 @@ import {
   type Notificacion,
 } from '@/lib/api/notificaciones'
 
-const POLL_INTERVAL_MS = 30_000  // Polling 30s — futuro: Realtime via Supabase
+const POLL_INTERVAL_MS = 60_000  // Fallback polling 60s — Realtime es lo primario
+
+// Sonido sutil: blip corto generado con Web Audio (sin fetch externo)
+function playBlip() {
+  try {
+    const Ctx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext
+    const ctx = new Ctx()
+    const o = ctx.createOscillator()
+    const g = ctx.createGain()
+    o.type = 'sine'
+    o.frequency.value = 880
+    g.gain.value = 0.05
+    o.connect(g); g.connect(ctx.destination)
+    o.start()
+    o.stop(ctx.currentTime + 0.12)
+    setTimeout(() => ctx.close(), 300)
+  } catch { /* navegador sin soporte / autoplay block */ }
+}
 
 const PRIORIDAD_DOT: Record<string, string> = {
   baja: 'bg-slate-400',
@@ -25,6 +43,7 @@ export default function NotifBell() {
   const t = useTranslations('notificaciones')
   const tTipos = useTranslations('notificaciones.tipos')
   const locale = useLocale()
+  const { token, user } = useAuthStore()
 
   function formatRelative(iso: string): string {
     const ms = Date.now() - new Date(iso).getTime()
@@ -38,14 +57,13 @@ export default function NotifBell() {
     const dateLocale = locale === 'pt-BR' ? 'pt-BR' : locale === 'en' ? 'en-US' : 'es-AR'
     return t('ago.date', { fecha: new Date(iso).toLocaleDateString(dateLocale, { day: 'numeric', month: 'short' }) })
   }
-  const { token } = useAuthStore()
   const [count, setCount] = useState(0)
   const [open, setOpen] = useState(false)
   const [items, setItems] = useState<Notificacion[]>([])
   const [loading, setLoading] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
 
-  // Polling del count
+  // Polling del count (fallback)
   useEffect(() => {
     if (!token) return
     let cancelled = false
@@ -61,6 +79,37 @@ export default function NotifBell() {
     const interval = setInterval(fetchCount, POLL_INTERVAL_MS)
     return () => { cancelled = true; clearInterval(interval) }
   }, [token])
+
+  // Realtime: subscribe a INSERTs en notificaciones para este usuario
+  useEffect(() => {
+    if (!user?.id) return
+    const supabase = createClient()
+    const channel = supabase
+      .channel(`notif-staff-${user.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'notificaciones',
+          filter: `usuario_id=eq.${user.id}`,
+        },
+        () => {
+          setCount((c) => c + 1)
+          playBlip()
+          // Si está abierto el dropdown, recargo items para que aparezca al toque
+          if (open && token) {
+            listarNotifsStaff(token, { limit: 10 }).then(setItems).catch(() => { /* silent */ })
+          }
+        },
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id, open, token])
 
   // Cargar items cuando se abre el dropdown
   useEffect(() => {
