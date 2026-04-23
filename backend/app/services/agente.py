@@ -146,6 +146,46 @@ def _llamar_gemini(system: str, historial: list[dict]) -> str:
         return _FALLBACK_ERROR
 
 
+_VISION_PROMPT = """Sos la misma asistente virtual de un consultorio odontológico.
+El paciente te mandó una foto (de su boca, un diente, una radiografía, o algo que quiere consultar).
+
+Tu rol ahora:
+1. Describí brevemente qué ves en la imagen (1-2 frases).
+2. Dá orientación inicial — si ves algo que sugiere caries, inflamación, maloclusión, etc., mencionalo con palabras simples.
+3. **NUNCA des un diagnóstico definitivo** — usá frases como "parece que...", "podría ser...", "es compatible con...".
+4. Terminá siempre recomendando que venga a la consulta para confirmar y tratar el caso.
+5. Si la imagen NO es dental (otra parte del cuerpo, objeto no relacionado), respondé amable que solo podés orientar sobre temas dentales y ofrecé WhatsApp si quiere ayuda médica general.
+6. Máximo 4 oraciones en total. Español rioplatense (vos)."""
+
+
+def analizar_imagen(imagen_bytes: bytes, mime_type: str, mensaje_usuario: str = "") -> str:
+    """Llama a Gemini Vision con una imagen + mensaje opcional. Devuelve texto de orientación."""
+    api_key = os.getenv("GEMINI_API_KEY")
+    if not api_key:
+        return _FALLBACK_SIN_KEY
+
+    genai.configure(api_key=api_key)
+    model = genai.GenerativeModel(
+        model_name="gemini-2.0-flash",
+        system_instruction=_VISION_PROMPT,
+    )
+    prompt = mensaje_usuario.strip() or "Analizá esta imagen dental y dame tu orientación."
+    try:
+        response = model.generate_content(
+            [
+                {"mime_type": mime_type, "data": imagen_bytes},
+                prompt,
+            ],
+            generation_config=genai.types.GenerationConfig(
+                max_output_tokens=400,
+                temperature=0.5,
+            ),
+        )
+        return response.text.strip()
+    except Exception:
+        return _FALLBACK_ERROR
+
+
 def stream_respuesta(historial: list[dict], contexto_extra: str | None = None):
     """Generador que yieldea trozos de texto a medida que Gemini los produce.
     Para servir como Server-Sent Events o como ReadableStream."""

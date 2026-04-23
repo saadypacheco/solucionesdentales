@@ -26,6 +26,27 @@ export async function enviarMensaje(payload: MensajePayload): Promise<MensajeRes
   return res.json()
 }
 
+export async function analizarFoto(
+  imagen: File,
+  opts: { session_id: string; mensaje?: string; paciente_id?: number | null },
+): Promise<MensajeResponse> {
+  const fd = new FormData()
+  fd.append('session_id', opts.session_id)
+  if (opts.mensaje) fd.append('mensaje', opts.mensaje)
+  if (opts.paciente_id != null) fd.append('paciente_id', String(opts.paciente_id))
+  fd.append('imagen', imagen)
+  const res = await fetch(`${API_URL}/agente/diagnostico-foto`, {
+    method: 'POST',
+    headers: tenantHeaders(),
+    body: fd,
+  })
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}))
+    throw new Error((err as { detail?: string }).detail ?? 'Error analizando foto')
+  }
+  return res.json()
+}
+
 /** Versión streaming: invoca onChunk por cada trozo recibido y resuelve cuando termina.
  * Si el navegador no soporta ReadableStream o falla la conexión, hace fallback a enviarMensaje(). */
 export async function enviarMensajeStream(

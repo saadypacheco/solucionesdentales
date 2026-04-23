@@ -20,6 +20,25 @@ function semanaDesde(base: Date): Date[] {
   return dias
 }
 
+function mesDesde(base: Date): Date[] {
+  const year = base.getFullYear()
+  const month = base.getMonth()
+  const primerDia = new Date(year, month, 1)
+  const ultimoDia = new Date(year, month + 1, 0)
+  // Empezar desde el lunes anterior al primer día del mes
+  const offset = primerDia.getDay() === 0 ? -6 : 1 - primerDia.getDay()
+  const inicio = new Date(primerDia)
+  inicio.setDate(primerDia.getDate() + offset)
+
+  const dias: Date[] = []
+  const cursor = new Date(inicio)
+  while (cursor <= ultimoDia || dias.length % 7 !== 0) {
+    dias.push(new Date(cursor))
+    cursor.setDate(cursor.getDate() + 1)
+  }
+  return dias
+}
+
 function toDateStr(d: Date): string {
   return d.toISOString().split('T')[0]
 }
@@ -143,13 +162,15 @@ export default function AdminAgendaPage() {
 
   const router = useRouter()
   const { token } = useAuthStore()
+  const [vista, setVista] = useState<'semana' | 'mes'>('semana')
   const [semanaBase, setSemanaBase] = useState<Date>(new Date())
   const [turnos, setTurnos] = useState<TurnoAdmin[]>([])
   const [loading, setLoading] = useState(true)
   const [diaSeleccionado, setDiaSeleccionado] = useState<string>(toDateStr(new Date()))
 
   const semana = semanaDesde(semanaBase)
-  const diasMostrar = semana
+  const mes = mesDesde(semanaBase)
+  const diasMostrar = vista === 'semana' ? semana : mes
 
   function formatHora(iso: string): string {
     return new Date(iso).toLocaleTimeString(dateLocale, { hour: '2-digit', minute: '2-digit' })
@@ -166,11 +187,11 @@ export default function AdminAgendaPage() {
   useEffect(() => {
     if (!token) { router.push('/admin/login'); return }
     setLoading(true)
-    Promise.all(semana.map((d) => getTurnosAdmin(token, toDateStr(d))))
+    Promise.all(diasMostrar.map((d) => getTurnosAdmin(token, toDateStr(d))))
       .then((resultados) => setTurnos(resultados.flat()))
       .finally(() => setLoading(false))
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token, toDateStr(semana[0])])
+  }, [token, vista, toDateStr(diasMostrar[0]), toDateStr(diasMostrar[diasMostrar.length - 1])])
 
   function turnosDel(dia: Date): TurnoAdmin[] {
     const fecha = toDateStr(dia)
@@ -187,16 +208,41 @@ export default function AdminAgendaPage() {
 
   return (
     <div className="min-h-screen p-4 md:p-6" style={{ background: 'var(--bg-base)' }}>
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
         <div>
           <h1 className="text-2xl font-black text-white">{t('title')}</h1>
           <p className="text-slate-400 text-sm mt-0.5">
-            {t('weekOf', { fecha: semana[0].toLocaleDateString(dateLocale, { day: 'numeric', month: 'long' }) })}
+            {vista === 'semana'
+              ? t('weekOf', { fecha: semana[0].toLocaleDateString(dateLocale, { day: 'numeric', month: 'long' }) })
+              : semanaBase.toLocaleDateString(dateLocale, { month: 'long', year: 'numeric' })}
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex items-center bg-slate-800/60 border border-white/10 rounded-xl p-0.5">
+            <button
+              onClick={() => setVista('semana')}
+              className={`px-3 py-1 text-xs font-bold rounded-lg transition-colors ${
+                vista === 'semana' ? 'bg-teal-600 text-white' : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              {t('viewWeek')}
+            </button>
+            <button
+              onClick={() => setVista('mes')}
+              className={`px-3 py-1 text-xs font-bold rounded-lg transition-colors ${
+                vista === 'mes' ? 'bg-teal-600 text-white' : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              {t('viewMonth')}
+            </button>
+          </div>
           <button
-            onClick={() => { const d = new Date(semanaBase); d.setDate(d.getDate() - 7); setSemanaBase(d) }}
+            onClick={() => {
+              const d = new Date(semanaBase)
+              if (vista === 'semana') d.setDate(d.getDate() - 7)
+              else d.setMonth(d.getMonth() - 1)
+              setSemanaBase(d)
+            }}
             className="w-9 h-9 flex items-center justify-center rounded-xl border border-white/10 text-slate-400 hover:text-white hover:border-white/20 transition-colors"
           >
             ←
@@ -208,7 +254,12 @@ export default function AdminAgendaPage() {
             {t('today')}
           </button>
           <button
-            onClick={() => { const d = new Date(semanaBase); d.setDate(d.getDate() + 7); setSemanaBase(d) }}
+            onClick={() => {
+              const d = new Date(semanaBase)
+              if (vista === 'semana') d.setDate(d.getDate() + 7)
+              else d.setMonth(d.getMonth() + 1)
+              setSemanaBase(d)
+            }}
             className="w-9 h-9 flex items-center justify-center rounded-xl border border-white/10 text-slate-400 hover:text-white hover:border-white/20 transition-colors"
           >
             →
@@ -216,6 +267,7 @@ export default function AdminAgendaPage() {
         </div>
       </div>
 
+      {vista === 'semana' && (
       <div className="flex gap-1 overflow-x-auto pb-2 mb-4 md:hidden scrollbar-hide">
         {semana.map((dia) => {
           const fecha = toDateStr(dia)
@@ -237,9 +289,93 @@ export default function AdminAgendaPage() {
           )
         })}
       </div>
+      )}
 
       {loading ? (
         <div className="text-slate-400 text-center py-20">{t('loading')}</div>
+      ) : vista === 'mes' ? (
+        <>
+          <div className="grid grid-cols-7 gap-0.5 mb-1">
+            {['lun', 'mar', 'mié', 'jue', 'vie', 'sáb', 'dom'].map((d) => (
+              <div key={d} className="text-center text-xs font-bold uppercase tracking-widest text-slate-500 py-2">
+                {dateLocale === 'en-US' ? ['mon','tue','wed','thu','fri','sat','sun'][['lun','mar','mié','jue','vie','sáb','dom'].indexOf(d)] :
+                 dateLocale === 'pt-BR' ? ['seg','ter','qua','qui','sex','sáb','dom'][['lun','mar','mié','jue','vie','sáb','dom'].indexOf(d)] : d}
+              </div>
+            ))}
+          </div>
+          <div className="grid grid-cols-7 gap-0.5">
+            {mes.map((dia) => {
+              const fecha = toDateStr(dia)
+              const turnosDia = turnosDel(dia)
+              const mismoMes = dia.getMonth() === semanaBase.getMonth()
+              const seleccionado = diaSeleccionado === fecha
+              return (
+                <button
+                  key={fecha}
+                  onClick={() => setDiaSeleccionado(fecha)}
+                  className={`min-h-[70px] md:min-h-[90px] p-1.5 text-left rounded-lg border transition-all ${
+                    seleccionado
+                      ? 'bg-teal-600/20 border-teal-500'
+                      : fecha === hoy
+                      ? 'bg-[--bg-card] border-teal-500/40'
+                      : 'bg-[--bg-card] border-white/5 hover:border-white/20'
+                  } ${!mismoMes ? 'opacity-40' : ''}`}
+                >
+                  <p className={`text-xs font-bold ${
+                    fecha === hoy ? 'text-teal-400' : mismoMes ? 'text-slate-300' : 'text-slate-600'
+                  }`}>
+                    {dia.getDate()}
+                  </p>
+                  {turnosDia.length > 0 && (
+                    <div className="mt-1 space-y-0.5">
+                      {turnosDia.slice(0, 3).map((tt) => (
+                        <div
+                          key={tt.id}
+                          className={`text-[10px] px-1 py-0.5 rounded truncate ${
+                            tt.estado === 'confirmado' ? 'bg-green-500/20 text-green-300' :
+                            tt.estado === 'realizado' ? 'bg-slate-500/20 text-slate-400' :
+                            tt.estado === 'cancelado' || tt.estado === 'ausente' ? 'bg-red-500/20 text-red-300' :
+                            'bg-yellow-500/20 text-yellow-300'
+                          }`}
+                        >
+                          {formatHora(tt.fecha_hora)} {tt.pacientes?.nombre?.split(' ')[0] ?? '—'}
+                        </div>
+                      ))}
+                      {turnosDia.length > 3 && (
+                        <div className="text-[10px] text-slate-500">+{turnosDia.length - 3}</div>
+                      )}
+                    </div>
+                  )}
+                </button>
+              )
+            })}
+          </div>
+
+          {/* Detalle del día seleccionado en vista mensual */}
+          <div className="mt-5 space-y-2">
+            <h3 className="text-sm font-bold text-white">
+              {(() => {
+                const dia = mes.find((d) => toDateStr(d) === diaSeleccionado)
+                return dia ? formatDia(dia) : diaSeleccionado
+              })()}
+            </h3>
+            {(() => {
+              const dia = mes.find((d) => toDateStr(d) === diaSeleccionado)
+              if (!dia) return null
+              const turnosDia = turnosDel(dia)
+              if (turnosDia.length === 0) {
+                return <p className="text-slate-500 text-sm py-4">{t('noAppointmentsDay')}</p>
+              }
+              return (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {turnosDia.map((tt) => (
+                    <TarjetaTurno key={tt.id} turno={tt} token={token!} onChange={handleCambio} formatHora={formatHora} />
+                  ))}
+                </div>
+              )
+            })()}
+          </div>
+        </>
       ) : (
         <>
           <div className="hidden md:grid grid-cols-7 gap-3">

@@ -327,6 +327,7 @@
     "inputPlaceholder": "Escribí tu consulta...",
     "openAria": "Abrir chat",
     "errorMessage": "En este momento no puedo responder. Contactanos por WhatsApp para una respuesta inmediata.",
+    "attachPhoto": "Mandar foto (orientación IA)",
     "quickReplies": {
       "book": "Quiero agendar un turno",
       "prices": "Precios y tratamientos",
@@ -350,6 +351,31 @@
       "required": "Debés aceptar la política de privacidad para continuar"
     }
   },
+  "radiografias": {
+    "title": "Radiografías",
+    "subtitle": "Imágenes médicas asociadas al historial (panorámica, periapical, etc.)",
+    "upload": "Subir radiografía",
+    "uploadSubmit": "Subir",
+    "uploading": "Subiendo...",
+    "empty": "Sin radiografías registradas.",
+    "errorUpload": "Error al subir la radiografía",
+    "confirmDelete": "¿Eliminar esta radiografía? (se marca inactiva, no se borra del storage)",
+    "fields": {
+      "tipo": "Tipo",
+      "fechaToma": "Fecha de toma",
+      "archivo": "Archivo",
+      "notas": "Notas",
+      "notasPlaceholder": "Observaciones clínicas, región, diente..."
+    },
+    "tipos": {
+      "panoramica": "Panorámica",
+      "periapical": "Periapical",
+      "bitewing": "Bitewing",
+      "lateral": "Lateral",
+      "cefalometrica": "Cefalométrica",
+      "otra": "Otra"
+    }
+  },
   "perfilPaciente": {
     "title": "Perfil del paciente",
     "loading": "Cargando perfil...",
@@ -357,6 +383,7 @@
     "tabs": {
       "info": "Info",
       "historial": "Historial clínico",
+      "radiografias": "Radiografías",
       "tratamientos": "Tratamientos",
       "turnos": "Turnos",
       "recetas": "Recetas"
@@ -704,7 +731,9 @@
       "whatsappMessage": "Hola {nombre}! Te confirmamos tu turno de {tratamiento} para el {hora}.",
       "markArrival": "Marcar llegada",
       "arrivalSending": "Notificando...",
-      "arrivalNotified": "Doctor notificado"
+      "arrivalNotified": "Doctor notificado",
+      "viewWeek": "Semana",
+      "viewMonth": "Mes"
     },
     "pacientes": {
       "title": "Pacientes",
