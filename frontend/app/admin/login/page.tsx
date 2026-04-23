@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { loginStaff } from '@/lib/api/admin'
 import { useAuthStore } from '@/store/authStore'
+import { setLocale } from '@/app/actions/set-locale'
+import { isValidLocale } from '@/i18n/config'
 import LanguageSwitcher from '@/components/LanguageSwitcher'
 
 export default function LoginPage() {
@@ -24,6 +26,13 @@ export default function LoginPage() {
     try {
       const { access_token, user, consultorio } = await loginStaff(email, password)
       setAuth(access_token, user, consultorio)
+
+      // Auto-set idioma según el consultorio (override del staff > default del país)
+      const idiomaConsultorio = consultorio?.idioma_override || consultorio?.paises?.idioma_default
+      if (idiomaConsultorio && isValidLocale(idiomaConsultorio)) {
+        await setLocale(idiomaConsultorio)
+      }
+
       // Superadmin va al panel del SaaS, otros al dashboard del consultorio
       router.push(user.rol === 'superadmin' ? '/superadmin' : '/admin/dashboard')
     } catch (err: unknown) {

@@ -1,3 +1,5 @@
+import { tenantHeaders } from './tenant'
+
 const API_URL = '/api/proxy'
 
 export interface MensajePayload {
@@ -14,7 +16,7 @@ export interface MensajeResponse {
 export async function enviarMensaje(payload: MensajePayload): Promise<MensajeResponse> {
   const res = await fetch(`${API_URL}/agente/mensaje`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...tenantHeaders() },
     body: JSON.stringify(payload),
   })
   if (!res.ok) {

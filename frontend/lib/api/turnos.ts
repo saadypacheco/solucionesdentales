@@ -1,7 +1,7 @@
 // Proxy server-side → Next.js reenvía a la VPS sin mixed-content
-// HARDCODED to ensure it always uses the route handler, not direct HTTP
+import { tenantHeaders } from './tenant'
+
 const API_URL = '/api/proxy'
-console.log('[turnos.ts] API_URL:', API_URL)
 
 export interface Doctor {
   id: string
@@ -25,12 +25,12 @@ export interface SlotsResponse {
 
 export interface SolicitarTurnoPayload {
   nombre: string
-  telefono?: string  // Optional if email is provided
-  fecha_hora: string   // ISO 8601
+  telefono?: string
+  fecha_hora: string
   tipo_tratamiento: string
   notas?: string
-  email?: string  // Email del paciente
-  usuario_id?: string  // UUID del odontólogo
+  email?: string
+  usuario_id?: string
 }
 
 export interface TurnoResponse {
@@ -44,7 +44,7 @@ export interface TurnoResponse {
 export async function getDoctores(tratamiento: string): Promise<DoctoresResponse> {
   const res = await fetch(
     `${API_URL}/turnos/doctores?tratamiento=${tratamiento}`,
-    { cache: 'no-store' },
+    { cache: 'no-store', headers: tenantHeaders() },
   )
   if (!res.ok) {
     const err = await res.json().catch(() => ({}))
@@ -62,7 +62,7 @@ export async function getSlots(
   if (usuario_id) params.set('usuario_id', usuario_id)
   const res = await fetch(
     `${API_URL}/turnos/disponibles?${params}`,
-    { cache: 'no-store' },
+    { cache: 'no-store', headers: tenantHeaders() },
   )
   if (!res.ok) {
     const err = await res.json().catch(() => ({}))
@@ -74,7 +74,7 @@ export async function getSlots(
 export async function solicitarTurno(payload: SolicitarTurnoPayload): Promise<TurnoResponse> {
   const res = await fetch(`${API_URL}/turnos`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...tenantHeaders() },
     body: JSON.stringify(payload),
   })
   if (!res.ok) {

@@ -1,3 +1,5 @@
+import { tenantHeaders } from './tenant'
+
 const API_URL = '/api/proxy'
 
 export interface OTPEnviarResponse {
@@ -30,7 +32,7 @@ export interface MiTurno {
 export async function enviarOTP(telefono: string): Promise<OTPEnviarResponse> {
   const res = await fetch(`${API_URL}/auth/otp/enviar`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...tenantHeaders() },
     body: JSON.stringify({ telefono }),
   })
   if (!res.ok) {
@@ -43,7 +45,7 @@ export async function enviarOTP(telefono: string): Promise<OTPEnviarResponse> {
 export async function verificarOTP(telefono: string, codigo: string): Promise<OTPVerificarResponse> {
   const res = await fetch(`${API_URL}/auth/otp/verificar`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...tenantHeaders() },
     body: JSON.stringify({ telefono, codigo }),
   })
   if (!res.ok) {

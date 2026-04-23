@@ -1,3 +1,5 @@
+import { tenantHeaders } from './tenant'
+
 const API_URL = '/api/proxy'
 
 export interface Caso {
@@ -13,7 +15,10 @@ export interface Caso {
 
 export async function getCasos(tipo?: string): Promise<Caso[]> {
   const qs = tipo ? `?tipo=${tipo}` : ''
-  const res = await fetch(`${API_URL}/casos${qs}`, { cache: 'no-store' })
+  const res = await fetch(`${API_URL}/casos${qs}`, {
+    cache: 'no-store',
+    headers: tenantHeaders(),
+  })
   if (!res.ok) throw new Error('Error al cargar galería')
   return res.json()
 }

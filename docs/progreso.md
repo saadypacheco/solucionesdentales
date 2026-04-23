@@ -340,7 +340,8 @@ paciente → /turnos/virtual → elige slot virtual → completa datos
 - ✅ **Fase 2 (2026-04-22):** Schema multi-país + consultorio default — migraciones 013 y 014
 - ✅ **Fase 3 (2026-04-22):** Backend multi-tenant — todos los routers filtran por consultorio_id, audit log activo, endpoints onboarding y superadmin listos
 - ✅ **Fase 4 (2026-04-22):** Frontend onboarding wizard + panel superadmin + branding dinámico
-- ⏸️ **Fase 5:** Lock down (consultorio_id NOT NULL) + selector consultorio + idioma derivado del país
+- ✅ **Fase 5a (2026-04-23):** Lock down DB (consultorio_id NOT NULL + UNIQUE compuestos) + X-Consultorio-ID en API públicos + idioma derivado del consultorio en login
+- ⏸️ **Fase 5b:** RLS multi-tenant en Supabase (requiere arreglar cliente Postgrest custom)
 
 **Decisiones tomadas:**
 - ✅ Países iniciales: Argentina, Bolivia, EE.UU.
