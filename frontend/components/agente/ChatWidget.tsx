@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useTranslations } from 'next-intl'
 import { v4 as uuidv4 } from 'uuid'
-import { enviarMensaje } from '@/lib/api/agente'
+import { enviarMensajeStream } from '@/lib/api/agente'
 import { useIdentidad } from '@/store/identidadStore'
 
 type Mensaje = { id: string; texto: string; esBot: boolean }
@@ -47,29 +47,30 @@ export default function ChatWidget() {
     if (!texto.trim() || escribiendo) return
 
     const msgUsuario: Mensaje = { id: Date.now().toString(), texto, esBot: false }
-    setMensajes((prev) => [...prev, msgUsuario])
+    const botId = (Date.now() + 1).toString()
+    setMensajes((prev) => [...prev, msgUsuario, { id: botId, texto: '', esBot: true }])
     setInput('')
     setEscribiendo(true)
 
+    let acumulado = ''
     try {
-      const res = await enviarMensaje({
-        session_id: sessionIdRef.current,
-        mensaje: texto,
-        paciente_id: pacienteId ?? null,
-      })
-      const msgBot: Mensaje = {
-        id: (Date.now() + 1).toString(),
-        texto: res.respuesta,
-        esBot: true,
-      }
-      setMensajes((prev) => [...prev, msgBot])
+      await enviarMensajeStream(
+        {
+          session_id: sessionIdRef.current,
+          mensaje: texto,
+          paciente_id: pacienteId ?? null,
+        },
+        (chunk) => {
+          acumulado += chunk
+          setMensajes((prev) => prev.map((m) =>
+            m.id === botId ? { ...m, texto: acumulado } : m
+          ))
+        },
+      )
     } catch {
-      const msgError: Mensaje = {
-        id: (Date.now() + 1).toString(),
-        texto: t('errorMessage'),
-        esBot: true,
-      }
-      setMensajes((prev) => [...prev, msgError])
+      setMensajes((prev) => prev.map((m) =>
+        m.id === botId ? { ...m, texto: t('errorMessage') } : m
+      ))
     } finally {
       setEscribiendo(false)
     }
@@ -119,25 +120,26 @@ export default function ChatWidget() {
           <div className="flex-1 overflow-y-auto p-3 space-y-3 bg-slate-50">
             {mensajes.map((m) => (
               <div key={m.id} className={`flex ${m.esBot ? 'justify-start' : 'justify-end'}`}>
-                <div className={`max-w-[82%] px-3.5 py-2.5 rounded-2xl text-sm leading-snug ${
-                  m.esBot
-                    ? 'bg-white text-slate-700 shadow-sm rounded-tl-none'
-                    : 'bg-teal-600 text-white rounded-tr-none'
-                }`}>
-                  {m.texto}
-                </div>
+                {m.esBot && !m.texto && escribiendo ? (
+                  <div className="bg-white px-4 py-3 rounded-2xl rounded-tl-none shadow-sm flex gap-1.5 items-center">
+                    <span className="w-2 h-2 bg-teal-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                    <span className="w-2 h-2 bg-teal-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                    <span className="w-2 h-2 bg-teal-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                  </div>
+                ) : (
+                  <div className={`max-w-[82%] px-3.5 py-2.5 rounded-2xl text-sm leading-snug whitespace-pre-wrap ${
+                    m.esBot
+                      ? 'bg-white text-slate-700 shadow-sm rounded-tl-none'
+                      : 'bg-teal-600 text-white rounded-tr-none'
+                  }`}>
+                    {m.texto}
+                    {m.esBot && escribiendo && m.texto && (
+                      <span className="inline-block w-1.5 h-3 bg-teal-400 ml-0.5 align-middle animate-pulse" />
+                    )}
+                  </div>
+                )}
               </div>
             ))}
-
-            {escribiendo && (
-              <div className="flex justify-start">
-                <div className="bg-white px-4 py-3 rounded-2xl rounded-tl-none shadow-sm flex gap-1.5 items-center">
-                  <span className="w-2 h-2 bg-teal-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                  <span className="w-2 h-2 bg-teal-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                  <span className="w-2 h-2 bg-teal-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
-                </div>
-              </div>
-            )}
             <div ref={bottomRef} />
           </div>
 
