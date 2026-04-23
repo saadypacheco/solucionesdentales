@@ -350,6 +350,39 @@
       "required": "You must accept the privacy policy to continue"
     }
   },
+  "notificaciones": {
+    "title": "Notifications",
+    "subtitle": "Office events in real time",
+    "noNotifs": "No notifications",
+    "noUnread": "No unread notifications",
+    "loading": "Loading notifications...",
+    "viewAll": "View all",
+    "markAllRead": "Mark all read",
+    "markRead": "Mark read",
+    "ago": {
+      "now": "just now",
+      "minutes": "{n} min ago",
+      "hours": "{n} h ago",
+      "days": "{n} d ago",
+      "date": "{fecha}"
+    },
+    "tipos": {
+      "nuevo_turno": "New appointment",
+      "turno_cancelado": "Appointment canceled",
+      "turno_recordatorio_24h": "Appointment reminder",
+      "paciente_llego_recepcion": "Patient arrived",
+      "paciente_llego_lobby": "Patient in virtual lobby",
+      "nuevo_chat": "New message",
+      "pago_verificado": "Payment verified",
+      "comprobante_recibido": "Receipt received",
+      "receta_disponible": "Prescription ready",
+      "documento_aprobado": "Document approved",
+      "documento_rechazado": "Document rejected",
+      "alarma_critica": "Critical alarm"
+    },
+    "ariaOpen": "Open notifications",
+    "newCount": "{n, plural, =0 {no new notifications} one {# new notification} other {# new notifications}}"
+  },
   "arco": {
     "title": "My personal data",
     "subtitle": "Rights guaranteed by data protection law",

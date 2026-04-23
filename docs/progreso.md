@@ -1,14 +1,93 @@
 # Progreso — Soluciones Dentales
 
-> Última actualización: 2026-04-21
+> Última actualización: 2026-04-23
 
 ---
 
 ## Estado general
 
 ```
-Fase actual: Fase 1 MVP — COMPLETA
-Próximo paso: Deploy a producción + testeo end-to-end
+Fase MVP completa + Multi-país (M13) Fases 1-5a deployadas + Política/ARCO legal
+Producción: solucionodont.shop funcionando con consultorio_id=1 (Modelo A)
+Sistema preparado para Modelo B/C (multi-tenant en infra compartida)
+
+Próximo módulo: M12 Notificaciones (campana in-app + Realtime)
+```
+
+> 📍 Visión completa de funcionalidad y testing: [mapa-funcional-y-testing.md](mapa-funcional-y-testing.md)
+> 📍 Guía de deploy multi-cliente: [deploy-multi-clinica.md](deploy-multi-clinica.md)
+> 📍 Decisiones técnicas: [decisiones.md](decisiones.md)
+
+---
+
+## Hito 2026-04-22/23 — Hecho en últimas sesiones
+
+### M13 Multi-país — TODAS las fases base completas
+
+- ✅ **Fase 1**: i18n con next-intl, 3 idiomas (es/en/pt-BR), 100% cobertura, detección automática
+- ✅ **Fase 2**: schema multi-país (paises, consultorios, docs_requeridos, docs_consultorio, audit_log, consentimientos) + consultorio_id en tablas existentes (migraciones 013-014)
+- ✅ **Fase 3**: backend multi-tenant — todos los routers filtran por consultorio_id, audit log activo, endpoints onboarding y superadmin
+- ✅ **Fase 4**: frontend onboarding wizard 5 pasos + panel `/superadmin/*` + branding dinámico + UI "Crear admin del consultorio"
+- ✅ **Fase 5a (lock down)**: `consultorio_id NOT NULL` + UNIQUE compuestos + X-Consultorio-ID en API públicos + idioma derivado del consultorio en login (migración 017)
+- ⏸️ **Fase 5b** (pendiente): RLS multi-tenant en Supabase
+
+### Política de privacidad + Consentimiento + ARCO (legal AR/BO/US)
+
+- ✅ `GET /auth/mis-datos` — paciente descarga JSON completo (derecho de Acceso)
+- ✅ `DELETE /auth/mi-cuenta` — anonimiza preservando turnos pasados (derecho al Olvido)
+- ✅ `GET /consultorios/politica-privacidad` con templates por país
+- ✅ Página `/privacidad` con render markdown personalizado
+- ✅ Checkbox obligatorio en `/turnos` paso 4 + registro en tabla `consentimientos`
+- ✅ Panel ARCO en `/mis-turnos` (descargar JSON + eliminar cuenta)
+- 🟡 Templates EN/PT-BR son placeholders (solo ES está completo)
+
+### Encriptación Fernet de datos sensibles
+
+- ✅ `pacientes.telefono`, `pacientes.email`, `paciente_otps.codigo`, `turnos.notas`, `usuarios.email` cifrados
+- ✅ Hashes determinísticos `_hash` para búsqueda sin desencriptar
+- ✅ Migración 012 + backfill automático en startup
+- ✅ Auto-reconnect ante `httpx.RemoteProtocolError` (singleton refresh)
+
+### Otros fixes y polish
+
+- ✅ Hero con foto de fondo + overlay integrado a la paleta
+- ✅ Footer con link funcional a `/privacidad`
+- ✅ Sidebar admin muestra nombre del consultorio dinámicamente
+- ✅ Login redirige a `/superadmin` si rol superadmin
+- ✅ list_usuarios filtra por consultorio (antes era global)
+
+### M12 Notificaciones — MVP completo (sin Realtime aún)
+
+- ✅ Migración 018: tabla `notificaciones` + índices + constraint usuario_id XOR paciente_id
+- ✅ `services/notificaciones.py`: helpers `notificar()` + `notificar_a_admins()` (fail-safe)
+- ✅ Router `notificaciones.py`:
+  - `GET /notificaciones/staff` — listado del usuario logueado
+  - `GET /notificaciones/staff/count` — solo count para badge
+  - `PATCH /notificaciones/staff/{id}/leida`
+  - `PATCH /notificaciones/staff/marcar-todas-leidas`
+  - `GET /notificaciones/paciente` (con JWT OTP)
+  - `PATCH /notificaciones/paciente/{id}/leida`
+- ✅ Hooks automáticos en endpoints existentes:
+  - `POST /turnos` → notif "nuevo_turno" a todos los admins
+  - `PATCH /auth/mis-turnos/{id}/cancelar` → notif "turno_cancelado" a admins
+  - `PATCH /superadmin/documentos/{id}` → notif "documento_aprobado/rechazado" a admins del consultorio
+- ✅ Componente `<NotifBell>` con badge + dropdown últimas 10
+- ✅ Página `/admin/notificaciones` con listado completo + filtros + marcar todas
+- ✅ Polling cada 30 seg (placeholder hasta agregar Realtime)
+- ✅ Integrado en sidebar admin Y superadmin
+- ⏸️ Pendiente: Supabase Realtime para push instantáneo (en lugar de polling)
+
+### Migraciones aplicadas en Supabase
+
+```
+001-011  base + RLS legacy + paciente_otps + grants
+012      encriptación Fernet
+013      paises + consultorios + docs + audit + consentimientos
+014      consultorio_id FK en tablas existentes
+015      fix: superadmin en CHECK constraint usuarios.rol
+016      fix: disable RLS en tablas compliance
+017      lock down: NOT NULL + UNIQUE compuestos multi-tenant
+018      M12 notificaciones in-app
 ```
 
 ---

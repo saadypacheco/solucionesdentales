@@ -120,6 +120,19 @@ async def revisar_documento(
         metadata={"tipo_documento": doc.data["tipo_documento"], "observaciones": req.observaciones},
     )
 
+    # Notificar a admins del consultorio (M12)
+    from app.services.notificaciones import notificar_a_admins
+    es_aprobado = req.estado == "aprobado"
+    notificar_a_admins(
+        consultorio_id=consultorio_id,
+        tipo=f"documento_{req.estado}",
+        titulo=f"Documento {'aprobado ✓' if es_aprobado else 'rechazado ✗'}",
+        mensaje=f"{doc.data['tipo_documento']}" + (f" — {req.observaciones}" if req.observaciones else ""),
+        link="/admin/configuracion/compliance",
+        metadata={"documento_id": documento_id, "tipo_documento": doc.data["tipo_documento"]},
+        prioridad="alta" if not es_aprobado else "normal",
+    )
+
     # Recalcular estado del consultorio
     recalcular_estado_compliance(consultorio_id)
 

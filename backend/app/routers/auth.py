@@ -411,6 +411,23 @@ async def cancelar_turno(
     res = db.table("turnos").update({"estado": "cancelado"}) \
         .eq("id", turno_id).execute()
 
+    # Notificar a admins del consultorio (M12)
+    try:
+        from app.services.notificaciones import notificar_a_admins
+        consultorio_id = res.data[0].get("consultorio_id") if res.data else None
+        if consultorio_id:
+            notificar_a_admins(
+                consultorio_id=consultorio_id,
+                tipo="turno_cancelado",
+                titulo="Turno cancelado por paciente",
+                mensaje=f"Paciente canceló turno del {res.data[0].get('fecha_hora', '')[:16]}",
+                link="/admin/agenda",
+                metadata={"turno_id": turno_id, "paciente_id": paciente_id},
+                prioridad="normal",
+            )
+    except Exception:
+        pass
+
     return res.data[0]
 
 

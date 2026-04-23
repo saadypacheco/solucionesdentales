@@ -350,6 +350,39 @@
       "required": "Você deve aceitar a política de privacidade para continuar"
     }
   },
+  "notificaciones": {
+    "title": "Notificações",
+    "subtitle": "Eventos do consultório em tempo real",
+    "noNotifs": "Sem notificações",
+    "noUnread": "Sem notificações não lidas",
+    "loading": "Carregando notificações...",
+    "viewAll": "Ver todas",
+    "markAllRead": "Marcar todas como lidas",
+    "markRead": "Marcar como lida",
+    "ago": {
+      "now": "agora mesmo",
+      "minutes": "há {n} min",
+      "hours": "há {n} h",
+      "days": "há {n} d",
+      "date": "{fecha}"
+    },
+    "tipos": {
+      "nuevo_turno": "Nova consulta",
+      "turno_cancelado": "Consulta cancelada",
+      "turno_recordatorio_24h": "Lembrete de consulta",
+      "paciente_llego_recepcion": "Paciente chegou",
+      "paciente_llego_lobby": "Paciente na sala virtual",
+      "nuevo_chat": "Nova mensagem",
+      "pago_verificado": "Pagamento verificado",
+      "comprobante_recibido": "Comprovante recebido",
+      "receta_disponible": "Receita disponível",
+      "documento_aprobado": "Documento aprovado",
+      "documento_rechazado": "Documento rejeitado",
+      "alarma_critica": "Alerta crítico"
+    },
+    "ariaOpen": "Abrir notificações",
+    "newCount": "{n, plural, =0 {sem notificações novas} one {# notificação nova} other {# notificações novas}}"
+  },
   "arco": {
     "title": "Meus dados pessoais",
     "subtitle": "Direitos garantidos pela legislação de proteção de dados",

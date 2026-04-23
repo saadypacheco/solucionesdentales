@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { useTranslations } from 'next-intl'
 import { useAuthStore } from '@/store/authStore'
 import LanguageSwitcher from '@/components/LanguageSwitcher'
+import NotifBell from '@/components/NotifBell'
 
 export default function SuperadminLayout({ children }: { children: React.ReactNode }) {
   const t = useTranslations('superadmin')
@@ -69,7 +70,10 @@ export default function SuperadminLayout({ children }: { children: React.ReactNo
               <p className="text-slate-600 text-xs truncate">{user.email}</p>
             </div>
           )}
-          <LanguageSwitcher variant="full" />
+          <div className="flex items-center gap-2">
+            <LanguageSwitcher variant="full" />
+            <NotifBell />
+          </div>
           <button
             onClick={handleLogout}
             className="w-full text-slate-500 hover:text-red-400 text-xs py-1.5 rounded-lg hover:bg-red-500/5 transition-colors"

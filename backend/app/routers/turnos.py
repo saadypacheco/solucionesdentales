@@ -308,6 +308,18 @@ async def solicitar_turno(
         "consultorio_id": consultorio_id,
     }).execute()
 
+    # Notificar a todos los admins del consultorio (M12)
+    from app.services.notificaciones import notificar_a_admins
+    notificar_a_admins(
+        consultorio_id=consultorio_id,
+        tipo="nuevo_turno",
+        titulo=f"Nuevo turno · {req.nombre}",
+        mensaje=f"{req.tipo_tratamiento} · {req.fecha_hora.strftime('%d/%m %H:%M')}",
+        link="/admin/agenda",
+        metadata={"turno_id": turno_id, "paciente_id": paciente_id},
+        prioridad="alta",
+    )
+
     # Registrar consentimiento de tratamiento de datos (snapshot del texto)
     try:
         db.table("consentimientos").insert({

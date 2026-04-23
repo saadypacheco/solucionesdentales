@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { useTranslations } from 'next-intl'
 import { useAuthStore } from '@/store/authStore'
 import LanguageSwitcher from '@/components/LanguageSwitcher'
+import NotifBell from '@/components/NotifBell'
 
 function Sidebar({ open, onClose }: { open: boolean; onClose: () => void }) {
   const t = useTranslations('admin')
@@ -82,8 +83,9 @@ function Sidebar({ open, onClose }: { open: boolean; onClose: () => void }) {
               <p className="text-slate-600 text-xs truncate">{user.email}</p>
             </div>
           )}
-          <div className="flex justify-between items-center">
+          <div className="flex justify-between items-center gap-2">
             <LanguageSwitcher variant="full" />
+            <NotifBell />
           </div>
           <div className="flex gap-2">
             <Link
