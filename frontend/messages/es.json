@@ -724,7 +724,21 @@
         "registered": "Registro"
       },
       "whatsAppContact": "Contactar por WhatsApp",
-      "whatsapp": "WhatsApp"
+      "whatsapp": "WhatsApp",
+      "importCSV": "Importar CSV",
+      "import": {
+        "title": "Importar pacientes desde CSV",
+        "subtitle": "Subí un archivo CSV con tus pacientes. Se omiten los duplicados (por teléfono o email).",
+        "example": "Ejemplo de columnas (encabezado obligatorio):",
+        "submit": "Importar",
+        "importing": "Procesando...",
+        "cancel": "Cancelar",
+        "close": "Cerrar",
+        "created": "Creados",
+        "duplicates": "Duplicados",
+        "skipped": "Omitidos",
+        "viewErrors": "Ver {n} errores"
+      }
     },
     "crm": {
       "title": "CRM / Pipeline",
@@ -754,6 +768,7 @@
       "noCases": "No hay casos todavía. Subí el primero.",
       "publish": "Publicar",
       "unpublish": "Despublicar",
+      "edit": "Editar",
       "delete": "Eliminar",
       "confirmDelete": "¿Eliminar este caso?",
       "before": "ANTES",
@@ -774,7 +789,11 @@
         "uploadPhoto": "+ Subir foto",
         "submit": "Subir caso",
         "submitting": "Subiendo...",
-        "errorUpload": "Error al subir"
+        "errorUpload": "Error al subir",
+        "editTitle": "Editar caso",
+        "editWarning": "Al editar, el caso se despublica automáticamente y debe volver a aprobarse.",
+        "replaceOptional": "Reemplazar (opcional)",
+        "errorSave": "Error al guardar"
       }
     },
     "configuracion": {
@@ -909,6 +928,7 @@
       "inactive": "Inactivo",
       "edit": "Editar",
       "reset": "Reset",
+      "schedule": "Horarios",
       "deactivate": "Desactiv.",
       "activate": "Activar",
       "modal": {
@@ -921,6 +941,31 @@
         "password": "Contraseña"
       },
       "promptResetPassword": "Nueva contraseña para {nombre}:"
+    },
+    "horarios": {
+      "title": "Horarios de atención",
+      "errorLoad": "Error cargando horarios",
+      "errorSave": "Error al guardar horarios",
+      "errorInvalidRange": "{dia}: la hora de inicio debe ser anterior a la de fin",
+      "usingDefaults": "Usa horarios por defecto (sin configuración propia)",
+      "hint": "Si no marcás un día como abierto, no se ofrecerán turnos para ese día. Los horarios se aplican al cálculo de slots disponibles en /turnos.",
+      "table": {
+        "day": "Día",
+        "from": "Desde",
+        "to": "Hasta",
+        "open": "Abierto",
+        "openYes": "Abierto",
+        "openNo": "Cerrado"
+      },
+      "days": {
+        "0": "Lunes",
+        "1": "Martes",
+        "2": "Miércoles",
+        "3": "Jueves",
+        "4": "Viernes",
+        "5": "Sábado",
+        "6": "Domingo"
+      }
     },
     "alarmas": {
       "title": "Alarmas",
@@ -1049,6 +1094,7 @@
       "filterConsultorio": "ID del consultorio",
       "filterAccion": "Acción",
       "limitLabel": "Mostrar últimos:",
+      "exportCSV": "Exportar CSV",
       "table": {
         "fecha": "Fecha",
         "consultorio": "Consultorio",
