@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { useTranslations, useLocale } from 'next-intl'
 import { useAuthStore } from '@/store/authStore'
 import { useRouter } from 'next/navigation'
-import { getPacientesAdmin, type Paciente } from '@/lib/api/admin'
+import { getPacientesAdmin, importarPacientesCSV, type Paciente, type ImportCSVResult } from '@/lib/api/admin'
 
 const estadoColor: Record<string, string> = {
   nuevo:           'bg-blue-500/15 text-blue-400',
@@ -43,12 +43,46 @@ export default function AdminPacientesPage() {
   const dateLocale = localeForDateFormat(locale)
 
   const router = useRouter()
-  const { token } = useAuthStore()
+  const { token, user } = useAuthStore()
   const [pacientes, setPacientes] = useState<Paciente[]>([])
   const [loading, setLoading] = useState(true)
   const [busqueda, setBusqueda] = useState('')
   const [filtroEstado, setFiltroEstado] = useState('')
   const [ordenarPor, setOrdenarPor] = useState<'score' | 'fecha' | 'nombre'>('fecha')
+  const [showImport, setShowImport] = useState(false)
+  const [importing, setImporting] = useState(false)
+  const [importResult, setImportResult] = useState<ImportCSVResult | null>(null)
+  const [importError, setImportError] = useState('')
+
+  async function handleImport(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    if (!token) return
+    const file = (e.currentTarget.elements.namedItem('archivo') as HTMLInputElement)?.files?.[0]
+    if (!file) return
+    setImporting(true)
+    setImportError('')
+    setImportResult(null)
+    try {
+      const r = await importarPacientesCSV(token, file)
+      setImportResult(r)
+      if (r.creados > 0) {
+        const nuevos = await getPacientesAdmin(token)
+        setPacientes(nuevos)
+      }
+    } catch (err: unknown) {
+      setImportError(err instanceof Error ? err.message : 'Error')
+    } finally {
+      setImporting(false)
+    }
+  }
+
+  function cerrarImport() {
+    setShowImport(false)
+    setImportResult(null)
+    setImportError('')
+  }
+
+  const puedeImportar = user?.rol === 'admin' || user?.rol === 'superadmin'
 
   function formatFecha(iso: string): string {
     return new Date(iso).toLocaleDateString(dateLocale, { day: 'numeric', month: 'short', year: '2-digit' })
@@ -84,9 +118,19 @@ export default function AdminPacientesPage() {
 
   return (
     <div className="min-h-screen p-4 md:p-6" style={{ background: 'var(--bg-base)' }}>
-      <div className="mb-6">
-        <h1 className="text-2xl font-black text-white">{t('title')}</h1>
-        <p className="text-slate-400 text-sm mt-0.5">{t('totalCount', { n: pacientes.length })}</p>
+      <div className="mb-6 flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-black text-white">{t('title')}</h1>
+          <p className="text-slate-400 text-sm mt-0.5">{t('totalCount', { n: pacientes.length })}</p>
+        </div>
+        {puedeImportar && (
+          <button
+            onClick={() => setShowImport(true)}
+            className="bg-teal-500/15 hover:bg-teal-500/25 border border-teal-500/30 text-teal-400 text-sm font-bold px-4 py-2 rounded-xl"
+          >
+            📥 {t('importCSV')}
+          </button>
+        )}
       </div>
 
       <div className="flex flex-col sm:flex-row gap-3 mb-6">
@@ -220,6 +264,97 @@ export default function AdminPacientesPage() {
             ))}
           </div>
         </>
+      )}
+
+      {showImport && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+          <div className="bg-[--bg-card] border border-white/10 rounded-2xl max-w-md w-full p-6">
+            <div className="flex items-start justify-between mb-4">
+              <div>
+                <h2 className="text-lg font-black text-white">{t('import.title')}</h2>
+                <p className="text-slate-500 text-xs mt-0.5">{t('import.subtitle')}</p>
+              </div>
+              <button onClick={cerrarImport} className="text-slate-500 hover:text-white text-xl">×</button>
+            </div>
+
+            <div className="bg-slate-900/60 rounded-xl p-3 text-xs text-slate-400 mb-4 font-mono">
+              {t('import.example')}<br/>
+              <span className="text-teal-400">nombre,telefono,email,notas</span><br/>
+              <span className="text-slate-500">Juan Pérez,+5491155551111,juan@x.com,Caries</span><br/>
+              <span className="text-slate-500">María Lopez,+541144443333,,</span>
+            </div>
+
+            {!importResult ? (
+              <form onSubmit={handleImport} className="space-y-3">
+                <input
+                  type="file"
+                  name="archivo"
+                  accept=".csv,text/csv"
+                  required
+                  disabled={importing}
+                  className="block w-full text-sm text-slate-300 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-teal-600 file:text-white file:font-bold hover:file:bg-teal-500 disabled:opacity-50"
+                />
+                {importError && (
+                  <p className="text-red-400 text-xs bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">{importError}</p>
+                )}
+                <div className="flex gap-2 justify-end pt-2">
+                  <button
+                    type="button"
+                    onClick={cerrarImport}
+                    disabled={importing}
+                    className="text-slate-400 hover:text-white text-sm px-4 py-2"
+                  >
+                    {t('import.cancel')}
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={importing}
+                    className="bg-teal-600 hover:bg-teal-500 text-white text-sm font-bold px-5 py-2 rounded-xl disabled:opacity-50"
+                  >
+                    {importing ? t('import.importing') : t('import.submit')}
+                  </button>
+                </div>
+              </form>
+            ) : (
+              <div className="space-y-3">
+                <div className="grid grid-cols-3 gap-2 text-center">
+                  <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-3">
+                    <p className="text-2xl font-black text-emerald-400 number-display">{importResult.creados}</p>
+                    <p className="text-xs text-slate-400">{t('import.created')}</p>
+                  </div>
+                  <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-3">
+                    <p className="text-2xl font-black text-yellow-400 number-display">{importResult.duplicados_omitidos}</p>
+                    <p className="text-xs text-slate-400">{t('import.duplicates')}</p>
+                  </div>
+                  <div className="bg-rose-500/10 border border-rose-500/20 rounded-xl p-3">
+                    <p className="text-2xl font-black text-rose-400 number-display">{importResult.sin_contacto_omitidos + importResult.errores.length}</p>
+                    <p className="text-xs text-slate-400">{t('import.skipped')}</p>
+                  </div>
+                </div>
+                {importResult.errores.length > 0 && (
+                  <details className="text-xs">
+                    <summary className="text-slate-400 cursor-pointer">{t('import.viewErrors', { n: importResult.errores.length })}</summary>
+                    <ul className="mt-2 space-y-1 max-h-40 overflow-y-auto bg-slate-900/60 rounded-lg p-3">
+                      {importResult.errores.map((er, i) => (
+                        <li key={i} className="text-slate-500">
+                          <span className="text-rose-400">L{er.fila}:</span> {er.error}
+                        </li>
+                      ))}
+                    </ul>
+                  </details>
+                )}
+                <div className="flex justify-end pt-2">
+                  <button
+                    onClick={cerrarImport}
+                    className="bg-teal-600 hover:bg-teal-500 text-white text-sm font-bold px-5 py-2 rounded-xl"
+                  >
+                    {t('import.close')}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
       )}
     </div>
   )

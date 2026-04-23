@@ -37,6 +37,150 @@ async def listar_pacientes(
     return hidratar_lista_pacientes(res.data or [])
 
 
+@router.post("/pacientes/import")
+async def importar_pacientes_csv(
+    archivo: UploadFile = File(...),
+    request: Request = None,
+    ctx: dict = Depends(require_staff_context),
+    db: Client = Depends(get_db),
+):
+    """Importa pacientes desde un CSV. Columnas reconocidas (case-insensitive):
+       nombre (req), telefono, email, notas.
+    Reglas:
+    - Al menos uno de telefono o email es obligatorio por fila.
+    - Dedupe por (consultorio_id, telefono_hash) o (consultorio_id, email_hash).
+    - Encripta telefono y email; los almacena solo en columnas _enc + _hash.
+    - Estado inicial: 'nuevo', score 0.
+    - Hard cap: 1000 filas por archivo (para evitar timeouts).
+    """
+    import csv
+    import io
+    from app.core.encryption import encrypt, hash_for_search, normalize_email, normalize_phone
+
+    if ctx["rol"] not in ("admin",) and not ctx["es_superadmin"]:
+        raise HTTPException(status_code=403, detail="Solo admin puede importar pacientes")
+
+    contenido = await archivo.read()
+    if len(contenido) > 2 * 1024 * 1024:
+        raise HTTPException(status_code=413, detail="Archivo demasiado grande (máx 2 MB)")
+
+    # Decodificar (intentar utf-8, fallback a latin-1 que no falla nunca)
+    try:
+        texto = contenido.decode("utf-8-sig")
+    except UnicodeDecodeError:
+        texto = contenido.decode("latin-1")
+
+    # Detectar delimitador (coma o punto y coma)
+    sample = texto[:2048]
+    try:
+        dialect = csv.Sniffer().sniff(sample, delimiters=",;\t")
+    except csv.Error:
+        dialect = csv.excel
+
+    reader = csv.DictReader(io.StringIO(texto), dialect=dialect)
+    if not reader.fieldnames:
+        raise HTTPException(status_code=400, detail="CSV vacío o sin encabezados")
+
+    # Mapear columnas case-insensitive
+    cols_lower = {c.lower().strip(): c for c in reader.fieldnames if c}
+    col_nombre = cols_lower.get("nombre")
+    col_tel = cols_lower.get("telefono") or cols_lower.get("teléfono") or cols_lower.get("phone")
+    col_email = cols_lower.get("email") or cols_lower.get("correo") or cols_lower.get("e-mail")
+    col_notas = cols_lower.get("notas") or cols_lower.get("notes") or cols_lower.get("observaciones")
+
+    if not col_nombre:
+        raise HTTPException(status_code=400, detail="Columna 'nombre' obligatoria")
+
+    cid = ctx["consultorio_id"]
+    creados = 0
+    duplicados = 0
+    sin_contacto = 0
+    errores: list[dict] = []
+
+    for i, row in enumerate(reader, start=2):  # start=2 porque la fila 1 son los headers
+        if i - 1 > 1000:
+            errores.append({"fila": i, "error": "Tope de 1000 filas alcanzado, resto ignorado"})
+            break
+
+        try:
+            nombre = (row.get(col_nombre) or "").strip()
+            if not nombre:
+                continue  # filas vacías se saltan en silencio
+
+            tel_raw = (row.get(col_tel) or "").strip() if col_tel else ""
+            email_raw = (row.get(col_email) or "").strip() if col_email else ""
+
+            tel_norm = normalize_phone(tel_raw) if tel_raw else None
+            email_norm = normalize_email(email_raw) if email_raw else None
+
+            if not tel_norm and not email_norm:
+                sin_contacto += 1
+                continue
+
+            tel_hash = hash_for_search(tel_norm) if tel_norm else None
+            email_hash = hash_for_search(email_norm) if email_norm else None
+
+            # Dedupe por hash dentro del consultorio
+            ya_existe = False
+            if tel_hash:
+                check = db.table("pacientes").select("id") \
+                    .eq("consultorio_id", cid).eq("telefono_hash", tel_hash) \
+                    .limit(1).execute()
+                ya_existe = bool(check.data)
+            if not ya_existe and email_hash:
+                check = db.table("pacientes").select("id") \
+                    .eq("consultorio_id", cid).eq("email_hash", email_hash) \
+                    .limit(1).execute()
+                ya_existe = bool(check.data)
+
+            if ya_existe:
+                duplicados += 1
+                continue
+
+            data = {
+                "nombre": nombre,
+                "estado": "nuevo",
+                "score": 0,
+                "consultorio_id": cid,
+            }
+            if tel_norm:
+                data["telefono_enc"] = encrypt(tel_norm)
+                data["telefono_hash"] = tel_hash
+            if email_norm:
+                data["email_enc"] = encrypt(email_norm)
+                data["email_hash"] = email_hash
+            if col_notas:
+                notas = (row.get(col_notas) or "").strip()
+                if notas:
+                    data["notas_enc"] = encrypt(notas)
+
+            db.table("pacientes").insert(data).execute()
+            creados += 1
+        except Exception as e:
+            errores.append({"fila": i, "error": str(e)[:200]})
+            if len(errores) > 50:
+                errores.append({"fila": i, "error": "Más de 50 errores, deteniendo"})
+                break
+
+    log_action(
+        consultorio_id=cid,
+        usuario_id=ctx["usuario_id"],
+        accion="import_pacientes_csv",
+        recurso_tipo="paciente",
+        recurso_id=None,
+        request=request,
+        metadata={"creados": creados, "duplicados": duplicados, "sin_contacto": sin_contacto, "errores": len(errores)},
+    )
+
+    return {
+        "ok": True,
+        "creados": creados,
+        "duplicados_omitidos": duplicados,
+        "sin_contacto_omitidos": sin_contacto,
+        "errores": errores,
+    }
+
+
 @router.patch("/pacientes/{paciente_id}/estado")
 async def actualizar_estado_paciente(
     paciente_id: int,
@@ -276,6 +420,60 @@ async def aprobar_caso(
         recurso_tipo="caso_galeria",
         recurso_id=caso_id,
         request=request,
+    )
+    return res.data[0]
+
+
+@router.patch("/casos/{caso_id}/editar")
+async def editar_caso(
+    caso_id: int,
+    request: Request,
+    tipo_tratamiento: Optional[str] = Form(default=None),
+    descripcion: Optional[str] = Form(default=None),
+    duracion_tratamiento: Optional[str] = Form(default=None),
+    imagen_antes: Optional[UploadFile] = File(default=None),
+    imagen_despues: Optional[UploadFile] = File(default=None),
+    ctx: dict = Depends(require_staff_context),
+    db: Client = Depends(get_db),
+):
+    """Edita campos de un caso existente. Las imágenes son opcionales — si se mandan,
+    reemplazan las anteriores. Tras editar, se vuelve a marcar como `aprobado=False` para
+    que pase de nuevo por revisión (evita publicar cambios sin verificar)."""
+    if not ctx["es_superadmin"]:
+        check = db.table("casos_galeria").select("consultorio_id").eq("id", caso_id).single().execute()
+        if not check.data or check.data.get("consultorio_id") != ctx["consultorio_id"]:
+            raise HTTPException(status_code=404, detail="Caso no encontrado")
+
+    cambios: dict = {}
+    if tipo_tratamiento is not None:
+        cambios["tipo_tratamiento"] = tipo_tratamiento
+    if descripcion is not None:
+        cambios["descripcion"] = descripcion
+    if duracion_tratamiento is not None:
+        cambios["duracion_tratamiento"] = duracion_tratamiento
+    if imagen_antes is not None and imagen_antes.filename:
+        cambios["imagen_antes_url"] = await _upload_imagen(db, imagen_antes, "antes")
+    if imagen_despues is not None and imagen_despues.filename:
+        cambios["imagen_despues_url"] = await _upload_imagen(db, imagen_despues, "despues")
+
+    if not cambios:
+        raise HTTPException(status_code=400, detail="Sin cambios para aplicar")
+
+    # Si cambiamos algo, volver a despublicar para revisión
+    cambios["aprobado"] = False
+
+    res = db.table("casos_galeria").update(cambios).eq("id", caso_id).execute()
+    if not res.data:
+        raise HTTPException(status_code=404, detail="Caso no encontrado")
+
+    log_action(
+        consultorio_id=ctx["consultorio_id"],
+        usuario_id=ctx["usuario_id"],
+        accion="edit_caso",
+        recurso_tipo="caso_galeria",
+        recurso_id=caso_id,
+        request=request,
+        metadata={"campos_modificados": list(cambios.keys())},
     )
     return res.data[0]
 
