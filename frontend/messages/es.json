@@ -350,6 +350,89 @@
       "required": "Debés aceptar la política de privacidad para continuar"
     }
   },
+  "telemedicina": {
+    "modoVirtual": "Consulta virtual",
+    "modoPresencial": "Consulta presencial",
+    "primeraConsulta": "Primera consulta",
+    "seguimiento": "Consulta de seguimiento",
+    "pagina": {
+      "title": "Agendar consulta virtual",
+      "subtitle": "Atención online con pago previo · Sala de video Jitsi",
+      "noOdontologos": "Aún no hay odontólogos con telemedicina configurada",
+      "back": "Volver"
+    },
+    "pasoTipo": {
+      "title": "¿Qué tipo de consulta?",
+      "primeraDesc": "Primera vez con este odontólogo. Costo mayor.",
+      "seguimientoDesc": "Ya tuviste consultas previas. Costo reducido."
+    },
+    "pasoOdontologo": {
+      "title": "Elegí tu odontólogo",
+      "precioDesde": "Desde {moneda} {precio}"
+    },
+    "pasoDatos": {
+      "title": "Tus datos",
+      "subtitle": "Para confirmar el turno"
+    },
+    "pasoPago": {
+      "title": "Pago de la consulta",
+      "subtitle": "Total: {moneda} {precio}",
+      "instrucciones": "Pagá con el QR o transferencia, después subí el comprobante.",
+      "qrTitle": "Escaneá el QR",
+      "datosTitle": "O usá estos datos",
+      "uploadComprobante": "Subir comprobante",
+      "uploadHint": "PDF o imagen (JPG/PNG) del comprobante",
+      "submit": "Enviar comprobante",
+      "submitting": "Enviando...",
+      "noConfigurado": "Este odontólogo no tiene QR configurado. Contactá al consultorio."
+    },
+    "pasoExito": {
+      "title": "¡Comprobante enviado!",
+      "subtitle": "Te avisaremos por notificación cuando el pago sea verificado. Ahí podrás ingresar a la sala virtual.",
+      "verMisTurnos": "Ver mis turnos"
+    },
+    "estadoPago": {
+      "no_aplica": "Sin pago",
+      "pendiente": "Pago pendiente",
+      "comprobante_subido": "Verificando pago",
+      "verificado": "Pago verificado ✓",
+      "rechazado": "Pago rechazado"
+    },
+    "sala": {
+      "verSala": "Entrar a la sala virtual",
+      "esperandoVerificacion": "Esperando verificación de pago",
+      "esperandoComprobante": "Subir comprobante de pago",
+      "title": "Sala virtual de consulta",
+      "subtitle": "{fecha} · con {odontologo}",
+      "passwordHint": "Password de la sala: {password}",
+      "instrucciones": "Vas a entrar a una sala con cámara y micrófono. Si te pide aprobación, esperá a que el odontólogo te admita.",
+      "joinButton": "Entrar a la videollamada",
+      "loadError": "Error al cargar la sala. Intentá de nuevo más tarde.",
+      "leave": "Salir de la sala"
+    },
+    "admin": {
+      "pagosPendientes": "Pagos pendientes",
+      "pagosSubtitle": "Verificá comprobantes de turnos virtuales",
+      "loading": "Cargando...",
+      "noPagos": "No hay pagos pendientes de verificación",
+      "verComprobante": "Ver comprobante",
+      "aprobar": "Aprobar",
+      "rechazar": "Rechazar",
+      "aprobando": "Aprobando...",
+      "rechazando": "Rechazando...",
+      "motivoRechazo": "Motivo del rechazo (opcional)",
+      "motivoPlaceholder": "Ej: comprobante ilegible / monto incorrecto",
+      "errorVerificar": "Error al verificar el pago",
+      "preciosTitle": "Precios telemedicina",
+      "preciosDesc": "Configurá los precios y QR de pago por odontólogo",
+      "preciosPrimera": "Primera consulta",
+      "preciosSeguimiento": "Seguimiento",
+      "preciosMoneda": "Moneda",
+      "preciosQR": "URL del QR de pago",
+      "preciosTransferencia": "Datos de transferencia / instrucciones",
+      "preciosGuardar": "Guardar precios"
+    }
+  },
   "notificaciones": {
     "title": "Notificaciones",
     "subtitle": "Eventos del consultorio en tiempo real",
@@ -414,7 +497,8 @@
       "usuarios": "Usuarios",
       "galeria": "Galería",
       "configIA": "Config IA",
-      "compliance": "Compliance"
+      "compliance": "Compliance",
+      "pagos": "Pagos"
     },
     "layout": {
       "title": "Soluciones Dentales",

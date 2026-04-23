@@ -350,6 +350,89 @@
       "required": "You must accept the privacy policy to continue"
     }
   },
+  "telemedicina": {
+    "modoVirtual": "Virtual consultation",
+    "modoPresencial": "In-person consultation",
+    "primeraConsulta": "First consultation",
+    "seguimiento": "Follow-up consultation",
+    "pagina": {
+      "title": "Book virtual consultation",
+      "subtitle": "Online care with prepayment · Jitsi video room",
+      "noOdontologos": "No dentists with telemedicine configured yet",
+      "back": "Back"
+    },
+    "pasoTipo": {
+      "title": "What type of consultation?",
+      "primeraDesc": "First time with this dentist. Higher cost.",
+      "seguimientoDesc": "You had previous consultations. Reduced cost."
+    },
+    "pasoOdontologo": {
+      "title": "Choose your dentist",
+      "precioDesde": "From {moneda} {precio}"
+    },
+    "pasoDatos": {
+      "title": "Your details",
+      "subtitle": "To confirm the appointment"
+    },
+    "pasoPago": {
+      "title": "Consultation payment",
+      "subtitle": "Total: {moneda} {precio}",
+      "instrucciones": "Pay with QR or transfer, then upload the receipt.",
+      "qrTitle": "Scan the QR",
+      "datosTitle": "Or use these details",
+      "uploadComprobante": "Upload receipt",
+      "uploadHint": "PDF or image (JPG/PNG) of receipt",
+      "submit": "Send receipt",
+      "submitting": "Sending...",
+      "noConfigurado": "This dentist has no QR configured. Contact the office."
+    },
+    "pasoExito": {
+      "title": "Receipt sent!",
+      "subtitle": "We'll notify you when payment is verified. Then you can enter the virtual room.",
+      "verMisTurnos": "View my appointments"
+    },
+    "estadoPago": {
+      "no_aplica": "No payment",
+      "pendiente": "Payment pending",
+      "comprobante_subido": "Verifying payment",
+      "verificado": "Payment verified ✓",
+      "rechazado": "Payment rejected"
+    },
+    "sala": {
+      "verSala": "Enter virtual room",
+      "esperandoVerificacion": "Waiting for payment verification",
+      "esperandoComprobante": "Upload payment receipt",
+      "title": "Virtual consultation room",
+      "subtitle": "{fecha} · with {odontologo}",
+      "passwordHint": "Room password: {password}",
+      "instrucciones": "You'll enter a room with camera and microphone. If asked for approval, wait for the dentist to admit you.",
+      "joinButton": "Join video call",
+      "loadError": "Error loading the room. Try again later.",
+      "leave": "Leave room"
+    },
+    "admin": {
+      "pagosPendientes": "Pending payments",
+      "pagosSubtitle": "Verify receipts from virtual appointments",
+      "loading": "Loading...",
+      "noPagos": "No payments pending verification",
+      "verComprobante": "View receipt",
+      "aprobar": "Approve",
+      "rechazar": "Reject",
+      "aprobando": "Approving...",
+      "rechazando": "Rejecting...",
+      "motivoRechazo": "Rejection reason (optional)",
+      "motivoPlaceholder": "Ex: illegible receipt / wrong amount",
+      "errorVerificar": "Error verifying payment",
+      "preciosTitle": "Telemedicine prices",
+      "preciosDesc": "Configure prices and payment QR per dentist",
+      "preciosPrimera": "First consultation",
+      "preciosSeguimiento": "Follow-up",
+      "preciosMoneda": "Currency",
+      "preciosQR": "Payment QR URL",
+      "preciosTransferencia": "Transfer details / instructions",
+      "preciosGuardar": "Save prices"
+    }
+  },
   "notificaciones": {
     "title": "Notifications",
     "subtitle": "Office events in real time",
@@ -414,7 +497,8 @@
       "usuarios": "Users",
       "galeria": "Gallery",
       "configIA": "AI Config",
-      "compliance": "Compliance"
+      "compliance": "Compliance",
+      "pagos": "Payments"
     },
     "layout": {
       "title": "Dental Solutions",

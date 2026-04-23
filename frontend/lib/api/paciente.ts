@@ -27,6 +27,9 @@ export interface MiTurno {
   estado: string
   duracion_minutos: number
   notas: string | null
+  modalidad?: 'presencial' | 'virtual'
+  estado_pago?: 'no_aplica' | 'pendiente' | 'comprobante_subido' | 'verificado' | 'rechazado'
+  precio?: number | null
 }
 
 export async function enviarOTP(telefono: string): Promise<OTPEnviarResponse> {

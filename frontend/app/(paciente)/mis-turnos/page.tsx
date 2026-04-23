@@ -395,7 +395,10 @@ function MisTurnosLista({ token, nombre, onLogout }: {
                   <div key={tt.id} className="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm">
                     <div className="flex items-start justify-between mb-2">
                       <div>
-                        <p className="font-bold text-slate-800 capitalize">{tt.tipo_tratamiento}</p>
+                        <p className="font-bold text-slate-800 capitalize">
+                          {tt.modalidad === 'virtual' && '📹 '}
+                          {tt.tipo_tratamiento}
+                        </p>
                         <p className="text-teal-600 text-sm font-medium">{formatFecha(tt.fecha_hora)}</p>
                         <p className="text-slate-500 text-sm">{formatHora(tt.fecha_hora)} · {tt.duracion_minutos} min</p>
                       </div>
@@ -403,6 +406,26 @@ function MisTurnosLista({ token, nombre, onLogout }: {
                         {tEstadosShort(tt.estado)}
                       </span>
                     </div>
+
+                    {/* Botón de sala virtual si pago verificado */}
+                    {tt.modalidad === 'virtual' && tt.estado_pago === 'verificado' && (
+                      <Link
+                        href={`/sala/${tt.id}`}
+                        className="block w-full bg-teal-600 hover:bg-teal-700 text-white text-center py-2.5 rounded-xl font-bold text-sm mt-2 transition-colors"
+                      >
+                        📹 Entrar a la sala virtual
+                      </Link>
+                    )}
+                    {tt.modalidad === 'virtual' && tt.estado_pago === 'comprobante_subido' && (
+                      <p className="text-yellow-600 bg-yellow-50 border border-yellow-200 rounded-lg px-3 py-2 text-xs mt-2">
+                        ⏳ Esperando verificación de pago
+                      </p>
+                    )}
+                    {tt.modalidad === 'virtual' && tt.estado_pago === 'rechazado' && (
+                      <p className="text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2 text-xs mt-2">
+                        ✗ Pago rechazado — contactá al consultorio
+                      </p>
+                    )}
 
                     {tt.notas && (
                       <p className="text-slate-400 text-xs mt-2 bg-slate-50 rounded-lg px-3 py-2">

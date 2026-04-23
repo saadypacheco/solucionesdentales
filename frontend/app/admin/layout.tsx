@@ -24,6 +24,7 @@ function Sidebar({ open, onClose }: { open: boolean; onClose: () => void }) {
     { href: '/admin/galeria',                  label: tNav('galeria'),    icono: '🖼️' },
     { href: '/admin/configuracion',            label: tNav('configIA'),   icono: '⚙️' },
     { href: '/admin/configuracion/compliance', label: tNav('compliance'), icono: '✅' },
+    { href: '/admin/pagos',                    label: tNav('pagos'),      icono: '💸' },
   ]
 
   function handleLogout() {

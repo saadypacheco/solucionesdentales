@@ -77,6 +77,30 @@ Próximo módulo: M12 Notificaciones (campana in-app + Realtime)
 - ✅ Integrado en sidebar admin Y superadmin
 - ⏸️ Pendiente: Supabase Realtime para push instantáneo (en lugar de polling)
 
+### M11 Telemedicina Fase A — turnos virtuales + Jitsi
+
+- ✅ Migración 019: `turnos.modalidad` + `estado_pago` + `jitsi_room/password` + tablas `precios_telemedicina`, `recetas`, `chat_paciente_odontologo`
+- ✅ `services/jitsi.py`: generación de room name único (UUID hash) + password
+- ✅ Router `telemedicina.py`:
+  - `GET /telemedicina/odontologos-virtual` (público) — lista odontólogos con telemed configurada
+  - `GET /telemedicina/precio?odontologo_id=X&es_primera_consulta=` (público)
+  - `POST /telemedicina/turnos` (público) — crea turno virtual, devuelve QR de pago
+  - `POST /telemedicina/turnos/{id}/comprobante` (público) — upload comprobante
+  - `GET /telemedicina/turnos/{id}/sala` (paciente OTP) — devuelve URL Jitsi + password si pago verificado
+  - `GET /telemedicina/admin/pagos-pendientes` (staff) — turnos esperando verificación
+  - `PATCH /telemedicina/admin/turnos/{id}/verificar-pago` (staff) — aprobar/rechazar
+  - `GET /telemedicina/admin/precios` + `POST /telemedicina/admin/precios` (staff) — gestión de precios
+- ✅ Hooks notif: `comprobante_recibido` a admins, `pago_verificado` al paciente
+- ✅ Página pública `/turnos/virtual` con flow de 5 pasos (tipo → odontólogo → fecha+hora → datos+consentimiento → pago QR + upload)
+- ✅ Página `/admin/pagos` para verificar comprobantes (aprobar/rechazar con motivo)
+- ✅ Página `/sala/[id]` con componente `<JitsiSala>` embebido (jitsi-meet-external-api)
+- ✅ Botón "Entrar a sala virtual" en `/mis-turnos` cuando `estado_pago='verificado'`
+- ✅ Sidebar admin: entrada "💸 Pagos"
+- ✅ Banner descubrimiento en `/turnos`: "📹 ¿Preferís consulta virtual?"
+- ⏸️ Pendiente Fase B: recetas PDF + chat asincrónico paciente↔odontólogo
+- ⏸️ Pendiente: UI admin para configurar precios telemedicina (hoy se setea por SQL)
+- ⏸️ Pendiente: lobby Jitsi notificación al odontólogo cuando paciente entra
+
 ### Migraciones aplicadas en Supabase
 
 ```
@@ -88,6 +112,7 @@ Próximo módulo: M12 Notificaciones (campana in-app + Realtime)
 016      fix: disable RLS en tablas compliance
 017      lock down: NOT NULL + UNIQUE compuestos multi-tenant
 018      M12 notificaciones in-app
+019      M11 telemedicina (modalidad + pago + jitsi + recetas + chat)
 ```
 
 ---
