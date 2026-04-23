@@ -877,6 +877,19 @@
           "waNumero": "Número do WhatsApp (com código do país)",
           "matricula": "Matrícula do titular"
         }
+      },
+      "dominios": {
+        "title": "Domínios da clínica",
+        "desc": "Hostnames que apontam para esta clínica. Quando um paciente abre um desses domínios, o sistema resolve automaticamente como sua clínica.",
+        "placeholder": "minhaclinica.com.br ou bosques.solucionesdentales.com",
+        "asDefault": "Marcar como principal",
+        "add": "+ Adicionar",
+        "adding": "Adicionando...",
+        "errorAdd": "Erro ao adicionar domínio (já está mapeado para outra clínica?)",
+        "empty": "Nenhum domínio mapeado ainda.",
+        "defaultBadge": "Principal",
+        "confirmDelete": "Remover o domínio {hostname}? Visitantes que entrarem por esse hostname deixarão de resolver para esta clínica.",
+        "hint": "Após adicionar um domínio aqui, configure o DNS para apontar para o servidor (CNAME ou A record). Para subdomínios do SaaS, basta configurar no seu painel de DNS."
       }
     },
     "metricas": {

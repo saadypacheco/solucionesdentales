@@ -877,6 +877,19 @@
           "waNumero": "Número de WhatsApp (con código país)",
           "matricula": "Matrícula del titular"
         }
+      },
+      "dominios": {
+        "title": "Dominios del consultorio",
+        "desc": "Hostnames que apuntan a este consultorio. Cuando un paciente abre uno de estos dominios, el sistema resuelve automáticamente que es tu clínica.",
+        "placeholder": "miclinica.com.ar o bosques.solucionesdentales.com",
+        "asDefault": "Marcar como principal",
+        "add": "+ Agregar",
+        "adding": "Agregando...",
+        "errorAdd": "Error al agregar dominio (¿ya está mapeado a otro consultorio?)",
+        "empty": "No hay dominios mapeados todavía.",
+        "defaultBadge": "Principal",
+        "confirmDelete": "¿Eliminar el dominio {hostname}? Los visitantes que entren por ese hostname dejarán de resolver este consultorio.",
+        "hint": "Después de agregar un dominio acá, configurá el DNS para que apunte al servidor (CNAME o A record). Si es subdominio del SaaS, alcanza con configurarlo del lado de tu admin de DNS."
       }
     },
     "metricas": {

@@ -877,6 +877,19 @@
           "waNumero": "WhatsApp number (with country code)",
           "matricula": "Owner's license number"
         }
+      },
+      "dominios": {
+        "title": "Clinic domains",
+        "desc": "Hostnames pointing to this clinic. When a patient opens any of these domains, the system automatically resolves to your practice.",
+        "placeholder": "myclinic.com or bosques.solucionesdentales.com",
+        "asDefault": "Mark as primary",
+        "add": "+ Add",
+        "adding": "Adding...",
+        "errorAdd": "Error adding domain (already mapped to another clinic?)",
+        "empty": "No domains mapped yet.",
+        "defaultBadge": "Primary",
+        "confirmDelete": "Remove domain {hostname}? Visitors arriving via that hostname will stop resolving to this clinic.",
+        "hint": "After adding a domain here, configure DNS to point to the server (CNAME or A record). For SaaS subdomains, just configure it in your DNS panel."
       }
     },
     "metricas": {
