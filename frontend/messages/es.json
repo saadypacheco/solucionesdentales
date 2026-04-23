@@ -477,6 +477,8 @@
     "send": "Enviar",
     "sending": "Enviando...",
     "errorSend": "Error al enviar",
+    "attach": "Adjuntar archivo",
+    "uploadError": "Error al subir el archivo",
     "ago": {
       "now": "ahora",
       "minutes": "{n}m",
@@ -699,7 +701,10 @@
       "appointmentsCount": "{n, plural, =0 {0 turnos} one {# turno} other {# turnos}}",
       "noAppointments": "—",
       "minutes": "{n}min",
-      "whatsappMessage": "Hola {nombre}! Te confirmamos tu turno de {tratamiento} para el {hora}."
+      "whatsappMessage": "Hola {nombre}! Te confirmamos tu turno de {tratamiento} para el {hora}.",
+      "markArrival": "Marcar llegada",
+      "arrivalSending": "Notificando...",
+      "arrivalNotified": "Doctor notificado"
     },
     "pacientes": {
       "title": "Pacientes",

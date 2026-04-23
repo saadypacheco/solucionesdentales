@@ -11,7 +11,9 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+import uuid
+
+from fastapi import APIRouter, Depends, File, HTTPException, Request, UploadFile
 from pydantic import BaseModel
 from supabase import Client
 
@@ -158,6 +160,47 @@ async def enviar_mensaje_staff(
     return res.data[0] if res.data else {}
 
 
+_ALLOWED_EXTS = {"jpg", "jpeg", "png", "webp", "heic", "pdf"}
+_MAX_BYTES = 8 * 1024 * 1024  # 8 MB
+
+
+def _validar_archivo(archivo: UploadFile, contenido: bytes) -> str:
+    if len(contenido) > _MAX_BYTES:
+        raise HTTPException(status_code=413, detail="Archivo demasiado grande (máx 8 MB)")
+    ext = (archivo.filename or "file").rsplit(".", 1)[-1].lower() if archivo.filename and "." in archivo.filename else ""
+    if ext not in _ALLOWED_EXTS:
+        raise HTTPException(status_code=400, detail=f"Extensión no permitida. Soportadas: {', '.join(sorted(_ALLOWED_EXTS))}")
+    return ext
+
+
+@router.post("/admin/upload")
+async def upload_archivo_staff(
+    archivo: UploadFile = File(...),
+    ctx: dict = Depends(require_staff_context),
+    db: Client = Depends(get_db),
+):
+    """Sube un archivo del odontólogo al bucket `chat_archivos`. Devuelve URL pública.
+    El frontend después llama POST /chat/admin con `archivo_url` para crear el mensaje."""
+    contenido = await archivo.read()
+    ext = _validar_archivo(archivo, contenido)
+    path = f"{ctx['consultorio_id']}/{ctx['usuario_id']}/{uuid.uuid4()}.{ext}"
+
+    try:
+        db.storage.from_("chat_archivos").upload(
+            path,
+            contenido,
+            {"content-type": archivo.content_type or "application/octet-stream"},
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error al subir archivo: {e}")
+
+    return {
+        "archivo_url": db.storage.from_("chat_archivos").get_public_url(path),
+        "filename": archivo.filename,
+        "size": len(contenido),
+    }
+
+
 # ── Lado paciente (JWT OTP) ──────────────────────────────────────────────────
 
 @router.get("/paciente/conversaciones")
@@ -221,6 +264,38 @@ async def listar_mensajes_paciente(
         .execute()
     )
     return res.data or []
+
+
+@router.post("/paciente/upload")
+async def upload_archivo_paciente(
+    archivo: UploadFile = File(...),
+    payload: dict = Depends(require_paciente),
+    db: Client = Depends(get_db),
+):
+    """Sube un archivo del paciente al bucket `chat_archivos`. Devuelve URL pública."""
+    paciente_id = int(payload["sub"])
+    pac = db.table("pacientes").select("consultorio_id").eq("id", paciente_id).single().execute()
+    if not pac.data:
+        raise HTTPException(status_code=404, detail="Paciente no encontrado")
+
+    contenido = await archivo.read()
+    ext = _validar_archivo(archivo, contenido)
+    path = f"{pac.data['consultorio_id']}/paciente-{paciente_id}/{uuid.uuid4()}.{ext}"
+
+    try:
+        db.storage.from_("chat_archivos").upload(
+            path,
+            contenido,
+            {"content-type": archivo.content_type or "application/octet-stream"},
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error al subir archivo: {e}")
+
+    return {
+        "archivo_url": db.storage.from_("chat_archivos").get_public_url(path),
+        "filename": archivo.filename,
+        "size": len(contenido),
+    }
 
 
 @router.post("/paciente")
