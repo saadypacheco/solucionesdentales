@@ -27,6 +27,13 @@ import {
   listarRecetasAdmin,
   type Receta,
 } from '@/lib/api/recetas'
+import {
+  listarRadiografias,
+  subirRadiografia,
+  eliminarRadiografia,
+  type Radiografia,
+  type TipoRadiografia,
+} from '@/lib/api/radiografias'
 
 function localeForDateFormat(locale: string): string {
   if (locale === 'pt-BR') return 'pt-BR'
@@ -34,7 +41,7 @@ function localeForDateFormat(locale: string): string {
   return 'es-AR'
 }
 
-type Tab = 'info' | 'historial' | 'tratamientos' | 'turnos' | 'recetas'
+type Tab = 'info' | 'historial' | 'radiografias' | 'tratamientos' | 'turnos' | 'recetas'
 
 export default function PerfilPacientePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
@@ -79,8 +86,8 @@ export default function PerfilPacientePage({ params }: { params: Promise<{ id: s
 
       {/* Tabs */}
       <div className="flex gap-1 border-b border-white/10 overflow-x-auto">
-        {(['info', 'historial', 'tratamientos', 'turnos', 'recetas'] as Tab[]).map((x) => {
-          const locked = x === 'historial' && !puedeVerHistorial
+        {(['info', 'historial', 'radiografias', 'tratamientos', 'turnos', 'recetas'] as Tab[]).map((x) => {
+          const locked = (x === 'historial' || x === 'radiografias') && !puedeVerHistorial
           return (
             <button
               key={x}
@@ -103,6 +110,7 @@ export default function PerfilPacientePage({ params }: { params: Promise<{ id: s
       {/* Contenido */}
       {tab === 'info' && <TabInfo paciente={paciente} fmt={fmt} t={t} />}
       {tab === 'historial' && <TabHistorial pacienteId={pacienteId} />}
+      {tab === 'radiografias' && <TabRadiografias pacienteId={pacienteId} fmt={fmt} />}
       {tab === 'tratamientos' && <TabTratamientos pacienteId={pacienteId} fmt={fmt} />}
       {tab === 'turnos' && <TabTurnos pacienteId={pacienteId} fmt={fmt} />}
       {tab === 'recetas' && <TabRecetas pacienteId={pacienteId} fmt={fmt} />}
@@ -450,6 +458,174 @@ function TabRecetas({ pacienteId, fmt }: { pacienteId: number; fmt: (iso: string
           </pre>
         </div>
       ))}
+    </div>
+  )
+}
+
+/* ─── TAB RADIOGRAFÍAS ─── */
+const TIPOS_RX: TipoRadiografia[] = ['panoramica', 'periapical', 'bitewing', 'lateral', 'cefalometrica', 'otra']
+
+function esImagenRx(url: string): boolean {
+  return /\.(jpe?g|png|webp)(\?|$)/i.test(url)
+}
+
+function TabRadiografias({ pacienteId, fmt }: { pacienteId: number; fmt: (iso: string) => string }) {
+  const t = useTranslations('radiografias')
+  const tCommon = useTranslations('common')
+  const { token } = useAuthStore()
+  const [items, setItems] = useState<Radiografia[]>([])
+  const [loading, setLoading] = useState(true)
+  const [showForm, setShowForm] = useState(false)
+  const [subiendo, setSubiendo] = useState(false)
+  const [error, setError] = useState('')
+
+  const [archivo, setArchivo] = useState<File | null>(null)
+  const [tipo, setTipo] = useState<TipoRadiografia>('panoramica')
+  const [fechaToma, setFechaToma] = useState('')
+  const [notas, setNotas] = useState('')
+
+  const cargar = useCallback(async () => {
+    if (!token) return
+    try { setItems(await listarRadiografias(token, pacienteId)) } catch { /* */ }
+    setLoading(false)
+  }, [token, pacienteId])
+
+  useEffect(() => { cargar() }, [cargar])
+
+  async function subir(e: React.FormEvent) {
+    e.preventDefault()
+    if (!token || !archivo) return
+    setSubiendo(true)
+    setError('')
+    try {
+      await subirRadiografia(token, { paciente_id: pacienteId, tipo, fecha_toma: fechaToma || undefined, notas: notas || undefined, archivo })
+      setArchivo(null); setTipo('panoramica'); setFechaToma(''); setNotas('')
+      setShowForm(false)
+      await cargar()
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : t('errorUpload'))
+    } finally {
+      setSubiendo(false)
+    }
+  }
+
+  async function borrar(id: number) {
+    if (!token || !confirm(t('confirmDelete'))) return
+    try {
+      await eliminarRadiografia(token, id)
+      setItems((prev) => prev.filter((x) => x.id !== id))
+    } catch { /* */ }
+  }
+
+  return (
+    <div className="bg-[--bg-card] border border-white/5 rounded-2xl p-4 md:p-5 space-y-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="text-white font-bold">{t('title')}</h3>
+          <p className="text-slate-500 text-xs mt-0.5">{t('subtitle')}</p>
+        </div>
+        <button
+          onClick={() => setShowForm((v) => !v)}
+          className="bg-teal-500/15 hover:bg-teal-500/25 border border-teal-500/30 text-teal-400 text-xs font-bold px-3 py-1.5 rounded-lg"
+        >
+          {showForm ? tCommon('cancel') : `+ ${t('upload')}`}
+        </button>
+      </div>
+
+      {showForm && (
+        <form onSubmit={subir} className="bg-slate-900/40 rounded-xl p-4 space-y-3 border border-white/5">
+          <div className="grid md:grid-cols-3 gap-3">
+            <div>
+              <label className="block text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">{t('fields.tipo')}</label>
+              <select
+                value={tipo}
+                onChange={(e) => setTipo(e.target.value as TipoRadiografia)}
+                className="w-full bg-slate-900 border border-white/10 text-slate-200 text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-teal-500"
+              >
+                {TIPOS_RX.map((tp) => <option key={tp} value={tp}>{t(`tipos.${tp}`)}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">{t('fields.fechaToma')}</label>
+              <input
+                type="date"
+                value={fechaToma}
+                onChange={(e) => setFechaToma(e.target.value)}
+                className="w-full bg-slate-900 border border-white/10 text-slate-200 text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-teal-500"
+              />
+            </div>
+            <div>
+              <label className="block text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">{t('fields.archivo')}</label>
+              <input
+                type="file"
+                accept="image/*,.pdf,.dcm"
+                onChange={(e) => setArchivo(e.target.files?.[0] ?? null)}
+                required
+                className="block w-full text-sm text-slate-300 file:mr-2 file:py-1.5 file:px-3 file:rounded file:border-0 file:bg-teal-600 file:text-white file:font-bold hover:file:bg-teal-500"
+              />
+            </div>
+          </div>
+          <div>
+            <label className="block text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">{t('fields.notas')}</label>
+            <textarea
+              value={notas}
+              onChange={(e) => setNotas(e.target.value)}
+              rows={2}
+              placeholder={t('fields.notasPlaceholder')}
+              className="w-full bg-slate-900 border border-white/10 text-slate-200 text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-teal-500 placeholder:text-slate-600 resize-none"
+            />
+          </div>
+          {error && <p className="text-red-400 text-xs">{error}</p>}
+          <div className="flex justify-end">
+            <button
+              type="submit"
+              disabled={subiendo || !archivo}
+              className="bg-teal-600 hover:bg-teal-500 text-white text-sm font-bold px-4 py-2 rounded-lg disabled:opacity-50"
+            >
+              {subiendo ? t('uploading') : t('uploadSubmit')}
+            </button>
+          </div>
+        </form>
+      )}
+
+      {loading ? (
+        <p className="text-slate-500 text-sm py-6 text-center">{tCommon('loading')}</p>
+      ) : items.length === 0 ? (
+        <p className="text-slate-500 text-sm py-6 text-center">{t('empty')}</p>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          {items.map((r) => (
+            <div key={r.id} className="bg-slate-900/40 rounded-xl overflow-hidden border border-white/5">
+              <a href={r.archivo_url} target="_blank" rel="noopener noreferrer" className="block bg-black">
+                {esImagenRx(r.archivo_url) ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={r.archivo_url} alt={r.tipo} className="w-full h-40 object-cover hover:opacity-80 transition-opacity" />
+                ) : (
+                  <div className="w-full h-40 flex items-center justify-center text-slate-500 text-sm">
+                    📄 {r.archivo_url.split('.').pop()?.toUpperCase()}
+                  </div>
+                )}
+              </a>
+              <div className="p-3 text-xs space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-teal-400 font-bold uppercase tracking-wider">{t(`tipos.${r.tipo}`)}</span>
+                  <button
+                    onClick={() => borrar(r.id)}
+                    className="text-red-400 hover:text-red-300 text-xs"
+                  >
+                    ✕
+                  </button>
+                </div>
+                {r.fecha_toma && <p className="text-slate-400">📅 {fmt(r.fecha_toma)}</p>}
+                {r.notas && <p className="text-slate-500 line-clamp-2">{r.notas}</p>}
+                <p className="text-slate-600 text-[10px]">
+                  {r.usuarios?.nombre ? `${r.usuarios.nombre} · ` : ''}{fmt(r.created_at)}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }
