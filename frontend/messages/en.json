@@ -644,6 +644,27 @@
         "observations": "Notes (optional)",
         "observationsPlaceholder": "Tell the office what to fix...",
         "errorReview": "Error reviewing document"
+      },
+      "admins": {
+        "title": "Office administrators",
+        "create": "+ Create admin",
+        "noAdmins": "No administrators assigned — the office cannot operate until it has at least one admin",
+        "form": {
+          "title": "Create office admin",
+          "subtitle": "The user will be able to log in at /admin/login and manage this office",
+          "nombre": "Full name",
+          "nombrePlaceholder": "Dr. Jane Doe",
+          "email": "Email",
+          "emailPlaceholder": "admin@office.com",
+          "password": "Password",
+          "passwordPlaceholder": "At least 8 characters",
+          "rol": "Role",
+          "rolHint": "Admin: full office management",
+          "submit": "Create administrator",
+          "submitting": "Creating...",
+          "errorCreate": "Error creating administrator",
+          "successHint": "Administrator created. They can now log in at /admin/login with their credentials."
+        }
       }
     },
     "audit": {

@@ -644,6 +644,27 @@
         "observations": "Observaciones (opcional)",
         "observationsPlaceholder": "Indicá al consultorio qué corregir...",
         "errorReview": "Error al revisar el documento"
+      },
+      "admins": {
+        "title": "Administradores del consultorio",
+        "create": "+ Crear admin",
+        "noAdmins": "Sin administradores asignados — el consultorio no podrá operar hasta que tenga al menos un admin",
+        "form": {
+          "title": "Crear admin del consultorio",
+          "subtitle": "El usuario podrá entrar a /admin/login y operar este consultorio",
+          "nombre": "Nombre completo",
+          "nombrePlaceholder": "Dra. Juana Pérez",
+          "email": "Email",
+          "emailPlaceholder": "admin@consultorio.com",
+          "password": "Contraseña",
+          "passwordPlaceholder": "Mínimo 8 caracteres",
+          "rol": "Rol",
+          "rolHint": "Admin: gestión completa del consultorio",
+          "submit": "Crear administrador",
+          "submitting": "Creando...",
+          "errorCreate": "Error al crear el administrador",
+          "successHint": "Administrador creado. Ya puede entrar a /admin/login con sus credenciales."
+        }
       }
     },
     "audit": {

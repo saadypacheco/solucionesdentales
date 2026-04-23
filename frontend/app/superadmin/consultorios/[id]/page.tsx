@@ -9,6 +9,7 @@ import {
   listarDocumentosConsultorio,
   revisarDocumento,
 } from '@/lib/api/superadmin'
+import { getStaff, createStaff, type StaffUserDetailed } from '@/lib/api/admin'
 import type { ConsultorioFull, DocumentoConsultorio } from '@/lib/api/consultorios'
 
 const ESTADO_BADGE: Record<string, string> = {
@@ -121,23 +122,153 @@ function DocumentoRow({
   )
 }
 
+function CrearAdminForm({
+  consultorioId,
+  onCreado,
+  onCancel,
+}: {
+  consultorioId: number
+  onCreado: () => Promise<void>
+  onCancel: () => void
+}) {
+  const t = useTranslations('superadmin.consultorio.admins.form')
+  const { token } = useAuthStore()
+  const [form, setForm] = useState({ nombre: '', email: '', password: '', rol: 'admin' })
+  const [enviando, setEnviando] = useState(false)
+  const [error, setError] = useState('')
+  const [exito, setExito] = useState(false)
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault()
+    if (!token) return
+    setEnviando(true)
+    setError('')
+    try {
+      await createStaff(token, {
+        email: form.email.trim(),
+        password: form.password,
+        nombre: form.nombre.trim(),
+        rol: form.rol,
+        consultorio_id: consultorioId,
+      })
+      setExito(true)
+      await onCreado()
+      setTimeout(() => { setExito(false); onCancel() }, 2500)
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : t('errorCreate'))
+    } finally {
+      setEnviando(false)
+    }
+  }
+
+  return (
+    <div className="bg-[--bg-card] border border-teal-500/30 rounded-2xl p-5 space-y-3">
+      <div>
+        <h3 className="font-bold text-white">{t('title')}</h3>
+        <p className="text-slate-500 text-xs mt-0.5">{t('subtitle')}</p>
+      </div>
+
+      {exito && (
+        <div className="bg-green-500/10 border border-green-500/30 rounded-lg px-3 py-2 text-green-400 text-sm">
+          ✓ {t('successHint')}
+        </div>
+      )}
+
+      <form onSubmit={submit} className="space-y-3">
+        <div>
+          <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">{t('nombre')}</label>
+          <input
+            type="text"
+            value={form.nombre}
+            onChange={(e) => setForm({ ...form, nombre: e.target.value })}
+            placeholder={t('nombrePlaceholder')}
+            required
+            autoFocus
+            className="w-full bg-slate-900 border border-white/10 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-500"
+          />
+        </div>
+        <div>
+          <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">{t('email')}</label>
+          <input
+            type="email"
+            value={form.email}
+            onChange={(e) => setForm({ ...form, email: e.target.value })}
+            placeholder={t('emailPlaceholder')}
+            required
+            className="w-full bg-slate-900 border border-white/10 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-500"
+          />
+        </div>
+        <div>
+          <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">{t('password')}</label>
+          <input
+            type="password"
+            value={form.password}
+            onChange={(e) => setForm({ ...form, password: e.target.value })}
+            placeholder={t('passwordPlaceholder')}
+            required
+            minLength={8}
+            className="w-full bg-slate-900 border border-white/10 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-500"
+          />
+        </div>
+        <div>
+          <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">{t('rol')}</label>
+          <select
+            value={form.rol}
+            onChange={(e) => setForm({ ...form, rol: e.target.value })}
+            className="w-full bg-slate-900 border border-white/10 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-500"
+          >
+            <option value="admin">admin</option>
+            <option value="odontologo">odontologo</option>
+            <option value="recepcionista">recepcionista</option>
+          </select>
+          <p className="text-slate-600 text-xs mt-1">{t('rolHint')}</p>
+        </div>
+
+        {error && <p className="text-red-400 text-xs">{error}</p>}
+
+        <div className="flex gap-2 pt-1">
+          <button
+            type="button"
+            onClick={onCancel}
+            className="flex-1 border border-white/10 text-slate-300 py-2 rounded-lg text-sm hover:border-white/20"
+          >
+            ×
+          </button>
+          <button
+            type="submit"
+            disabled={enviando}
+            className="flex-1 bg-teal-600 hover:bg-teal-500 text-white py-2 rounded-lg text-sm font-bold disabled:opacity-50"
+          >
+            {enviando ? t('submitting') : t('submit')}
+          </button>
+        </div>
+      </form>
+    </div>
+  )
+}
+
 export default function SuperadminConsultorioDetallePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
   const t = useTranslations('superadmin.consultorio')
+  const tAdmins = useTranslations('superadmin.consultorio.admins')
   const { token } = useAuthStore()
   const [consultorio, setConsultorio] = useState<ConsultorioFull | null>(null)
   const [documentos, setDocumentos] = useState<DocumentoConsultorio[]>([])
+  const [admins, setAdmins] = useState<StaffUserDetailed[]>([])
   const [loading, setLoading] = useState(true)
+  const [showForm, setShowForm] = useState(false)
 
   const cargar = useCallback(async () => {
     if (!token) return
     const consultorioId = parseInt(id)
-    const [c, d] = await Promise.all([
+    const [c, d, a] = await Promise.all([
       obtenerConsultorio(token, consultorioId),
       listarDocumentosConsultorio(token, consultorioId),
+      getStaff(token, consultorioId),
     ])
     setConsultorio(c)
     setDocumentos(d)
+    setAdmins(a)
   }, [token, id])
 
   useEffect(() => {
@@ -173,6 +304,56 @@ export default function SuperadminConsultorioDetallePage({ params }: { params: P
           {consultorio.identificacion_fiscal && (<><dt className="text-slate-500">ID</dt><dd className="text-slate-300">{consultorio.identificacion_fiscal}</dd></>)}
           {consultorio.matricula_titular && (<><dt className="text-slate-500">Mat.</dt><dd className="text-slate-300">{consultorio.matricula_titular}</dd></>)}
         </dl>
+      </div>
+
+      {/* Administradores del consultorio */}
+      <div>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="font-bold text-white">{tAdmins('title')}</h2>
+          {!showForm && (
+            <button
+              onClick={() => setShowForm(true)}
+              className="text-xs bg-teal-600 hover:bg-teal-500 text-white font-bold px-3 py-1.5 rounded-lg transition-colors"
+            >
+              {tAdmins('create')}
+            </button>
+          )}
+        </div>
+
+        {showForm && (
+          <div className="mb-3">
+            <CrearAdminForm
+              consultorioId={consultorio.id}
+              onCreado={cargar}
+              onCancel={() => setShowForm(false)}
+            />
+          </div>
+        )}
+
+        {admins.length === 0 ? (
+          <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-xl px-4 py-3 text-yellow-400 text-sm">
+            ⚠️ {tAdmins('noAdmins')}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {admins.map((u) => (
+              <div key={u.id} className="bg-[--bg-card] border border-white/5 rounded-xl p-4">
+                <div className="flex items-start justify-between gap-2 mb-1">
+                  <p className="font-bold text-white">{u.nombre}</p>
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                    u.rol === 'admin' ? 'bg-purple-500/15 text-purple-400'
+                    : u.rol === 'odontologo' ? 'bg-teal-500/15 text-teal-400'
+                    : 'bg-blue-500/15 text-blue-400'
+                  }`}>
+                    {u.rol}
+                  </span>
+                </div>
+                <p className="text-slate-500 text-xs">{u.email}</p>
+                {!u.activo && <p className="text-red-400 text-xs mt-1">⊘ inactivo</p>}
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Documentos */}

@@ -418,12 +418,21 @@ async def cancelar_turno(
 
 @router.get("/usuarios")
 async def list_usuarios(
-    _: None = Depends(require_admin),
+    consultorio_id: Optional[int] = None,
+    ctx: dict = Depends(require_staff_context),
     db: Client = Depends(get_db),
 ):
-    """Lista todos los usuarios staff activos e inactivos."""
-    usuarios = db.table("usuarios").select("*").order("nombre").execute()
-    return usuarios.data or []
+    """
+    Lista usuarios staff. Filtra por consultorio del staff salvo superadmin
+    (que puede ver todos o filtrar con ?consultorio_id=N).
+    """
+    query = db.table("usuarios").select("*").order("nombre")
+    if ctx["es_superadmin"]:
+        if consultorio_id is not None:
+            query = query.eq("consultorio_id", consultorio_id)
+    else:
+        query = query.eq("consultorio_id", ctx["consultorio_id"])
+    return query.execute().data or []
 
 
 @router.patch("/usuarios/{usuario_id}")

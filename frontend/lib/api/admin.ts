@@ -47,14 +47,22 @@ export interface StaffUserDetailed extends StaffUser {
   updated_at: string
 }
 
-export async function getStaff(token: string): Promise<StaffUserDetailed[]> {
-  return apiFetch('/auth/usuarios', token)
+export async function getStaff(token: string, consultorioId?: number): Promise<StaffUserDetailed[]> {
+  const qs = consultorioId !== undefined ? `?consultorio_id=${consultorioId}` : ''
+  return apiFetch(`/auth/usuarios${qs}`, token)
 }
 
 export async function createStaff(
   token: string,
-  data: { email: string; password: string; nombre: string; rol: string; especialidades?: string[] }
-): Promise<{ ok: boolean }> {
+  data: {
+    email: string
+    password: string
+    nombre: string
+    rol: string
+    especialidades?: string[]
+    consultorio_id?: number  // Solo respeta si el caller es superadmin
+  }
+): Promise<{ ok: boolean; consultorio_id?: number }> {
   const res = await fetch(`${API_URL}/auth/register`, {
     method: 'POST',
     headers: { ...authHeaders(token) },
