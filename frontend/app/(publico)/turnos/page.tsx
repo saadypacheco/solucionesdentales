@@ -65,7 +65,7 @@ export default function TurnosPage() {
   const tTratamientos = useTranslations('tratamientos')
   const tDuraciones = useTranslations('duraciones')
   const tNavbar = useTranslations('navbar')
-  const tLanding = useTranslations('landing')
+  const tPrivacidad = useTranslations('privacidad.consent')
   const locale = useLocale()
   const dateLocale = localeForDateFormat(locale)
 
@@ -95,6 +95,7 @@ export default function TurnosPage() {
   const [telefono, setTelefono] = useState('')
   const [email, setEmail] = useState('')
   const [notas, setNotas] = useState('')
+  const [aceptaPrivacidad, setAceptaPrivacidad] = useState(false)
   const [enviando, setEnviando] = useState(false)
   const [errorEnvio, setErrorEnvio] = useState('')
 
@@ -148,7 +149,7 @@ export default function TurnosPage() {
     if (paso === 1) return tratamiento !== ''
     if (paso === 2) return doctorId !== undefined
     if (paso === 3) return horaSeleccionada !== ''
-    if (paso === 4) return nombre.trim() !== '' && contactoValido()
+    if (paso === 4) return nombre.trim() !== '' && contactoValido() && aceptaPrivacidad
     return false
   }
 
@@ -211,7 +212,7 @@ export default function TurnosPage() {
   }, [paso, fetchSlots])
 
   async function confirmarTurno() {
-    if (!nombre.trim() || !contactoValido()) return
+    if (!nombre.trim() || !contactoValido() || !aceptaPrivacidad) return
     setEnviando(true); setErrorEnvio('')
     try {
       const fechaHora = toISOLocal(diaSeleccionado, horaSeleccionada)
@@ -223,6 +224,8 @@ export default function TurnosPage() {
         tipo_tratamiento: tratamiento,
         notas: notas.trim() || undefined,
         usuario_id: doctorId,
+        consentimiento_aceptado: true,
+        consentimiento_version_texto: `Política de privacidad v1.0 aceptada el ${new Date().toISOString()}`,
       })
       setTurnoConfirmado(res)
       irAPaso(5)
@@ -553,6 +556,32 @@ export default function TurnosPage() {
                     className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-teal-400 focus:ring-2 focus:ring-teal-100 resize-none transition-all"
                   />
                 </div>
+
+                {/* Checkbox consentimiento privacidad */}
+                <label className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-colors ${
+                  aceptaPrivacidad
+                    ? 'border-teal-300 bg-teal-50'
+                    : 'border-slate-200 bg-white hover:border-teal-300'
+                }`}>
+                  <input
+                    type="checkbox"
+                    checked={aceptaPrivacidad}
+                    onChange={(e) => setAceptaPrivacidad(e.target.checked)}
+                    className="w-5 h-5 mt-0.5 rounded border-slate-300 text-teal-600 focus:ring-teal-500 cursor-pointer flex-shrink-0"
+                  />
+                  <span className="text-sm text-slate-700 leading-relaxed">
+                    {tPrivacidad('checkbox', { linkPolitica: '|LINK|' }).split('|LINK|').map((part, i, arr) => (
+                      <span key={i}>
+                        {part}
+                        {i < arr.length - 1 && (
+                          <Link href="/privacidad" target="_blank" className="text-teal-700 underline font-medium">
+                            {tPrivacidad('linkText')}
+                          </Link>
+                        )}
+                      </span>
+                    ))}
+                  </span>
+                </label>
               </div>
 
               {errorEnvio && (
@@ -562,7 +591,7 @@ export default function TurnosPage() {
               )}
 
               <button
-                disabled={!nombre.trim() || !contactoValido() || enviando}
+                disabled={!nombre.trim() || !contactoValido() || !aceptaPrivacidad || enviando}
                 onClick={confirmarTurno}
                 className="w-full mt-6 bg-gradient-to-r from-teal-600 to-teal-500 text-white py-4 rounded-2xl font-bold disabled:opacity-40 disabled:cursor-not-allowed hover:from-teal-500 hover:to-teal-400 transition-all shadow-lg shadow-teal-200 flex items-center justify-center gap-2 text-base"
               >

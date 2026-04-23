@@ -31,6 +31,8 @@ export interface SolicitarTurnoPayload {
   notas?: string
   email?: string
   usuario_id?: string
+  consentimiento_aceptado?: boolean
+  consentimiento_version_texto?: string
 }
 
 export interface TurnoResponse {

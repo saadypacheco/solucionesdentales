@@ -198,6 +198,8 @@ class SolicitarTurnoRequest(BaseModel):
     notas: Optional[str] = None
     email: Optional[str] = None  # Email del paciente
     usuario_id: Optional[str] = None  # UUID del odontólogo; se auto-asigna si hay 1 solo
+    consentimiento_aceptado: bool = False  # Checkbox de privacidad
+    consentimiento_version_texto: Optional[str] = None  # Snapshot del texto al momento de aceptar
 
 
 @router.post("")
@@ -211,6 +213,10 @@ async def solicitar_turno(
     # Validar que al menos telefono o email esté presente
     if not req.telefono and not req.email:
         raise HTTPException(status_code=400, detail="Se requiere al menos teléfono o email")
+
+    # Verificar consentimiento informado (PDPA AR / LGPD BR / HIPAA US)
+    if not req.consentimiento_aceptado:
+        raise HTTPException(status_code=400, detail="Debe aceptar la política de privacidad para continuar")
 
     duracion = DURACION_POR_TRATAMIENTO.get(req.tipo_tratamiento, 30)
 
@@ -301,6 +307,18 @@ async def solicitar_turno(
         "prioridad": "alta",
         "consultorio_id": consultorio_id,
     }).execute()
+
+    # Registrar consentimiento de tratamiento de datos (snapshot del texto)
+    try:
+        db.table("consentimientos").insert({
+            "paciente_id": paciente_id,
+            "consultorio_id": consultorio_id,
+            "tipo": "tratamiento_datos",
+            "version_texto": req.consentimiento_version_texto or "Política de privacidad aceptada al agendar turno (texto no capturado)",
+        }).execute()
+    except Exception:
+        # No bloquear el turno si falla el registro del consentimiento
+        pass
 
     return {
         "turno_id": turno_id,

@@ -482,7 +482,7 @@ export default function Home() {
           <div className="flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-slate-600">
             <p>{t('footer.rights')}</p>
             <div className="flex gap-6">
-              <a href="#" className="hover:text-slate-400 transition-colors">{t('footer.privacy')}</a>
+              <Link href="/privacidad" className="hover:text-slate-400 transition-colors">{t('footer.privacy')}</Link>
               <a href="#" className="hover:text-slate-400 transition-colors">{t('footer.terms')}</a>
             </div>
           </div>

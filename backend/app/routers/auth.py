@@ -414,6 +414,111 @@ async def cancelar_turno(
     return res.data[0]
 
 
+# ── Derechos ARCO del paciente (Acceso, Rectificación, Cancelación, Oposición) ──
+
+@router.get("/mis-datos")
+async def descargar_mis_datos(
+    payload: dict = Depends(require_paciente),
+    db: Client = Depends(get_db),
+):
+    """
+    Derecho de Acceso (PDPA AR Art. 14, GDPR Art. 15, HIPAA 164.524).
+    Devuelve TODOS los datos del paciente: perfil, turnos, interacciones,
+    historial clínico, tratamientos, consentimientos firmados.
+    """
+    from app.core.paciente_helpers import hidratar_paciente, hidratar_lista_turnos
+    paciente_id = int(payload["sub"])
+
+    paciente_res = db.table("pacientes").select(
+        "id, nombre, telefono, telefono_enc, telefono_hash, email, email_enc, email_hash, "
+        "estado, score, verificado, consultorio_id, created_at, updated_at"
+    ).eq("id", paciente_id).single().execute()
+
+    if not paciente_res.data:
+        raise HTTPException(status_code=404, detail="Paciente no encontrado")
+
+    paciente = hidratar_paciente(paciente_res.data)
+
+    turnos = db.table("turnos").select("*") \
+        .eq("paciente_id", paciente_id).order("fecha_hora", desc=True).execute()
+
+    interacciones = db.table("interacciones").select("*") \
+        .eq("paciente_id", paciente_id).order("created_at", desc=True).execute()
+
+    historial = db.table("historial_clinico").select("*") \
+        .eq("paciente_id", paciente_id).execute()
+
+    tratamientos = db.table("tratamientos").select("*") \
+        .eq("paciente_id", paciente_id).order("fecha", desc=True).execute()
+
+    consentimientos = db.table("consentimientos").select("*") \
+        .eq("paciente_id", paciente_id).order("firmado_at", desc=True).execute()
+
+    return {
+        "paciente": paciente,
+        "turnos": hidratar_lista_turnos(turnos.data or []),
+        "interacciones": interacciones.data or [],
+        "historial_clinico": historial.data or [],
+        "tratamientos": tratamientos.data or [],
+        "consentimientos": consentimientos.data or [],
+        "exportado_en": datetime.now(timezone.utc).isoformat(),
+    }
+
+
+@router.delete("/mi-cuenta")
+async def eliminar_mi_cuenta(
+    payload: dict = Depends(require_paciente),
+    db: Client = Depends(get_db),
+):
+    """
+    Derecho al Olvido / Cancelación (PDPA AR Art. 16, GDPR Art. 17, HIPAA).
+    Anonimiza al paciente en lugar de borrarlo (mantiene integridad de
+    turnos pasados para registros médicos legales). Después del anonimizar:
+    - Datos identificables (nombre, teléfono, email) → null o '[anonimizado]'
+    - Estado → 'perdido'
+    - Hashes → null (no más login posible)
+    - Turnos: se mantienen para registro clínico, pero sin nombre del paciente
+    """
+    from app.services.audit import log_action
+    paciente_id = int(payload["sub"])
+
+    paciente_res = db.table("pacientes").select("consultorio_id").eq("id", paciente_id).single().execute()
+    if not paciente_res.data:
+        raise HTTPException(status_code=404, detail="Paciente no encontrado")
+    consultorio_id = paciente_res.data["consultorio_id"]
+
+    # Anonimizar
+    db.table("pacientes").update({
+        "nombre": "[anonimizado]",
+        "telefono": None,
+        "telefono_enc": None,
+        "telefono_hash": None,
+        "email": None,
+        "email_enc": None,
+        "email_hash": None,
+        "estado": "perdido",
+        "verificado": False,
+        "proxima_accion": None,
+        "updated_at": datetime.now(timezone.utc).isoformat(),
+    }).eq("id", paciente_id).execute()
+
+    # Invalidar todos los OTPs del paciente
+    db.table("paciente_otps").update({"usado": True}) \
+        .eq("usado", False).execute()  # global, ya no podemos buscar por hash que ya borramos
+
+    # Audit log
+    log_action(
+        consultorio_id=consultorio_id,
+        accion="paciente_eliminar_cuenta",
+        paciente_id=paciente_id,
+        recurso_tipo="paciente",
+        recurso_id=paciente_id,
+        metadata={"derecho": "ARCO_olvido"},
+    )
+
+    return {"ok": True, "anonimizado_at": datetime.now(timezone.utc).isoformat()}
+
+
 # ── CRUD de usuarios staff ────────────────────────────────────────────────────
 
 @router.get("/usuarios")

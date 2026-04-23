@@ -117,6 +117,23 @@ export async function getPaises(): Promise<Pais[]> {
   return res.json()
 }
 
+export interface PoliticaPrivacidad {
+  consultorio_id: number
+  pais_codigo: string
+  idioma: string
+  version: string
+  texto_markdown: string
+}
+
+export async function getPoliticaPrivacidad(consultorioId: number, idioma: string): Promise<PoliticaPrivacidad> {
+  const res = await fetch(
+    `${API_URL}/consultorios/politica-privacidad?consultorio_id=${consultorioId}&idioma=${encodeURIComponent(idioma)}`,
+    { cache: 'no-store' },
+  )
+  if (!res.ok) throw new Error('Error cargando política de privacidad')
+  return res.json()
+}
+
 export async function getMiConsultorio(token: string): Promise<ConsultorioFull> {
   return apiFetch('/consultorios/mi-consultorio', token)
 }

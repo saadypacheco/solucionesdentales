@@ -337,6 +337,41 @@
     "label": "Idioma",
     "selectLanguage": "Selecionar idioma"
   },
+  "privacidad": {
+    "pageTitle": "Política de Privacidade",
+    "loading": "Carregando política de privacidade...",
+    "loadError": "Erro ao carregar a política. Tente novamente mais tarde.",
+    "version": "Versão {version}",
+    "lastUpdated": "Última atualização: {fecha}",
+    "back": "Voltar",
+    "consent": {
+      "checkbox": "Aceito a {linkPolitica}",
+      "linkText": "política de privacidade",
+      "required": "Você deve aceitar a política de privacidade para continuar"
+    }
+  },
+  "arco": {
+    "title": "Meus dados pessoais",
+    "subtitle": "Direitos garantidos pela legislação de proteção de dados",
+    "download": {
+      "title": "Baixar meus dados",
+      "description": "Baixe um arquivo JSON com todos os seus dados: perfil, consultas, histórico clínico e consentimentos.",
+      "button": "Baixar JSON",
+      "downloading": "Gerando arquivo...",
+      "errorDownload": "Erro ao baixar seus dados"
+    },
+    "delete": {
+      "title": "Excluir minha conta",
+      "description": "Anonimiza seus dados pessoais (nome, telefone, email). As consultas passadas são mantidas sem sua identificação, conforme normativa médica.",
+      "button": "Excluir minha conta",
+      "deleting": "Excluindo...",
+      "confirm1": "Você tem certeza? Esta ação é irreversível.",
+      "confirm2": "Confirme mais uma vez: excluir sua conta?",
+      "errorDelete": "Erro ao excluir a conta",
+      "successTitle": "Conta excluída",
+      "successMessage": "Seus dados pessoais foram anonimizados. Você será redirecionado ao início."
+    }
+  },
   "admin": {
     "nav": {
       "dashboard": "Painel",

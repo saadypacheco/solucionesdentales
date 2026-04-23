@@ -2,9 +2,14 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { useTranslations, useLocale } from 'next-intl'
 import { usePacienteStore } from '@/store/pacienteStore'
-import { enviarOTP, verificarOTP, getMisTurnos, cancelarTurno, type MiTurno } from '@/lib/api/paciente'
+import {
+  enviarOTP, verificarOTP, getMisTurnos, cancelarTurno,
+  descargarMisDatos, eliminarMiCuenta,
+  type MiTurno,
+} from '@/lib/api/paciente'
 import LanguageSwitcher from '@/components/LanguageSwitcher'
 
 function localeForDateFormat(locale: string): string {
@@ -194,6 +199,102 @@ function PasoOTP({ telefono, waLink, codigoDev, nombre, onVerificado, onVolver }
   )
 }
 
+/* ─── PANEL ARCO (derechos del paciente) ─── */
+function PanelARCO({ token, onCuentaEliminada }: {
+  token: string
+  onCuentaEliminada: () => void
+}) {
+  const t = useTranslations('arco')
+  const [descargando, setDescargando] = useState(false)
+  const [eliminando, setEliminando] = useState(false)
+  const [error, setError] = useState('')
+  const [exito, setExito] = useState(false)
+
+  async function handleDescargar() {
+    setDescargando(true); setError('')
+    try {
+      const datos = await descargarMisDatos(token)
+      const blob = new Blob([JSON.stringify(datos, null, 2)], { type: 'application/json' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `mis-datos-${new Date().toISOString().split('T')[0]}.json`
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : t('download.errorDownload'))
+    } finally {
+      setDescargando(false)
+    }
+  }
+
+  async function handleEliminar() {
+    if (!confirm(t('delete.confirm1'))) return
+    if (!confirm(t('delete.confirm2'))) return
+    setEliminando(true); setError('')
+    try {
+      await eliminarMiCuenta(token)
+      setExito(true)
+      setTimeout(() => onCuentaEliminada(), 3000)
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : t('delete.errorDelete'))
+      setEliminando(false)
+    }
+  }
+
+  if (exito) {
+    return (
+      <div className="bg-green-50 border border-green-200 rounded-2xl p-6 text-center">
+        <div className="text-4xl mb-2">✓</div>
+        <h3 className="font-black text-green-800 mb-1">{t('delete.successTitle')}</h3>
+        <p className="text-green-700 text-sm">{t('delete.successMessage')}</p>
+      </div>
+    )
+  }
+
+  return (
+    <details className="bg-white border border-slate-100 rounded-2xl p-4 mt-6 group">
+      <summary className="cursor-pointer font-semibold text-slate-700 text-sm flex items-center justify-between list-none">
+        <span>🛡️ {t('title')}</span>
+        <span className="text-slate-400 group-open:rotate-180 transition-transform">▾</span>
+      </summary>
+      <p className="text-slate-500 text-xs mt-1 mb-4">{t('subtitle')}</p>
+
+      <div className="space-y-3">
+        {/* Descargar */}
+        <div className="border border-slate-100 rounded-xl p-3">
+          <p className="font-bold text-slate-700 text-sm">{t('download.title')}</p>
+          <p className="text-slate-500 text-xs mt-1 mb-3">{t('download.description')}</p>
+          <button
+            onClick={handleDescargar}
+            disabled={descargando}
+            className="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-3 py-2 rounded-lg disabled:opacity-50"
+          >
+            {descargando ? t('download.downloading') : `📥 ${t('download.button')}`}
+          </button>
+        </div>
+
+        {/* Eliminar */}
+        <div className="border border-red-100 rounded-xl p-3">
+          <p className="font-bold text-red-700 text-sm">{t('delete.title')}</p>
+          <p className="text-slate-500 text-xs mt-1 mb-3">{t('delete.description')}</p>
+          <button
+            onClick={handleEliminar}
+            disabled={eliminando}
+            className="text-xs bg-red-50 hover:bg-red-100 text-red-700 font-bold px-3 py-2 rounded-lg disabled:opacity-50 border border-red-200"
+          >
+            {eliminando ? t('delete.deleting') : `🗑️ ${t('delete.button')}`}
+          </button>
+        </div>
+
+        {error && <p className="text-red-600 text-xs">{error}</p>}
+      </div>
+    </details>
+  )
+}
+
 /* ─── LISTA TURNOS ─── */
 function MisTurnosLista({ token, nombre, onLogout }: {
   token: string
@@ -205,6 +306,7 @@ function MisTurnosLista({ token, nombre, onLogout }: {
   const tEstadosShort = useTranslations('estadosTurno')
   const locale = useLocale()
   const dateLocale = localeForDateFormat(locale)
+  const router = useRouter()
 
   const [turnos, setTurnos] = useState<MiTurno[]>([])
   const [loading, setLoading] = useState(true)
@@ -355,6 +457,15 @@ function MisTurnosLista({ token, nombre, onLogout }: {
           </Link>
         </>
       )}
+
+      {/* Panel de derechos ARCO */}
+      <PanelARCO
+        token={token}
+        onCuentaEliminada={() => {
+          onLogout()
+          router.push('/')
+        }}
+      />
     </div>
   )
 }

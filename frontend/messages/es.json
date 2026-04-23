@@ -337,6 +337,41 @@
     "label": "Idioma",
     "selectLanguage": "Seleccionar idioma"
   },
+  "privacidad": {
+    "pageTitle": "Política de Privacidad",
+    "loading": "Cargando política de privacidad...",
+    "loadError": "Error al cargar la política. Reintentá más tarde.",
+    "version": "Versión {version}",
+    "lastUpdated": "Última actualización: {fecha}",
+    "back": "Volver",
+    "consent": {
+      "checkbox": "Acepto la {linkPolitica}",
+      "linkText": "política de privacidad",
+      "required": "Debés aceptar la política de privacidad para continuar"
+    }
+  },
+  "arco": {
+    "title": "Mis datos personales",
+    "subtitle": "Derechos garantizados por la legislación de protección de datos",
+    "download": {
+      "title": "Descargar mis datos",
+      "description": "Bajate un archivo JSON con todos tus datos: perfil, turnos, historial clínico y consentimientos.",
+      "button": "Descargar JSON",
+      "downloading": "Generando archivo...",
+      "errorDownload": "Error al descargar tus datos"
+    },
+    "delete": {
+      "title": "Eliminar mi cuenta",
+      "description": "Anonimiza tus datos personales (nombre, teléfono, email). Los turnos pasados se mantienen sin tu identificación, según normativa médica.",
+      "button": "Eliminar mi cuenta",
+      "deleting": "Eliminando...",
+      "confirm1": "¿Estás seguro? Esta acción es irreversible.",
+      "confirm2": "Confirmá una vez más: ¿eliminar tu cuenta?",
+      "errorDelete": "Error al eliminar la cuenta",
+      "successTitle": "Cuenta eliminada",
+      "successMessage": "Tus datos personales fueron anonimizados. Te vamos a redirigir al inicio."
+    }
+  },
   "admin": {
     "nav": {
       "dashboard": "Dashboard",

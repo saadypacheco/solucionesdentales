@@ -74,3 +74,28 @@ export async function cancelarTurno(token: string, turnoId: number): Promise<voi
     throw new Error((err as { detail?: string }).detail ?? 'No se pudo cancelar')
   }
 }
+
+/* ─── Derechos ARCO ─── */
+export async function descargarMisDatos(token: string): Promise<unknown> {
+  const res = await fetch(`${API_URL}/auth/mis-datos`, {
+    headers: { Authorization: `Bearer ${token}` },
+    cache: 'no-store',
+  })
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}))
+    throw new Error((err as { detail?: string }).detail ?? 'Error al descargar datos')
+  }
+  return res.json()
+}
+
+export async function eliminarMiCuenta(token: string): Promise<{ ok: boolean; anonimizado_at: string }> {
+  const res = await fetch(`${API_URL}/auth/mi-cuenta`, {
+    method: 'DELETE',
+    headers: { Authorization: `Bearer ${token}` },
+  })
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}))
+    throw new Error((err as { detail?: string }).detail ?? 'Error al eliminar cuenta')
+  }
+  return res.json()
+}

@@ -337,6 +337,41 @@
     "label": "Language",
     "selectLanguage": "Select language"
   },
+  "privacidad": {
+    "pageTitle": "Privacy Policy",
+    "loading": "Loading privacy policy...",
+    "loadError": "Error loading the policy. Try again later.",
+    "version": "Version {version}",
+    "lastUpdated": "Last updated: {fecha}",
+    "back": "Back",
+    "consent": {
+      "checkbox": "I accept the {linkPolitica}",
+      "linkText": "privacy policy",
+      "required": "You must accept the privacy policy to continue"
+    }
+  },
+  "arco": {
+    "title": "My personal data",
+    "subtitle": "Rights guaranteed by data protection law",
+    "download": {
+      "title": "Download my data",
+      "description": "Get a JSON file with all your data: profile, appointments, clinical history and consents.",
+      "button": "Download JSON",
+      "downloading": "Generating file...",
+      "errorDownload": "Error downloading your data"
+    },
+    "delete": {
+      "title": "Delete my account",
+      "description": "Anonymizes your personal data (name, phone, email). Past appointments are kept without your identification, per medical regulations.",
+      "button": "Delete my account",
+      "deleting": "Deleting...",
+      "confirm1": "Are you sure? This action cannot be undone.",
+      "confirm2": "Confirm one more time: delete your account?",
+      "errorDelete": "Error deleting account",
+      "successTitle": "Account deleted",
+      "successMessage": "Your personal data has been anonymized. You will be redirected to the home page."
+    }
+  },
   "admin": {
     "nav": {
       "dashboard": "Dashboard",
