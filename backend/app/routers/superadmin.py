@@ -199,3 +199,51 @@ async def listar_audit_log(
         query = query.eq("accion", accion)
     res = query.execute()
     return res.data or []
+
+
+@router.get("/audit-log.csv")
+async def exportar_audit_log_csv(
+    consultorio_id: Optional[int] = None,
+    accion: Optional[str] = None,
+    limit: int = 5000,
+    _: None = Depends(require_superadmin),
+    db: Client = Depends(get_db),
+):
+    """Exporta el audit log en CSV. Útil para auditorías HIPAA/AAIP.
+    Tope: 10000 filas por export para no agotar memoria del backend."""
+    import csv
+    import io
+    import json
+    from datetime import datetime
+    from fastapi.responses import StreamingResponse
+
+    limit = min(limit, 10000)
+    query = db.table("audit_log").select("*").order("created_at", desc=True).limit(limit)
+    if consultorio_id is not None:
+        query = query.eq("consultorio_id", consultorio_id)
+    if accion:
+        query = query.eq("accion", accion)
+    rows = query.execute().data or []
+
+    buf = io.StringIO()
+    fieldnames = [
+        "created_at", "consultorio_id", "usuario_id", "paciente_id",
+        "accion", "recurso_tipo", "recurso_id", "ip_address", "user_agent", "metadata",
+    ]
+    writer = csv.DictWriter(buf, fieldnames=fieldnames, extrasaction="ignore")
+    writer.writeheader()
+    for r in rows:
+        # metadata es jsonb — serializar a string para CSV
+        if r.get("metadata") is not None and not isinstance(r["metadata"], str):
+            r["metadata"] = json.dumps(r["metadata"], ensure_ascii=False)
+        writer.writerow(r)
+
+    buf.seek(0)
+    fecha = datetime.utcnow().strftime("%Y-%m-%d")
+    filename = f"audit-log-{fecha}.csv"
+
+    return StreamingResponse(
+        iter([buf.getvalue()]),
+        media_type="text/csv; charset=utf-8",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )

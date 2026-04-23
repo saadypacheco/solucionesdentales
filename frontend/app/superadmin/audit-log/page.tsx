@@ -76,6 +76,33 @@ export default function AuditLogPage() {
           <option value="500">500</option>
           <option value="1000">1000</option>
         </select>
+        <button
+          onClick={() => {
+            if (!token) return
+            const params = new URLSearchParams()
+            if (filtroConsultorio) params.set('consultorio_id', filtroConsultorio)
+            if (filtroAccion) params.set('accion', filtroAccion)
+            params.set('limit', '5000')
+            // Trigger download via fetch+blob para incluir Authorization header
+            fetch(`/api/proxy/superadmin/audit-log.csv?${params.toString()}`, {
+              headers: { Authorization: `Bearer ${token}` },
+            })
+              .then((r) => r.blob())
+              .then((blob) => {
+                const url = URL.createObjectURL(blob)
+                const a = document.createElement('a')
+                a.href = url
+                a.download = `audit-log-${new Date().toISOString().slice(0, 10)}.csv`
+                document.body.appendChild(a)
+                a.click()
+                a.remove()
+                URL.revokeObjectURL(url)
+              })
+          }}
+          className="bg-teal-500/15 hover:bg-teal-500/25 border border-teal-500/30 text-teal-400 text-sm font-bold px-4 py-2 rounded-xl"
+        >
+          📥 {t('exportCSV')}
+        </button>
       </div>
 
       {loading ? (
