@@ -29,20 +29,63 @@ DURACION_POR_TRATAMIENTO: dict[str, int] = {
     "consulta": 30,
 }
 
-# Horario de atención
-HORA_INICIO = 9   # 09:00
-HORA_FIN = 19     # 19:00
+# Horario de atención por defecto (si el doctor no tiene configurado).
+# dia_semana: 0=lun, 1=mar, 2=mié, 3=jue, 4=vie, 5=sáb, 6=dom
+DEFAULT_HORARIOS: dict[int, tuple[int, int] | None] = {
+    0: (9, 19),  # lunes
+    1: (9, 19),
+    2: (9, 19),
+    3: (9, 19),
+    4: (9, 19),
+    5: (9, 13),  # sábado mañana
+    6: None,     # domingo cerrado
+}
 
 
 def get_db() -> Client:
     return get_supabase_client()
 
 
-def generar_slots(fecha: date, duracion_minutos: int) -> list[str]:
-    """Genera todos los slots posibles para una fecha según duración."""
+def obtener_franja_horario(fecha: date, db: Client, doctor_id: str | None) -> tuple[int, int, int, int] | None:
+    """Devuelve (hora_inicio, min_inicio, hora_fin, min_fin) para un doctor en una fecha.
+    Si el doctor no tiene horario configurado para ese día (o es None), usa DEFAULT_HORARIOS.
+    Devuelve None si está cerrado ese día."""
+    dia = fecha.weekday()
+
+    if doctor_id:
+        res = db.table("horarios_doctor") \
+            .select("hora_inicio, hora_fin, activo") \
+            .eq("usuario_id", doctor_id) \
+            .eq("dia_semana", dia) \
+            .execute()
+        if res.data:
+            row = res.data[0]
+            if not row.get("activo", True):
+                return None
+            try:
+                hi_str, hf_str = row["hora_inicio"], row["hora_fin"]
+                hh_i, mm_i = int(hi_str.split(":")[0]), int(hi_str.split(":")[1])
+                hh_f, mm_f = int(hf_str.split(":")[0]), int(hf_str.split(":")[1])
+                return (hh_i, mm_i, hh_f, mm_f)
+            except (KeyError, ValueError, IndexError):
+                pass  # cae al default
+
+    default = DEFAULT_HORARIOS.get(dia)
+    if default is None:
+        return None
+    return (default[0], 0, default[1], 0)
+
+
+def generar_slots(fecha: date, duracion_minutos: int, franja: tuple[int, int, int, int] | None = None) -> list[str]:
+    """Genera todos los slots posibles para una fecha según duración y franja horaria.
+    Si franja es None, no hay slots (día cerrado)."""
+    if franja is None:
+        return []
+
+    hh_i, mm_i, hh_f, mm_f = franja
     slots = []
-    inicio = datetime(fecha.year, fecha.month, fecha.day, HORA_INICIO, 0, tzinfo=AR_TZ)
-    fin_limite = datetime(fecha.year, fecha.month, fecha.day, HORA_FIN, 0, tzinfo=AR_TZ)
+    inicio = datetime(fecha.year, fecha.month, fecha.day, hh_i, mm_i, tzinfo=AR_TZ)
+    fin_limite = datetime(fecha.year, fecha.month, fecha.day, hh_f, mm_f, tzinfo=AR_TZ)
 
     cursor = inicio
     while cursor + timedelta(minutes=duracion_minutos) <= fin_limite:
@@ -151,23 +194,20 @@ async def turnos_disponibles(
     if fecha_date < hoy:
         raise HTTPException(status_code=400, detail="No se puede agendar en fechas pasadas")
 
-    if fecha_date.weekday() == 6:
-        return {"fecha": fecha, "slots": [], "mensaje": "Cerrado los domingos"}
-
     duracion = DURACION_POR_TRATAMIENTO.get(tratamiento, 30)
-    slots = generar_slots(fecha_date, duracion)
 
-    if fecha_date.weekday() == 5:  # sábado
-        slots = [s for s in slots if int(s.split(":")[0]) < 13]
-
-    # Resolver el doctor a usar para filtrar slots ocupados
+    # Resolver el doctor a usar para filtrar slots ocupados Y para la franja horaria
     doctor_id_filtro = usuario_id
     if not doctor_id_filtro:
         doctores = get_doctores_para_tratamiento(tratamiento, db, consultorio_id)
         if len(doctores) == 1:
             doctor_id_filtro = doctores[0]["id"]
-        # Si hay 0 o múltiples doctores sin usuario_id, no filtramos por doctor
 
+    franja = obtener_franja_horario(fecha_date, db, doctor_id_filtro)
+    if franja is None:
+        return {"fecha": fecha, "slots": [], "mensaje": "Sin atención este día"}
+
+    slots = generar_slots(fecha_date, duracion, franja)
     ocupados = slots_ocupados_por_doctor(fecha_date, db, consultorio_id, doctor_id_filtro)
 
     if fecha_date == hoy:
