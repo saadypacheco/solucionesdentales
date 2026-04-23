@@ -4,6 +4,7 @@ import { getLocale, getMessages, getTranslations } from 'next-intl/server'
 import localFont from 'next/font/local'
 import './globals.css'
 import ChatWidget from '@/components/agente/ChatWidget'
+import TenantResolver from '@/components/TenantResolver'
 
 const geistSans = localFont({
   src: './fonts/GeistVF.woff',
@@ -36,6 +37,7 @@ export default async function RootLayout({
     <html lang={locale}>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <NextIntlClientProvider locale={locale} messages={messages}>
+          <TenantResolver />
           {children}
           <ChatWidget />
         </NextIntlClientProvider>
