@@ -724,7 +724,21 @@
         "registered": "Registered"
       },
       "whatsAppContact": "Contact via WhatsApp",
-      "whatsapp": "WhatsApp"
+      "whatsapp": "WhatsApp",
+      "importCSV": "Import CSV",
+      "import": {
+        "title": "Import patients from CSV",
+        "subtitle": "Upload a CSV file with your patients. Duplicates (by phone or email) are skipped.",
+        "example": "Example columns (header required):",
+        "submit": "Import",
+        "importing": "Processing...",
+        "cancel": "Cancel",
+        "close": "Close",
+        "created": "Created",
+        "duplicates": "Duplicates",
+        "skipped": "Skipped",
+        "viewErrors": "View {n} errors"
+      }
     },
     "crm": {
       "title": "CRM / Pipeline",
@@ -754,6 +768,7 @@
       "noCases": "No cases yet. Upload the first one.",
       "publish": "Publish",
       "unpublish": "Unpublish",
+      "edit": "Edit",
       "delete": "Delete",
       "confirmDelete": "Delete this case?",
       "before": "BEFORE",
@@ -774,7 +789,11 @@
         "uploadPhoto": "+ Upload photo",
         "submit": "Upload case",
         "submitting": "Uploading...",
-        "errorUpload": "Upload error"
+        "errorUpload": "Upload error",
+        "editTitle": "Edit case",
+        "editWarning": "Editing will unpublish the case automatically — it must be re-approved.",
+        "replaceOptional": "Replace (optional)",
+        "errorSave": "Error saving"
       }
     },
     "configuracion": {
@@ -909,6 +928,7 @@
       "inactive": "Inactive",
       "edit": "Edit",
       "reset": "Reset",
+      "schedule": "Schedule",
       "deactivate": "Deactiv.",
       "activate": "Activate",
       "modal": {
@@ -921,6 +941,31 @@
         "password": "Password"
       },
       "promptResetPassword": "New password for {nombre}:"
+    },
+    "horarios": {
+      "title": "Working hours",
+      "errorLoad": "Error loading schedule",
+      "errorSave": "Error saving schedule",
+      "errorInvalidRange": "{dia}: start time must be before end time",
+      "usingDefaults": "Using default hours (no custom config)",
+      "hint": "Unchecked days won't offer any appointment slots. Hours apply to slot calculation at /turnos.",
+      "table": {
+        "day": "Day",
+        "from": "From",
+        "to": "To",
+        "open": "Open",
+        "openYes": "Open",
+        "openNo": "Closed"
+      },
+      "days": {
+        "0": "Monday",
+        "1": "Tuesday",
+        "2": "Wednesday",
+        "3": "Thursday",
+        "4": "Friday",
+        "5": "Saturday",
+        "6": "Sunday"
+      }
     },
     "alarmas": {
       "title": "Alarms",
@@ -1049,6 +1094,7 @@
       "filterConsultorio": "Office ID",
       "filterAccion": "Action",
       "limitLabel": "Show last:",
+      "exportCSV": "Export CSV",
       "table": {
         "fecha": "Date",
         "consultorio": "Office",

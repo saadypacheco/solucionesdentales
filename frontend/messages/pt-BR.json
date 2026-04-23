@@ -724,7 +724,21 @@
         "registered": "Registro"
       },
       "whatsAppContact": "Contatar via WhatsApp",
-      "whatsapp": "WhatsApp"
+      "whatsapp": "WhatsApp",
+      "importCSV": "Importar CSV",
+      "import": {
+        "title": "Importar pacientes via CSV",
+        "subtitle": "Envie um arquivo CSV com seus pacientes. Duplicados (por telefone ou e-mail) são ignorados.",
+        "example": "Exemplo de colunas (cabeçalho obrigatório):",
+        "submit": "Importar",
+        "importing": "Processando...",
+        "cancel": "Cancelar",
+        "close": "Fechar",
+        "created": "Criados",
+        "duplicates": "Duplicados",
+        "skipped": "Ignorados",
+        "viewErrors": "Ver {n} erros"
+      }
     },
     "crm": {
       "title": "CRM / Pipeline",
@@ -754,6 +768,7 @@
       "noCases": "Ainda não há casos. Envie o primeiro.",
       "publish": "Publicar",
       "unpublish": "Despublicar",
+      "edit": "Editar",
       "delete": "Excluir",
       "confirmDelete": "Excluir este caso?",
       "before": "ANTES",
@@ -774,7 +789,11 @@
         "uploadPhoto": "+ Enviar foto",
         "submit": "Enviar caso",
         "submitting": "Enviando...",
-        "errorUpload": "Erro ao enviar"
+        "errorUpload": "Erro ao enviar",
+        "editTitle": "Editar caso",
+        "editWarning": "Editar despublica o caso automaticamente — precisa ser aprovado de novo.",
+        "replaceOptional": "Substituir (opcional)",
+        "errorSave": "Erro ao salvar"
       }
     },
     "configuracion": {
@@ -909,6 +928,7 @@
       "inactive": "Inativo",
       "edit": "Editar",
       "reset": "Resetar",
+      "schedule": "Horários",
       "deactivate": "Desativ.",
       "activate": "Ativar",
       "modal": {
@@ -921,6 +941,31 @@
         "password": "Senha"
       },
       "promptResetPassword": "Nova senha para {nombre}:"
+    },
+    "horarios": {
+      "title": "Horários de atendimento",
+      "errorLoad": "Erro ao carregar horários",
+      "errorSave": "Erro ao salvar horários",
+      "errorInvalidRange": "{dia}: a hora de início deve ser anterior à hora de fim",
+      "usingDefaults": "Usando horários padrão (sem configuração própria)",
+      "hint": "Dias não marcados não oferecerão consultas. Os horários se aplicam ao cálculo de slots em /turnos.",
+      "table": {
+        "day": "Dia",
+        "from": "Das",
+        "to": "Até",
+        "open": "Aberto",
+        "openYes": "Aberto",
+        "openNo": "Fechado"
+      },
+      "days": {
+        "0": "Segunda",
+        "1": "Terça",
+        "2": "Quarta",
+        "3": "Quinta",
+        "4": "Sexta",
+        "5": "Sábado",
+        "6": "Domingo"
+      }
     },
     "alarmas": {
       "title": "Alertas",
@@ -1049,6 +1094,7 @@
       "filterConsultorio": "ID do consultório",
       "filterAccion": "Ação",
       "limitLabel": "Mostrar últimos:",
+      "exportCSV": "Exportar CSV",
       "table": {
         "fecha": "Data",
         "consultorio": "Consultório",

@@ -60,3 +60,16 @@ export async function crearCaso(token: string, formData: FormData): Promise<Caso
   }
   return res.json()
 }
+
+export async function editarCaso(token: string, id: number, formData: FormData): Promise<Caso> {
+  const res = await fetch(`${API_URL}/admin/casos/${id}/editar`, {
+    method: 'PATCH',
+    headers: { Authorization: `Bearer ${token}` },
+    body: formData,
+  })
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}))
+    throw new Error((err as { detail?: string }).detail ?? 'Error al editar caso')
+  }
+  return res.json()
+}

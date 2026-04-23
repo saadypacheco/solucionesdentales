@@ -109,26 +109,33 @@ def _construir_contexto(db, mensaje: str) -> str:
     return "\n\n".join(partes)
 
 
-def _llamar_gemini(system: str, historial: list[dict]) -> str:
+_FALLBACK_SIN_KEY = "En este momento no puedo responder automáticamente. Contactanos por WhatsApp para una respuesta inmediata. 💬"
+_FALLBACK_ERROR = "En este momento no puedo responder. Contactanos directo por WhatsApp. 💬"
+
+
+def _build_chat(system: str, historial: list[dict]):
+    """Configura modelo + historial. Devuelve (chat, ultimo_mensaje) o (None, fallback)."""
     api_key = os.getenv("GEMINI_API_KEY")
     if not api_key:
-        return "En este momento no puedo responder automáticamente. Contactanos por WhatsApp para una respuesta inmediata. 💬"
+        return None, _FALLBACK_SIN_KEY
 
     genai.configure(api_key=api_key)
     model = genai.GenerativeModel(
         model_name="gemini-2.0-flash",
         system_instruction=system,
     )
-
-    history = []
-    for msg in historial[:-1]:
-        history.append({"role": msg["rol"], "parts": [msg["contenido"]]})
-
+    history = [{"role": msg["rol"], "parts": [msg["contenido"]]} for msg in historial[:-1]]
     chat = model.start_chat(history=history)
+    return chat, historial[-1]["contenido"]
 
+
+def _llamar_gemini(system: str, historial: list[dict]) -> str:
+    chat, ultimo = _build_chat(system, historial)
+    if chat is None:
+        return ultimo  # fallback
     try:
         response = chat.send_message(
-            historial[-1]["contenido"],
+            ultimo,
             generation_config=genai.types.GenerationConfig(
                 max_output_tokens=350,
                 temperature=0.75,
@@ -136,7 +143,42 @@ def _llamar_gemini(system: str, historial: list[dict]) -> str:
         )
         return response.text.strip()
     except Exception:
-        return "En este momento no puedo responder. Contactanos directo por WhatsApp. 💬"
+        return _FALLBACK_ERROR
+
+
+def stream_respuesta(historial: list[dict], contexto_extra: str | None = None):
+    """Generador que yieldea trozos de texto a medida que Gemini los produce.
+    Para servir como Server-Sent Events o como ReadableStream."""
+    db = get_supabase_client()
+    system_prompt = _get_system_prompt(db)
+    ultimo_mensaje = historial[-1]["contenido"] if historial else ""
+    contexto_db = _construir_contexto(db, ultimo_mensaje)
+
+    system_final = system_prompt
+    if contexto_db:
+        system_final += f"\n\n---\nContexto del sistema:\n{contexto_db}"
+    if contexto_extra:
+        system_final += f"\n\n{contexto_extra}"
+
+    chat, ultimo = _build_chat(system_final, historial)
+    if chat is None:
+        yield ultimo  # fallback completo de una
+        return
+
+    try:
+        response = chat.send_message(
+            ultimo,
+            generation_config=genai.types.GenerationConfig(
+                max_output_tokens=350,
+                temperature=0.75,
+            ),
+            stream=True,
+        )
+        for chunk in response:
+            if chunk.text:
+                yield chunk.text
+    except Exception:
+        yield _FALLBACK_ERROR
 
 
 def get_respuesta(historial: list[dict], contexto_extra: str | None = None) -> str:

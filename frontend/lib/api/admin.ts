@@ -122,6 +122,29 @@ export async function getPacientesAdmin(token: string): Promise<Paciente[]> {
   return apiFetch('/admin/pacientes', token)
 }
 
+export interface ImportCSVResult {
+  ok: boolean
+  creados: number
+  duplicados_omitidos: number
+  sin_contacto_omitidos: number
+  errores: { fila: number; error: string }[]
+}
+
+export async function importarPacientesCSV(token: string, archivo: File): Promise<ImportCSVResult> {
+  const fd = new FormData()
+  fd.append('archivo', archivo)
+  const res = await fetch(`${API_URL}/admin/pacientes/import`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}` },
+    body: fd,
+  })
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}))
+    throw new Error(err.detail ?? 'Error importando CSV')
+  }
+  return res.json()
+}
+
 export async function patchPacienteEstado(token: string, pacienteId: number, estado: string): Promise<Paciente> {
   return apiFetch(`/admin/pacientes/${pacienteId}/estado?estado=${estado}`, token, { method: 'PATCH' })
 }

@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useTranslations } from 'next-intl'
 import { useAuthStore } from '@/store/authStore'
 import { useRouter } from 'next/navigation'
-import { getCasosAdmin, aprobarCaso, eliminarCaso, crearCaso, type Caso } from '@/lib/api/casos'
+import { getCasosAdmin, aprobarCaso, eliminarCaso, crearCaso, editarCaso, type Caso } from '@/lib/api/casos'
 
 const TRATAMIENTOS = [
   'estetica', 'blanqueamiento', 'ortodoncia', 'implante', 'limpieza', 'urgencia', 'consulta',
@@ -177,6 +177,154 @@ function ModalSubir({ token, onClose, onCreado }: {
   )
 }
 
+function ModalEditar({ token, caso, onClose, onActualizado }: {
+  token: string
+  caso: Caso
+  onClose: () => void
+  onActualizado: (c: Caso) => void
+}) {
+  const t = useTranslations('admin.galeria')
+  const tCommon = useTranslations('common')
+  const tTratamientos = useTranslations('tratamientos')
+  const [tipo, setTipo] = useState(caso.tipo_tratamiento)
+  const [descripcion, setDescripcion] = useState(caso.descripcion)
+  const [duracion, setDuracion] = useState(caso.duracion_tratamiento || '')
+  const [antes, setAntes] = useState<File | null>(null)
+  const [despues, setDespues] = useState<File | null>(null)
+  const [guardando, setGuardando] = useState(false)
+  const [error, setError] = useState('')
+
+  const antesRef = useRef<HTMLInputElement>(null)
+  const despuesRef = useRef<HTMLInputElement>(null)
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    setGuardando(true)
+    setError('')
+    try {
+      const fd = new FormData()
+      if (tipo !== caso.tipo_tratamiento) fd.append('tipo_tratamiento', tipo)
+      if (descripcion.trim() !== caso.descripcion) fd.append('descripcion', descripcion.trim())
+      if (duracion.trim() !== (caso.duracion_tratamiento || '')) fd.append('duracion_tratamiento', duracion.trim())
+      if (antes) fd.append('imagen_antes', antes)
+      if (despues) fd.append('imagen_despues', despues)
+
+      // Si nada cambió, simplemente cerrar
+      if (![...fd.keys()].length) { onClose(); return }
+
+      const actualizado = await editarCaso(token, caso.id, fd)
+      onActualizado(actualizado)
+      onClose()
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : t('modal.errorSave'))
+    } finally {
+      setGuardando(false)
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+      <div className="bg-[#0c1624] border border-white/10 rounded-2xl w-full max-w-lg p-6 shadow-2xl">
+        <div className="flex items-center justify-between mb-5">
+          <h2 className="text-white font-bold text-lg">{t('modal.editTitle')}</h2>
+          <button onClick={onClose} className="text-slate-400 hover:text-white">
+            <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <p className="text-yellow-400 text-xs bg-yellow-500/10 border border-yellow-500/20 rounded-lg px-3 py-2 mb-4">
+          ⚠️ {t('modal.editWarning')}
+        </p>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1.5">{t('modal.treatment')}</label>
+            <select
+              value={tipo}
+              onChange={(e) => setTipo(e.target.value)}
+              className="w-full bg-slate-800 border border-white/10 text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-teal-500"
+            >
+              {TRATAMIENTOS.map((tr) => (
+                <option key={tr} value={tr}>{tTratamientos(tr)}</option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1.5">{t('modal.description')}</label>
+            <textarea
+              value={descripcion}
+              onChange={(e) => setDescripcion(e.target.value)}
+              rows={2}
+              className="w-full bg-slate-800 border border-white/10 text-white rounded-xl px-3 py-2.5 text-sm resize-none focus:outline-none focus:border-teal-500"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1.5">{t('modal.duration')}</label>
+            <input
+              type="text"
+              value={duracion}
+              onChange={(e) => setDuracion(e.target.value)}
+              placeholder={t('modal.durationPlaceholder')}
+              className="w-full bg-slate-800 border border-white/10 text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-teal-500 placeholder:text-slate-600"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1.5">{t('modal.photoBefore')}</label>
+              <button
+                type="button"
+                onClick={() => antesRef.current?.click()}
+                className={`w-full border-2 border-dashed rounded-xl py-3 text-xs transition-colors ${
+                  antes ? 'border-teal-500 text-teal-400' : 'border-white/10 text-slate-500 hover:border-teal-500/50'
+                }`}
+              >
+                {antes ? antes.name.slice(0, 16) + '…' : t('modal.replaceOptional')}
+              </button>
+              <input ref={antesRef} type="file" accept="image/*" className="hidden"
+                onChange={(e) => setAntes(e.target.files?.[0] ?? null)} />
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1.5">{t('modal.photoAfter')}</label>
+              <button
+                type="button"
+                onClick={() => despuesRef.current?.click()}
+                className={`w-full border-2 border-dashed rounded-xl py-3 text-xs transition-colors ${
+                  despues ? 'border-teal-500 text-teal-400' : 'border-white/10 text-slate-500 hover:border-teal-500/50'
+                }`}
+              >
+                {despues ? despues.name.slice(0, 16) + '…' : t('modal.replaceOptional')}
+              </button>
+              <input ref={despuesRef} type="file" accept="image/*" className="hidden"
+                onChange={(e) => setDespues(e.target.files?.[0] ?? null)} />
+            </div>
+          </div>
+
+          {error && <p className="text-red-400 text-sm">{error}</p>}
+
+          <div className="flex gap-3 pt-2">
+            <button type="button" onClick={onClose}
+              className="flex-1 border border-white/10 text-slate-300 py-2.5 rounded-xl text-sm font-medium hover:border-white/20 transition-colors">
+              {tCommon('cancel')}
+            </button>
+            <button
+              type="submit"
+              disabled={guardando}
+              className="flex-1 bg-teal-600 text-white py-2.5 rounded-xl text-sm font-bold disabled:opacity-40 hover:bg-teal-500 transition-colors"
+            >
+              {guardando ? tCommon('saving') : tCommon('save')}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+
 export default function AdminGaleriaPage() {
   const t = useTranslations('admin.galeria')
   const router = useRouter()
@@ -184,6 +332,7 @@ export default function AdminGaleriaPage() {
   const [casos, setCasos] = useState<Caso[]>([])
   const [loading, setLoading] = useState(true)
   const [modalOpen, setModalOpen] = useState(false)
+  const [editando, setEditando] = useState<Caso | null>(null)
   const [accionando, setAccionando] = useState<number | null>(null)
 
   useEffect(() => {
@@ -278,6 +427,12 @@ export default function AdminGaleriaPage() {
                     {accionando === caso.id ? '...' : caso.aprobado ? t('unpublish') : t('publish')}
                   </button>
                   <button
+                    onClick={() => setEditando(caso)}
+                    className="px-3 py-2 rounded-xl text-xs text-teal-400 hover:bg-teal-500/10 transition-colors border border-white/5"
+                  >
+                    {t('edit')}
+                  </button>
+                  <button
                     onClick={() => handleEliminar(caso.id)}
                     className="px-3 py-2 rounded-xl text-xs text-red-400 hover:bg-red-500/10 transition-colors border border-white/5"
                   >
@@ -295,6 +450,15 @@ export default function AdminGaleriaPage() {
           token={token}
           onClose={() => setModalOpen(false)}
           onCreado={(c) => setCasos((prev) => [c, ...prev])}
+        />
+      )}
+
+      {editando && token && (
+        <ModalEditar
+          token={token}
+          caso={editando}
+          onClose={() => setEditando(null)}
+          onActualizado={(c) => setCasos((prev) => prev.map((x) => x.id === c.id ? c : x))}
         />
       )}
     </div>

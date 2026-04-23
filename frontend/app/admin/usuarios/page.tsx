@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Link from 'next/link'
 import { useTranslations } from 'next-intl'
 import { useAuthStore } from '@/store/authStore'
 import {
@@ -219,6 +220,14 @@ export default function UsuariosPage() {
                       >
                         {t('reset')}
                       </button>
+                      {(usuario.rol === 'odontologo' || usuario.rol === 'admin') && (
+                        <Link
+                          href={`/admin/usuarios/${usuario.id}/horarios`}
+                          className="text-xs text-sky-600 hover:text-sky-700 font-semibold transition-colors"
+                        >
+                          {t('schedule')}
+                        </Link>
+                      )}
                       <button
                         onClick={() => handleToggle(usuario)}
                         className={`text-xs font-semibold transition-colors ${
